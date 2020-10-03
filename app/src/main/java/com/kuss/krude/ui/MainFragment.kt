@@ -39,6 +39,7 @@ class MainFragment : Fragment() {
         model.search.observe(viewLifecycleOwner, {
             if (it.isEmpty()) {
                 editText.text.clear()
+                model.clearApps()
             } else {
                 filterApps(it)
             }

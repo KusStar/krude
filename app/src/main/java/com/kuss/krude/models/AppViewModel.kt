@@ -16,6 +16,10 @@ class AppViewModel: ViewModel() {
         return allApps
     }
 
+    fun clearApps() {
+        apps.value = emptyList()
+    }
+
     fun clearSearch() {
         search.value = ""
     }
