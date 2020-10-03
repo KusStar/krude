@@ -36,12 +36,13 @@ class MainFragment : Fragment() {
 
         editText.requestFocus()
 
-        model.search.observe(viewLifecycleOwner, {
-            if (it.isEmpty()) {
+        model.search.observe(viewLifecycleOwner, { search ->
+            // TODO: fix duplicating excuting when search.isEmpty()
+            if (search.isEmpty()) {
                 editText.text.clear()
                 model.clearApps()
             } else {
-                filterApps(it)
+                filterApps(search)
             }
         })
     }
