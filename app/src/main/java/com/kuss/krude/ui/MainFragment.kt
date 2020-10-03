@@ -8,8 +8,8 @@ import androidx.fragment.app.activityViewModels
 import com.kuss.krude.R
 import com.kuss.krude.databinding.MainFragmentBinding
 import com.kuss.krude.models.AppViewModel
+import com.kuss.krude.utils.FilterHelper
 import kotlinx.android.synthetic.main.main_fragment.editText
-import java.util.*
 
 class MainFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
@@ -57,10 +57,7 @@ class MainFragment : Fragment() {
 
     private fun filterApps(search: String) {
         model.getAllApps().let {apps ->
-            model.apps.value = apps.filter { app ->
-                app.filterTarget.toLowerCase(Locale.ROOT)
-                    .contains(search.toLowerCase(Locale.ROOT))
-            }
+            model.apps.value = FilterHelper.getFiltered(search, apps)
         }
     }
 

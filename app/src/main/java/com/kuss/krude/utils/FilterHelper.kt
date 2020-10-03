@@ -1,6 +1,8 @@
 package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
+import com.kuss.krude.models.AppInfo
+import java.util.*
 
 object FilterHelper {
     private fun toPinyinWithAbbr(label: String): String {
@@ -22,5 +24,12 @@ object FilterHelper {
 
     fun toTarget(label: String, packageName: String): String {
         return "$label, $packageName, ${toPinyinWithAbbr(label)}"
+    }
+
+    fun getFiltered(search: String, apps: List<AppInfo>): List<AppInfo> {
+        return apps.filter { app ->
+            app.filterTarget.toLowerCase(Locale.ROOT)
+                .contains(search.toLowerCase(Locale.ROOT))
+        }
     }
 }
