@@ -1,8 +1,6 @@
 package com.kuss.krude
 
-import android.app.PendingIntent
 import android.content.Intent
-import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
