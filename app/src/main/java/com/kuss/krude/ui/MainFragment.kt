@@ -1,12 +1,12 @@
 package com.kuss.krude.ui
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.*
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.kuss.krude.R
+import com.kuss.krude.databinding.MainFragmentBinding
 import com.kuss.krude.models.AppViewModel
 import kotlinx.android.synthetic.main.main_fragment.editText
 import java.util.*
@@ -22,7 +22,11 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+        val binding = DataBindingUtil.inflate<MainFragmentBinding>(
+            inflater, R.layout.main_fragment, container, false)
+        binding.viewModel = model
+
+        return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -30,26 +34,14 @@ class MainFragment : Fragment() {
 
         dealSoftInput()
 
-        initEditText()
-
-        model.apps.observe(viewLifecycleOwner, {apps ->
-            if (apps.isEmpty()) {
-                editText.text.clear()
-            }
-        })
-    }
-
-    private fun initEditText() {
         editText.requestFocus()
 
-        editText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                filterApps(s)
+        model.search.observe(viewLifecycleOwner, {
+            if (it.isEmpty()) {
+                editText.text.clear()
+            } else {
+                filterApps(it)
             }
-
-            override fun afterTextChanged(s: Editable?) { }
         })
     }
 
@@ -61,17 +53,12 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun filterApps(s: CharSequence?) {
+    private fun filterApps(search: String) {
         model.getAllApps().let {apps ->
-            model.apps.value =
-                if (s.isNullOrEmpty()) {
-                    emptyList()
-                } else {
-                    apps.filter { app ->
-                        app.filterTarget.toLowerCase(Locale.ROOT)
-                            .contains(s.toString().toLowerCase(Locale.ROOT))
-                    }
-                }
+            model.apps.value = apps.filter { app ->
+                app.filterTarget.toLowerCase(Locale.ROOT)
+                    .contains(search.toLowerCase(Locale.ROOT))
+            }
         }
     }
 

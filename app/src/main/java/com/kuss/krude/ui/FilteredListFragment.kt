@@ -15,7 +15,6 @@ import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.KeyboardHelper
 
-
 class FilteredListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
 
@@ -59,7 +58,7 @@ class FilteredListFragment : Fragment() {
             requireView(),
             packageName
         )
-        model.apps.value = emptyList()
+        model.clearSearch()
     }
 
     companion object {

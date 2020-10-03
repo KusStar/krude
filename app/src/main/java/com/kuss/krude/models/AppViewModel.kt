@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 class AppViewModel: ViewModel() {
     private var allApps: List<AppInfo> = emptyList()
     val apps: MutableLiveData<List<AppInfo>> = MutableLiveData()
+    val search: MutableLiveData<String> = MutableLiveData()
 
     fun setAllApps(value: List<AppInfo>) {
         allApps = value
@@ -13,6 +14,10 @@ class AppViewModel: ViewModel() {
 
     fun getAllApps(): List<AppInfo> {
         return allApps
+    }
+
+    fun clearSearch() {
+        search.value = ""
     }
 
 }
