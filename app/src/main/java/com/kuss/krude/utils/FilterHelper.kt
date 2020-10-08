@@ -1,7 +1,7 @@
 package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
-import com.kuss.krude.models.AppInfo
+import com.kuss.krude.data.AppInfo
 import java.util.*
 
 object FilterHelper {

@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kuss.krude.R
 import com.kuss.krude.adapters.AppListAdapter
-import com.kuss.krude.models.AppInfo
+import com.kuss.krude.data.AppInfo
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.KeyboardHelper

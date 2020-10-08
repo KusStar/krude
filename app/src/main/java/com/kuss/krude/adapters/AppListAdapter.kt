@@ -8,7 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.kuss.krude.R
-import com.kuss.krude.models.AppInfo
+import com.kuss.krude.data.AppInfo
 
 class AppListAdapter(
     private val values: List<AppInfo>,

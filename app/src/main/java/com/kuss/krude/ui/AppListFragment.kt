@@ -1,5 +1,9 @@
 package com.kuss.krude.ui
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kuss.krude.R
 import com.kuss.krude.adapters.AppListAdapter
-import com.kuss.krude.models.AppInfo
+import com.kuss.krude.data.AppInfo
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
@@ -30,31 +34,40 @@ class AppListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        model.setAllApps(getApps())
+        model.allApps.value = getApps()
 
         val view = inflater.inflate(R.layout.app_item_list, container, false)
 
         if (view is RecyclerView) {
             with(view) {
                 layoutManager = GridLayoutManager(context, 2)
-                adapter = AppListAdapter(model.getAllApps(),
-                    object : AppListAdapter.OnItemClickListener {
-                        override fun onClick(view: View, packageName: String) {
-                            KeyboardHelper.hide(requireActivity())
-                            launchApp(view, packageName)
-                        }
+                model.allApps.observe(viewLifecycleOwner, { apps ->
+                    adapter = AppListAdapter(apps,
+                        object : AppListAdapter.OnItemClickListener {
+                            override fun onClick(view: View, packageName: String) {
+                                KeyboardHelper.hide(requireActivity())
+                                launchApp(view, packageName)
+                            }
 
-                        override fun onLongClick(item: AppInfo) {
-                            ActivityHelper.startAppDetail(
-                                requireContext(),
-                                requireView(),
-                                item
-                            )
-                        }
-                    })
+                            override fun onLongClick(item: AppInfo) {
+                                ActivityHelper.startAppDetail(
+                                    requireContext(),
+                                    requireView(),
+                                    item
+                                )
+                            }
+                        })
+                })
+
             }
         }
         return view
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        initBroadcastReceiver()
     }
 
     private fun getApps(): List<AppInfo> {
@@ -82,6 +95,24 @@ class AppListFragment : Fragment() {
             view,
             packageName
         )
+    }
+
+    private fun initBroadcastReceiver() {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent) {
+                model.allApps.value = getApps()
+                model.clearApps()
+                model.clearSearch()
+            }
+        }
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED)
+        intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL)
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED)
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED)
+        intentFilter.addDataScheme("package");
+        requireContext().registerReceiver(receiver, intentFilter)
     }
 
     companion object {

@@ -1,7 +1,10 @@
 package com.kuss.krude.ui
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -9,7 +12,8 @@ import com.kuss.krude.R
 import com.kuss.krude.databinding.MainFragmentBinding
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.FilterHelper
-import kotlinx.android.synthetic.main.main_fragment.editText
+import kotlinx.android.synthetic.main.main_fragment.*
+
 
 class MainFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
@@ -23,7 +27,8 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = DataBindingUtil.inflate<MainFragmentBinding>(
-            inflater, R.layout.main_fragment, container, false)
+            inflater, R.layout.main_fragment, container, false
+        )
         binding.viewModel = model
 
         return binding.root
@@ -45,6 +50,7 @@ class MainFragment : Fragment() {
                 filterApps(search)
             }
         })
+
     }
 
     private fun dealSoftInput() {
@@ -56,7 +62,7 @@ class MainFragment : Fragment() {
     }
 
     private fun filterApps(search: String) {
-        model.getAllApps().let {apps ->
+        model.allApps.value?.let { apps ->
             model.apps.value = FilterHelper.getFiltered(search, apps)
         }
     }

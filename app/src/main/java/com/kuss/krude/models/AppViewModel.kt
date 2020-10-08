@@ -2,19 +2,12 @@ package com.kuss.krude.models
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.kuss.krude.data.AppInfo
 
 class AppViewModel: ViewModel() {
-    private var allApps: List<AppInfo> = emptyList()
+    val allApps: MutableLiveData<List<AppInfo>> = MutableLiveData()
     val apps: MutableLiveData<List<AppInfo>> = MutableLiveData()
     val search: MutableLiveData<String> = MutableLiveData()
-
-    fun setAllApps(value: List<AppInfo>) {
-        allApps = value
-    }
-
-    fun getAllApps(): List<AppInfo> {
-        return allApps
-    }
 
     fun clearApps() {
         apps.value = emptyList()

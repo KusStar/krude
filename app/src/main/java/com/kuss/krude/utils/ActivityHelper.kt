@@ -6,7 +6,7 @@ import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import com.kuss.krude.AppDetailActivity
-import com.kuss.krude.models.AppInfo
+import com.kuss.krude.data.AppInfo
 
 object ActivityHelper  {
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
