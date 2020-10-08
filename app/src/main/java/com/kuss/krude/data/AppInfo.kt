@@ -1,4 +1,4 @@
-package com.kuss.krude.models
+package com.kuss.krude.data
 
 import android.graphics.drawable.Drawable
 
