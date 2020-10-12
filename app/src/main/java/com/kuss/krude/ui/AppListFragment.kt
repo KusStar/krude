@@ -29,6 +29,13 @@ import kotlin.collections.sortWith
 
 class AppListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            model.allApps.value = getApps()
+            model.clearApps()
+            model.clearSearch()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -98,20 +105,12 @@ class AppListFragment : Fragment() {
     }
 
     private fun initBroadcastReceiver() {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent) {
-                model.allApps.value = getApps()
-                model.clearApps()
-                model.clearSearch()
-            }
-        }
-
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED)
         intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL)
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED)
         intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED)
-        intentFilter.addDataScheme("package");
+        intentFilter.addDataScheme("package")
         requireContext().registerReceiver(receiver, intentFilter)
     }
 
