@@ -64,6 +64,7 @@ class MainFragment : Fragment() {
     private fun filterApps(search: String) {
         model.allApps.value?.let { apps ->
             model.apps.value = FilterHelper.getFiltered(search, apps)
+                .sortedByDescending { it.priority }
         }
     }
 

@@ -6,5 +6,6 @@ data class AppInfo(
     val label: String,
     val packageName: String,
     val icon: Drawable,
-    val filterTarget: String
+    val filterTarget: String,
+    var priority: Int = 0
 )

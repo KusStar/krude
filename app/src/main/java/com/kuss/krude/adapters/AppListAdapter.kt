@@ -33,6 +33,7 @@ class AppListAdapter(
         holder.packageNameView.text = item.packageName
         holder.iconView.setImageDrawable(item.icon)
         holder.container.setOnClickListener {
+            item.priority += 1
             listener?.onClick(it, item.packageName)
         }
         holder.container.setOnLongClickListener{
