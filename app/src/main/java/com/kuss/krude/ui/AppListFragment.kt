@@ -107,9 +107,7 @@ class AppListFragment : Fragment() {
     private fun initBroadcastReceiver() {
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED)
-        intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL)
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED)
-        intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED)
         intentFilter.addDataScheme("package")
         requireContext().registerReceiver(receiver, intentFilter)
     }
