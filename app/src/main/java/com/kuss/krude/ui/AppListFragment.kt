@@ -31,9 +31,12 @@ class AppListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            model.allApps.value = getApps()
-            model.clearApps()
-            model.clearSearch()
+            if (intent.action == Intent.ACTION_PACKAGE_ADDED
+                || intent.action == Intent.ACTION_PACKAGE_REMOVED) {
+                model.allApps.value = getApps()
+                model.clearApps()
+                model.clearSearch()
+            }
         }
     }
 
