@@ -2,11 +2,13 @@ package com.kuss.krude.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ResolveInfo
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import com.kuss.krude.AppDetailActivity
 import com.kuss.krude.data.AppInfo
+
 
 object ActivityHelper  {
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
@@ -46,5 +48,14 @@ object ActivityHelper  {
             view,
             nextIntent,
         )
+    }
+
+    fun findActivitiesForPackage(context: Context, packageName: String): List<ResolveInfo?>? {
+        val packageManager = context.packageManager
+        val mainIntent = Intent(Intent.ACTION_MAIN, null)
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+        mainIntent.setPackage(packageName)
+        val apps = packageManager.queryIntentActivities(mainIntent, 0)
+        return apps ?: ArrayList<ResolveInfo>()
     }
 }

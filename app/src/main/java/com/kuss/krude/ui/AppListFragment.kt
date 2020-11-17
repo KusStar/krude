@@ -19,26 +19,11 @@ import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.KeyboardHelper
-import java.text.Collator
-import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.List
-import kotlin.collections.MutableList
-import kotlin.collections.sortWith
 
 
 class AppListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent) {
-            if (intent.action == Intent.ACTION_PACKAGE_ADDED
-                || intent.action == Intent.ACTION_PACKAGE_REMOVED) {
-                model.allApps.value = getApps()
-                model.clearApps()
-                model.clearSearch()
-            }
-        }
-    }
+    private val receiver = Receiver()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,7 +32,6 @@ class AppListFragment : Fragment() {
         model.allApps.value = getApps()
 
         val view = inflater.inflate(R.layout.app_item_list, container, false)
-
         if (view is RecyclerView) {
             with(view) {
                 layoutManager = GridLayoutManager(context, 2)
@@ -93,10 +77,7 @@ class AppListFragment : Fragment() {
             val filterTarget = FilterHelper.toTarget(label, packageName)
             validApps.add(AppInfo(label, packageName, icon, filterTarget))
         }
-        validApps.sortWith { s1, s2 ->
-            Collator.getInstance(Locale.CHINESE).compare(s1.label, s2.label)
-        }
-        return validApps
+        return FilterHelper.getSorted(validApps)
     }
 
     private fun launchApp(view: View, packageName: String) {
@@ -119,5 +100,48 @@ class AppListFragment : Fragment() {
         @JvmStatic
         fun newInstance() = AppListFragment()
     }
+
+    inner class Receiver : BroadcastReceiver(){
+        override fun onReceive(context: Context?, intent: Intent) {
+           intent.action?.let { action ->
+               when (action) {
+                   Intent.ACTION_PACKAGE_ADDED -> {
+                       handlePackageAdded(intent)
+                       postHandle()
+                   }
+                   Intent.ACTION_PACKAGE_REMOVED -> {
+                       handlePackageRemoved(intent)
+                       postHandle()
+                   }
+                   else -> return
+               }
+           }
+        }
+    }
+
+    fun handlePackageAdded(intent: Intent) {
+        val intentPackageName = intent.dataString?.substring(8) ?: return
+        val list = ActivityHelper
+            .findActivitiesForPackage(requireContext(), intentPackageName) ?: return
+
+        if (list?.size > 0) {
+            model.allApps.value = getApps()
+        }
+    }
+
+    fun handlePackageRemoved(intent: Intent) {
+        val apps = model.allApps.value?.toMutableList()
+            ?: return
+        val toDeletePackageName = intent.dataString?.substring(8)
+            ?: return
+
+        model.allApps.value = apps.filterNot { it -> it.packageName == toDeletePackageName}
+    }
+
+    fun postHandle() {
+        model.clearApps()
+        model.clearSearch()
+    }
+
 
 }

@@ -2,6 +2,7 @@ package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
 import com.kuss.krude.data.AppInfo
+import java.text.Collator
 import java.util.*
 
 object FilterHelper {
@@ -30,6 +31,12 @@ object FilterHelper {
         return apps.filter { app ->
             app.filterTarget.toLowerCase(Locale.ROOT)
                 .contains(search.toLowerCase(Locale.ROOT))
+        }
+    }
+
+    fun getSorted(apps: List<AppInfo>): List<AppInfo> {
+        return apps.sortedWith() { s1, s2 ->
+            Collator.getInstance(Locale.CHINESE).compare(s1.label, s2.label)
         }
     }
 }
