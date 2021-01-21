@@ -19,6 +19,7 @@ import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.KeyboardHelper
+import java.lang.Exception
 
 
 class AppListFragment : Fragment() {
@@ -120,13 +121,29 @@ class AppListFragment : Fragment() {
     }
 
     fun handlePackageAdded(intent: Intent) {
-        val intentPackageName = intent.dataString?.substring(8) ?: return
+        val intentPackageName = intent.dataString?.substring(8)
+            ?: return
         val list = ActivityHelper
-            .findActivitiesForPackage(requireContext(), intentPackageName) ?: return
+            .findActivitiesForPackage(requireContext(), intentPackageName)
+            ?: return
+        val apps = model.allApps.value?.toMutableList()
+            ?: return
 
-        if (list?.size > 0) {
-            model.allApps.value = getApps()
+        val pm = requireContext().packageManager
+        for (item in list) {
+            if (item == null) continue
+            try {
+                val label = item.loadLabel(pm).toString()
+                val packageName = item.activityInfo.packageName
+                val icon = item.loadIcon(pm)
+                val filterTarget = FilterHelper.toTarget(label, packageName)
+                apps.add(AppInfo(label, packageName, icon, filterTarget))
+            } catch(e: Exception) {
+                e.printStackTrace()
+                continue
+            }
         }
+        model.allApps.value = FilterHelper.getSorted(apps)
     }
 
     fun handlePackageRemoved(intent: Intent) {
