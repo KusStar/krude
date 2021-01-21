@@ -9,5 +9,4 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context=".ui.FilteredListFragment"
-    tools:listitem="@layout/filtered_item" />
+    tools:context=".ui.FilteredListFragment" />

@@ -20,6 +20,14 @@ class AppDetailActivity : AppCompatActivity() {
             val packageName = it.getStringExtra("packageName")
 
             val icon = packageManager.getApplicationIcon(packageName!!)
+            val info = packageManager.getPackageInfo(packageName!!, 0)
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                version_info.text = "${info.versionName}(${info.longVersionCode})"
+            } else {
+                version_info.text = "${info.versionName}(${info.versionCode})"
+            }
+
             icon_view.setImageDrawable(icon)
 
             label_view.text = label
