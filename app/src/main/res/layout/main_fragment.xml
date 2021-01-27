@@ -35,13 +35,13 @@
             app:fel_edge="left|right"
             app:fel_size_left="32dp"
             app:fel_size_right="32dp"
-            app:layout_constraintBottom_toTopOf="@+id/editText"
+            app:layout_constraintBottom_toTopOf="@+id/filter_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/list_container" />
 
         <EditText
-            android:id="@+id/editText"
+            android:id="@+id/filter_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="24dp"

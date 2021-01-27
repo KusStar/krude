@@ -39,12 +39,12 @@ class MainFragment : Fragment() {
 
         dealSoftInput()
 
-        editText.requestFocus()
+        filter_text.requestFocus()
 
         model.search.observe(viewLifecycleOwner, { search ->
             // TODO: fix duplicating excuting when search.isEmpty()
             if (search.isEmpty()) {
-                editText.text.clear()
+                filter_text.text.clear()
                 model.clearApps()
             } else {
                 filterApps(search)
