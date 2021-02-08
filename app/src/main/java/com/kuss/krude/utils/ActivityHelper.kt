@@ -11,6 +11,7 @@ import com.kuss.krude.data.AppInfo
 
 
 object ActivityHelper  {
+    @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
         val intent = context
             .packageManager.getLaunchIntentForPackage(packageName)
@@ -27,6 +28,7 @@ object ActivityHelper  {
         )
     }
 
+    @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, intent: Intent) {
         val compat = ActivityOptionsCompat.makeClipRevealAnimation(
             view, 0, 0, view.width, view.height
@@ -38,6 +40,7 @@ object ActivityHelper  {
         )
     }
 
+    @JvmStatic
     fun startAppDetail(context: Context, view: View, item: AppInfo) {
         val nextIntent = Intent(context, AppDetailActivity::class.java)
         nextIntent.putExtra("label", item.label)
@@ -50,6 +53,7 @@ object ActivityHelper  {
         )
     }
 
+    @JvmStatic
     fun findActivitiesForPackage(context: Context, packageName: String): List<ResolveInfo?>? {
         val packageManager = context.packageManager
         val mainIntent = Intent(Intent.ACTION_MAIN, null)

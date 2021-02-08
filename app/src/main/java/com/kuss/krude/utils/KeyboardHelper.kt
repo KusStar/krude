@@ -6,6 +6,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 
 object KeyboardHelper {
+    @JvmStatic
     fun hide(activity: Activity) {
         val view = activity.findViewById<View>(android.R.id.content)
         if (view != null) {

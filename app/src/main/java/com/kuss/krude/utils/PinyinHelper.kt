@@ -4,6 +4,7 @@ import com.github.promeg.pinyinhelper.Pinyin
 import com.github.promeg.pinyinhelper.PinyinMapDict
 
 object PinyinHelper {
+    @JvmStatic
     fun initDict() {
         Pinyin.init(
             Pinyin.newConfig()
