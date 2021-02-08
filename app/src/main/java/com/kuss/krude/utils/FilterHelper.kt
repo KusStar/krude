@@ -6,6 +6,7 @@ import java.text.Collator
 import java.util.*
 
 object FilterHelper {
+    @JvmStatic
     private fun toPinyinWithAbbr(label: String): String {
         val pinyin = Pinyin.toPinyin(label, "")
         val isChinese = pinyin != label
@@ -20,16 +21,19 @@ object FilterHelper {
         return "$pinyin, $abbr"
     }
 
+    @JvmStatic
     private fun toAbbr(str: String, delimiter: String = " "): String {
         return str.split(delimiter).joinToString("") {
             it.substring(0, 1)
         }
     }
 
+    @JvmStatic
     fun toTarget(label: String, packageName: String): String {
         return "$label, $packageName, ${toPinyinWithAbbr(label)}"
     }
 
+    @JvmStatic
     fun getFiltered(search: String, apps: List<AppInfo>): List<AppInfo> {
         return apps.filter { app ->
             app.filterTarget.toLowerCase(Locale.ROOT)
@@ -37,6 +41,7 @@ object FilterHelper {
         }
     }
 
+    @JvmStatic
     fun getSorted(apps: List<AppInfo>): List<AppInfo> {
         return apps.sortedWith() { s1, s2 ->
             Collator.getInstance(Locale.CHINESE).compare(s1.label, s2.label)
