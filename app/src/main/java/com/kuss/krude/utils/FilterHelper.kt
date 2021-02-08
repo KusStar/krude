@@ -9,18 +9,21 @@ object FilterHelper {
     private fun toPinyinWithAbbr(label: String): String {
         val pinyin = Pinyin.toPinyin(label, "")
         val isChinese = pinyin != label
-        val abbr = if (isChinese) {
-            Pinyin.toPinyin(label, ",")
-                .split(",")
-                .joinToString("") {
-                    it.substring(0, 1)
-                }
+        var abbr = if (isChinese) {
+            toAbbr(Pinyin.toPinyin(label, ","), ",")
         } else {
-            label.split(" ").joinToString("") {
-                it.substring(0, 1)
-            }
+            toAbbr(label)
+        }
+        if (abbr.contains(" ")) {
+            abbr += toAbbr(abbr)
         }
         return "$pinyin, $abbr"
+    }
+
+    private fun toAbbr(str: String, delimiter: String = " "): String {
+        return str.split(delimiter).joinToString("") {
+            it.substring(0, 1)
+        }
     }
 
     fun toTarget(label: String, packageName: String): String {
