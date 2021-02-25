@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/icon_view"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="81dp"
+        android:layout_height="81dp"
         android:layout_marginTop="64dp"
         android:contentDescription="@string/app_icon"
         app:layout_constraintEnd_toEndOf="parent"
