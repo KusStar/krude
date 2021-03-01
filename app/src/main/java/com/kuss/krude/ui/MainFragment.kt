@@ -54,10 +54,12 @@ class MainFragment : Fragment() {
     }
 
     private fun dealSoftInput() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            requireActivity().window.setDecorFitsSystemWindows(true)
-        } else {
-            requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        requireActivity().window.apply {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                setDecorFitsSystemWindows(true)
+            } else {
+                setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+            }
         }
     }
 
