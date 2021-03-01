@@ -17,9 +17,9 @@ import com.kuss.krude.adapters.AppListAdapter
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.KeyboardHelper
-import java.lang.Exception
 
 
 class AppListFragment : Fragment() {
@@ -30,7 +30,7 @@ class AppListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        model.allApps.value = getApps()
+        model.allApps.value = AppHelper.getInstalled(requireContext())
 
         val view = inflater.inflate(R.layout.app_item_list, container, false)
         if (view is RecyclerView) {
@@ -65,22 +65,6 @@ class AppListFragment : Fragment() {
         initBroadcastReceiver()
     }
 
-    private fun getApps(): List<AppInfo> {
-        val pm = requireContext().packageManager
-        val allApps = pm.getInstalledApplications(0)
-        val validApps: MutableList<AppInfo> = ArrayList()
-        for (app in allApps) {
-            if (pm.getLaunchIntentForPackage(app.packageName) == null) continue
-
-            val label = app.loadLabel(pm).toString()
-            val packageName = app.packageName
-            val icon = app.loadIcon(pm)
-            val filterTarget = FilterHelper.toTarget(label, packageName)
-            validApps.add(AppInfo(label, packageName, icon, filterTarget))
-        }
-        return FilterHelper.getSorted(validApps)
-    }
-
     private fun launchApp(view: View, packageName: String) {
         ActivityHelper.startWithRevealAnimation(
             requireContext(),
@@ -102,21 +86,21 @@ class AppListFragment : Fragment() {
         fun newInstance() = AppListFragment()
     }
 
-    inner class Receiver : BroadcastReceiver(){
+    inner class Receiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-           intent.action?.let { action ->
-               when (action) {
-                   Intent.ACTION_PACKAGE_ADDED -> {
-                       handlePackageAdded(intent)
-                       postHandle()
-                   }
-                   Intent.ACTION_PACKAGE_REMOVED -> {
-                       handlePackageRemoved(intent)
-                       postHandle()
-                   }
-                   else -> return
-               }
-           }
+            intent.action?.let { action ->
+                when (action) {
+                    Intent.ACTION_PACKAGE_ADDED -> {
+                        handlePackageAdded(intent)
+                        postHandle()
+                    }
+                    Intent.ACTION_PACKAGE_REMOVED -> {
+                        handlePackageRemoved(intent)
+                        postHandle()
+                    }
+                    else -> return
+                }
+            }
         }
     }
 
@@ -133,12 +117,14 @@ class AppListFragment : Fragment() {
         for (item in list) {
             if (item == null) continue
             try {
-                val label = item.loadLabel(pm).toString()
-                val packageName = item.activityInfo.packageName
-                val icon = item.loadIcon(pm)
-                val filterTarget = FilterHelper.toTarget(label, packageName)
-                apps.add(AppInfo(label, packageName, icon, filterTarget))
-            } catch(e: Exception) {
+                apps.add(
+                    AppHelper.getAppInfo(
+                        item.activityInfo.applicationInfo,
+                        pm,
+                        requireContext()
+                    )
+                )
+            } catch (e: Exception) {
                 e.printStackTrace()
                 continue
             }
@@ -152,7 +138,7 @@ class AppListFragment : Fragment() {
         val toDeletePackageName = intent.dataString?.substring(8)
             ?: return
 
-        model.allApps.value = apps.filterNot { it -> it.packageName == toDeletePackageName}
+        model.allApps.value = apps.filterNot { it -> it.packageName == toDeletePackageName }
     }
 
     fun postHandle() {

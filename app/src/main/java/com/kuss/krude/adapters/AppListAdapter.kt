@@ -29,17 +29,20 @@ class AppListAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
-        holder.labelView.text = item.label
-        holder.packageNameView.text = item.packageName
-        holder.iconView.setImageDrawable(item.icon)
-        holder.container.setOnClickListener {
-            item.priority += 1
-            listener?.onClick(it, item.packageName)
+        holder.apply {
+            labelView.text = item.label
+            packageNameView.text = item.packageName
+            iconView.setImageBitmap(item.icon)
+            container.setOnClickListener {
+                item.priority += 1
+                listener?.onClick(it, item.packageName)
+            }
+            container.setOnLongClickListener {
+                listener?.onLongClick(item)
+                true
+            }
         }
-        holder.container.setOnLongClickListener{
-            listener?.onLongClick(item)
-            true
-        }
+
     }
 
     override fun getItemCount(): Int = values.size

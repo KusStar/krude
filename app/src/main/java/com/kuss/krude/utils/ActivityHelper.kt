@@ -42,9 +42,10 @@ object ActivityHelper  {
 
     @JvmStatic
     fun startAppDetail(context: Context, view: View, item: AppInfo) {
-        val nextIntent = Intent(context, AppDetailActivity::class.java)
-        nextIntent.putExtra("label", item.label)
-        nextIntent.putExtra("packageName", item.packageName)
+        val nextIntent = Intent(context, AppDetailActivity::class.java).apply {
+            putExtra("label", item.label)
+            putExtra("packageName", item.packageName)
+        }
 
         startWithRevealAnimation(
             context,
@@ -56,9 +57,10 @@ object ActivityHelper  {
     @JvmStatic
     fun findActivitiesForPackage(context: Context, packageName: String): List<ResolveInfo?>? {
         val packageManager = context.packageManager
-        val mainIntent = Intent(Intent.ACTION_MAIN, null)
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-        mainIntent.setPackage(packageName)
+        val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            setPackage(packageName)
+        }
         val apps = packageManager.queryIntentActivities(mainIntent, 0)
         return apps ?: ArrayList<ResolveInfo>()
     }
