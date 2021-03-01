@@ -52,4 +52,5 @@ dependencies {
     // third party
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
     implementation 'com.github.promeg:tinypinyin:2.0.3'
+    implementation 'me.zhanghai.android.appiconloader:appiconloader:1.3.0'
 }
