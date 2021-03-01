@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_icon_size">48dp</dimen>
+    <dimen name="detail_icon_size">81dp</dimen>
+</resources>
