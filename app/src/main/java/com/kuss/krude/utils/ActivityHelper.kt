@@ -1,8 +1,13 @@
 package com.kuss.krude.utils
 
+import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
@@ -10,7 +15,7 @@ import com.kuss.krude.AppDetailActivity
 import com.kuss.krude.data.AppInfo
 
 
-object ActivityHelper  {
+object ActivityHelper {
     @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
         val intent = context
@@ -63,5 +68,40 @@ object ActivityHelper  {
         }
         val apps = packageManager.queryIntentActivities(mainIntent, 0)
         return apps ?: ArrayList<ResolveInfo>()
+    }
+
+    @JvmStatic
+    fun startDefaultHome(activity: Activity) {
+        startWithRevealAnimation(
+            activity,
+            activity.window.decorView,
+            Intent(Settings.ACTION_HOME_SETTINGS)
+        )
+    }
+
+    @JvmStatic
+    fun checkOrSetDefaultLauncher(activity: Activity) {
+        if (!isDefaultLauncher(activity)) {
+            AlertDialog.Builder(activity).apply {
+                setTitle("Set Krude as default launcher?")
+                setPositiveButton("Go to set") { _: DialogInterface, _: Int ->
+                    startDefaultHome(activity)
+                }
+                setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
+                    dialogInterface.cancel()
+                }
+            }.show()
+        }
+    }
+
+    @JvmStatic
+    fun isDefaultLauncher(activity: Activity): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        val resolveInfo =
+            activity.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        val currentHomePackage = resolveInfo!!.activityInfo.packageName
+        return currentHomePackage.equals(activity.packageName)
     }
 }
