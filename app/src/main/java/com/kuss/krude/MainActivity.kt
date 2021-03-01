@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kuss.krude.ui.AppListFragment
 import com.kuss.krude.ui.FilteredListFragment
 import com.kuss.krude.ui.MainFragment
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.PinyinHelper
 
 
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false)
         }
+
+        ActivityHelper.checkOrSetDefaultLauncher(this)
     }
 
     override fun onBackPressed() {}
