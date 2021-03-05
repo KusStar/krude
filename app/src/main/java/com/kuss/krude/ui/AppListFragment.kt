@@ -105,15 +105,17 @@ class AppListFragment : Fragment() {
     }
 
     fun handlePackageAdded(intent: Intent) {
+        val ctx = context ?: return
         val intentPackageName = intent.dataString?.substring(8)
             ?: return
         val list = ActivityHelper
-            .findActivitiesForPackage(requireContext(), intentPackageName)
+            .findActivitiesForPackage(ctx, intentPackageName)
             ?: return
         val apps = model.allApps.value?.toMutableList()
             ?: return
 
-        val pm = requireContext().packageManager
+        val pm = ctx.packageManager ?: return
+
         for (item in list) {
             if (item == null) continue
             try {
