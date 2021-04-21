@@ -16,52 +16,74 @@ import com.kuss.krude.R
 import com.kuss.krude.adapters.AppListAdapter
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.models.AppViewModel
-import com.kuss.krude.utils.ActivityHelper
-import com.kuss.krude.utils.AppHelper
-import com.kuss.krude.utils.FilterHelper
-import com.kuss.krude.utils.KeyboardHelper
+import com.kuss.krude.utils.*
 
 
 class AppListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
     private val receiver = Receiver()
+    private var spanCount = 2
+    private lateinit var recycler: RecyclerView
+    private lateinit var manager: GridLayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         model.allApps.value = AppHelper.getInstalled(requireContext())
 
-        val view = inflater.inflate(R.layout.app_item_list, container, false)
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = GridLayoutManager(context, 2)
-                model.allApps.observe(viewLifecycleOwner, { apps ->
-                    adapter = AppListAdapter(apps,
-                        object : AppListAdapter.OnItemClickListener {
-                            override fun onClick(view: View, packageName: String) {
-                                KeyboardHelper.hide(requireActivity())
-                                launchApp(view, packageName)
-                            }
+        recycler = inflater.inflate(R.layout.app_item_list, container, false) as RecyclerView
 
-                            override fun onLongClick(item: AppInfo) {
-                                ActivityHelper.startAppDetail(
-                                    requireContext(),
-                                    requireView(),
-                                    item
-                                )
-                            }
-                        })
+        manager = GridLayoutManager(context, spanCount)
+
+        recycler.layoutManager = manager
+
+        model.allApps.observe(viewLifecycleOwner, { apps ->
+            recycler.adapter = AppListAdapter(apps,
+                object : AppListAdapter.OnItemClickListener {
+                    override fun onClick(view: View, packageName: String) {
+                        KeyboardHelper.hide(requireActivity())
+                        launchApp(view, packageName)
+                    }
+
+                    override fun onLongClick(item: AppInfo) {
+                        ActivityHelper.startAppDetail(
+                            requireContext(),
+                            requireView(),
+                            item
+                        )
+                    }
                 })
+        })
 
+        recycler.addOnItemTouchListener(ScaleGestureItemTouchListener(context, object :
+            ScaleGestureItemTouchListener.Callback {
+            override fun onScaleFactor(scaleFactor: Float) {
+                val next = MAX_SPAN - scaleFactor.toInt()
+                if (next < 1 || next == spanCount) return
+                spanCount = next
+                manager.spanCount = spanCount
+                updateRecycler()
             }
-        }
-        return view
+        }))
+
+        return recycler
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    private fun updateRecycler() {
+        val adapter = recycler.adapter as AppListAdapter
 
+        val manager = recycler.layoutManager as GridLayoutManager
+        val firstVisible = manager.findFirstVisibleItemPosition()
+        val lastVisible = manager.findLastCompletelyVisibleItemPosition()
+
+        adapter.showLabel = spanCount < 4
+        adapter.notifyItemRangeChanged(firstVisible + 1, lastVisible - firstVisible - 1)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         initBroadcastReceiver()
     }
 
@@ -81,10 +103,6 @@ class AppListFragment : Fragment() {
         requireContext().registerReceiver(receiver, intentFilter)
     }
 
-    companion object {
-        @JvmStatic
-        fun newInstance() = AppListFragment()
-    }
 
     inner class Receiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -148,5 +166,10 @@ class AppListFragment : Fragment() {
         model.clearSearch()
     }
 
+    companion object {
+        @JvmStatic
+        fun newInstance() = AppListFragment()
+        const val MAX_SPAN = 4
+    }
 
 }
