@@ -39,22 +39,25 @@ class AppListFragment : Fragment() {
 
         recycler.layoutManager = manager
 
-        model.allApps.observe(viewLifecycleOwner, { apps ->
-            recycler.adapter = AppListAdapter(apps,
-                object : AppListAdapter.OnItemClickListener {
-                    override fun onClick(view: View, packageName: String) {
-                        KeyboardHelper.hide(requireActivity())
-                        launchApp(view, packageName)
-                    }
+        recycler.adapter = AppListAdapter(
+            listOf(),
+            object : AppListAdapter.OnItemClickListener {
+                override fun onClick(view: View, packageName: String) {
+                    KeyboardHelper.hide(requireActivity())
+                    launchApp(view, packageName)
+                }
 
-                    override fun onLongClick(item: AppInfo) {
-                        ActivityHelper.startAppDetail(
-                            requireContext(),
-                            requireView(),
-                            item
-                        )
-                    }
-                })
+                override fun onLongClick(item: AppInfo) {
+                    ActivityHelper.startAppDetail(
+                        requireContext(),
+                        requireView(),
+                        item
+                    )
+                }
+            })
+
+        model.allApps.observe(viewLifecycleOwner, { apps ->
+            (recycler.adapter as AppListAdapter).apps = apps
         })
 
         recycler.addOnItemTouchListener(ScaleGestureItemTouchListener(context, object :
@@ -149,7 +152,14 @@ class AppListFragment : Fragment() {
                 continue
             }
         }
-        model.allApps.value = FilterHelper.getSorted(apps)
+
+        FilterHelper.getSorted(apps).let { sorted ->
+            recycler.adapter?.notifyItemInserted(
+                sorted.indexOfFirst { it.packageName == intentPackageName }
+            )
+            model.allApps.value = sorted
+        }
+
     }
 
     fun handlePackageRemoved(intent: Intent) {
@@ -158,7 +168,13 @@ class AppListFragment : Fragment() {
         val toDeletePackageName = intent.dataString?.substring(8)
             ?: return
 
-        model.allApps.value = apps.filterNot { it -> it.packageName == toDeletePackageName }
+        val removedIndex = apps.indexOfFirst { it.packageName == toDeletePackageName }
+        if (removedIndex != -1) {
+            recycler.adapter?.notifyItemRemoved(removedIndex)
+            apps.removeAt(removedIndex)
+            model.allApps.value = apps
+        }
+
     }
 
     fun postHandle() {
