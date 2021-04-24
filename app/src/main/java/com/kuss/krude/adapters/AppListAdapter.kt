@@ -11,9 +11,10 @@ import com.kuss.krude.R
 import com.kuss.krude.data.AppInfo
 
 class AppListAdapter(
-    private val values: List<AppInfo>,
+    values: List<AppInfo>,
     private val listener: OnItemClickListener?
 ) : RecyclerView.Adapter<AppListAdapter.ViewHolder>() {
+    var apps = values
     var showLabel = true
 
     interface OnItemClickListener {
@@ -29,7 +30,7 @@ class AppListAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = values[position]
+        val item = apps[position]
         holder.apply {
             if (showLabel) {
                 labelView.text = item.label
@@ -52,7 +53,7 @@ class AppListAdapter(
 
     }
 
-    override fun getItemCount(): Int = values.size
+    override fun getItemCount(): Int = apps.size
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val container: LinearLayout = view.findViewById(R.id.container)
