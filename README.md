@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/KusStar/krude/releases">
+    <img width="256" src="./app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png">
+  </a>
+</p>
+
 # Krude
 
 > 一个简陋的应用启动器
