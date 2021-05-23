@@ -119,7 +119,6 @@ class AppListFragment : Fragment() {
                         handlePackageRemoved(intent)
                         postHandle()
                     }
-                    else -> return
                 }
             }
         }
@@ -127,6 +126,7 @@ class AppListFragment : Fragment() {
 
     fun handlePackageAdded(intent: Intent) {
         val ctx = context ?: return
+
         val intentPackageName = intent.dataString?.substring(8)
             ?: return
         val list = ActivityHelper

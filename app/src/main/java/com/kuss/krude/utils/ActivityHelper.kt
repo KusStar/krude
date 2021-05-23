@@ -66,8 +66,9 @@ object ActivityHelper {
             addCategory(Intent.CATEGORY_LAUNCHER)
             setPackage(packageName)
         }
-        val apps = packageManager.queryIntentActivities(mainIntent, 0)
-        return apps ?: ArrayList<ResolveInfo>()
+        return packageManager.queryIntentActivities(mainIntent, 0).distinctBy {
+            it.activityInfo.applicationInfo.packageName
+        }
     }
 
     @JvmStatic
