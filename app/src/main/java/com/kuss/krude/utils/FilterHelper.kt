@@ -36,8 +36,8 @@ object FilterHelper {
     @JvmStatic
     fun getFiltered(search: String, apps: List<AppInfo>): List<AppInfo> {
         return apps.filter { app ->
-            app.filterTarget.toLowerCase(Locale.ROOT)
-                .contains(search.toLowerCase(Locale.ROOT))
+            app.filterTarget.lowercase(Locale.ROOT)
+                .contains(search.lowercase(Locale.ROOT))
         }
     }
 
