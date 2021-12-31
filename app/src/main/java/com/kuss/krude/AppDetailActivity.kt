@@ -5,16 +5,19 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+import com.kuss.krude.databinding.ActivityAppDetailBinding
 import com.kuss.krude.utils.ActivityHelper
-import kotlinx.android.synthetic.main.activity_app_detail.*
 import me.zhanghai.android.appiconloader.AppIconLoader
 
 
 class AppDetailActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityAppDetailBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_app_detail)
+        binding = ActivityAppDetailBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         intent?.let {
             val label = it.getStringExtra("label")
@@ -24,24 +27,24 @@ class AppDetailActivity : AppCompatActivity() {
             val iconSize = resources.getDimensionPixelSize(R.dimen.detail_icon_size)
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                version_info.text = "${info.versionName}(${info.longVersionCode})"
+                binding.versionInfo.text = "${info.versionName}(${info.longVersionCode})"
             } else {
-                version_info.text = "${info.versionName}(${info.versionCode})"
+                binding.versionInfo.text = "${info.versionName}(${info.versionCode})"
             }
 
-            icon_view.setImageBitmap(
+            binding.iconView.setImageBitmap(
                 AppIconLoader(iconSize, true, this)
                     .loadIcon(info.applicationInfo)
             )
 
-            label_view.text = label
-            package_name_view.text = packageName
+            binding.labelView.text = label
+            binding.packageNameView.text = packageName
 
-            detail_btn.setOnClickListener {
+            binding.detailBtn.setOnClickListener {
                 toDetail(packageName)
             }
 
-            uninstall_btn.setOnClickListener {
+            binding.uninstallBtn.setOnClickListener {
                 toUninstall(packageName)
             }
         }
@@ -54,7 +57,7 @@ class AppDetailActivity : AppCompatActivity() {
         }
         ActivityHelper.startWithRevealAnimation(
             this,
-            this.icon_view,
+            binding.iconView,
             intent
         )
         finish()
@@ -66,7 +69,7 @@ class AppDetailActivity : AppCompatActivity() {
         }
         ActivityHelper.startWithRevealAnimation(
             this,
-            this.icon_view,
+            binding.iconView,
             intent
         )
         finish()
