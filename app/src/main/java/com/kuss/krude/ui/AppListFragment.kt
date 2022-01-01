@@ -29,7 +29,7 @@ class AppListFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         model.allApps.value = AppHelper.getInstalled(requireContext())
 
