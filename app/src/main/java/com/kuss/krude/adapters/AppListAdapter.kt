@@ -33,10 +33,11 @@ class AppListAdapter(
         val item = apps[position]
         holder.apply {
             if (showLabel) {
+                labelContainer.visibility = View.VISIBLE
                 labelView.text = item.label
                 packageNameView.text = item.packageName
             } else {
-                labelContainer.visibility = View.GONE;
+                labelContainer.visibility = View.GONE
             }
 
             iconView.setImageBitmap(item.icon)
