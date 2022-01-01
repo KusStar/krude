@@ -17,7 +17,6 @@ class MainFragment : Fragment() {
     private var _binding: MainFragmentBinding? = null
     private val binding get() = _binding!!
 
-
     companion object {
         fun newInstance() = MainFragment()
     }
@@ -40,7 +39,7 @@ class MainFragment : Fragment() {
         binding.filterText.requestFocus()
 
         model.search.observe(viewLifecycleOwner, { search ->
-            // TODO: fix duplicating excuting when search.isEmpty()
+            // TODO: fix duplicating executing when search.isEmpty()
             if (search.isEmpty()) {
                 binding.filterText.text.clear()
                 model.clearApps()
