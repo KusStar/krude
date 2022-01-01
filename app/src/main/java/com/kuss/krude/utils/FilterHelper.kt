@@ -43,7 +43,7 @@ object FilterHelper {
 
     @JvmStatic
     fun getSorted(apps: List<AppInfo>): List<AppInfo> {
-        return apps.sortedWith() { s1, s2 ->
+        return apps.sortedWith { s1, s2 ->
             Collator.getInstance(Locale.CHINESE).compare(s1.label, s2.label)
         }
     }
