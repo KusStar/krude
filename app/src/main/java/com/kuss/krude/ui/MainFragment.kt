@@ -28,14 +28,14 @@ class MainFragment : Fragment() {
     ): View {
         _binding = MainFragmentBinding.inflate(inflater, container, false)
         binding.viewModel = model
+
+        init()
+
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
+    private fun init() {
         dealSoftInput()
-
 
         binding.filterText.requestFocus()
 

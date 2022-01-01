@@ -7,48 +7,45 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.kuss.krude.R
 import com.kuss.krude.adapters.AppListAdapter
 import com.kuss.krude.data.AppInfo
+import com.kuss.krude.databinding.FilteredItemListBinding
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.KeyboardHelper
 
 class FilteredListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
+    private lateinit var binding: FilteredItemListBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.filtered_item_list, container, false)
+        binding = FilteredItemListBinding.inflate(inflater, container, false)
+        val view = binding.root
 
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = LinearLayoutManager(
-                    context,
-                    LinearLayoutManager.HORIZONTAL, false
-                )
-                model.apps.observe(viewLifecycleOwner, { apps ->
-                    adapter = AppListAdapter(apps,
-                        object : AppListAdapter.OnItemClickListener {
-                            override fun onClick(view: View, packageName: String) {
-                                KeyboardHelper.hide(requireActivity())
-                                launchApp(packageName)
-                            }
+        view.layoutManager = LinearLayoutManager(
+            context,
+            LinearLayoutManager.HORIZONTAL, false
+        )
+        model.apps.observe(viewLifecycleOwner, { apps ->
+            view.adapter = AppListAdapter(apps,
+                object : AppListAdapter.OnItemClickListener {
+                    override fun onClick(view: View, packageName: String) {
+                        KeyboardHelper.hide(requireActivity())
+                        launchApp(packageName)
+                    }
 
-                            override fun onLongClick(item: AppInfo) {
-                                ActivityHelper.startAppDetail(
-                                    requireContext(),
-                                    requireView(),
-                                    item
-                                )
-                            }
-                        })
+                    override fun onLongClick(item: AppInfo) {
+                        ActivityHelper.startAppDetail(
+                            requireContext(),
+                            requireView(),
+                            item
+                        )
+                    }
                 })
-            }
-        }
+        })
         return view
     }
 
