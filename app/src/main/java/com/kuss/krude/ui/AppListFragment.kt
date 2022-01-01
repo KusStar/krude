@@ -12,9 +12,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.kuss.krude.R
 import com.kuss.krude.adapters.AppListAdapter
 import com.kuss.krude.data.AppInfo
+import com.kuss.krude.databinding.AppItemListBinding
 import com.kuss.krude.models.AppViewModel
 import com.kuss.krude.utils.*
 
@@ -23,6 +23,7 @@ class AppListFragment : Fragment() {
     private val model: AppViewModel by activityViewModels()
     private val receiver = Receiver()
     private var spanCount = 2
+    private lateinit var binding: AppItemListBinding
     private lateinit var recycler: RecyclerView
     private lateinit var manager: GridLayoutManager
 
@@ -30,10 +31,11 @@ class AppListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        binding = AppItemListBinding.inflate(inflater, container, false)
 
-        model.allApps.value = AppHelper.getInstalled(requireContext())
+        recycler = binding.root
 
-        recycler = inflater.inflate(R.layout.app_item_list, container, false) as RecyclerView
+        loadApps()
 
         manager = GridLayoutManager(context, spanCount)
 
@@ -72,6 +74,13 @@ class AppListFragment : Fragment() {
         }))
 
         return recycler
+    }
+
+    private fun loadApps() {
+        AsyncHelper.doAsyncUI {
+            val apps = AppHelper.getInstalled(requireContext())
+            model.allApps.value = apps
+        }
     }
 
     private fun updateRecycler() {
