@@ -3,7 +3,6 @@ package com.kuss.krude.utils
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import com.kuss.krude.R
 import com.kuss.krude.data.AppInfo
 import me.zhanghai.android.appiconloader.AppIconLoader

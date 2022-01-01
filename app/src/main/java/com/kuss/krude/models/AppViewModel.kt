@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.kuss.krude.data.AppInfo
 
-class AppViewModel: ViewModel() {
+class AppViewModel : ViewModel() {
     val allApps: MutableLiveData<List<AppInfo>> = MutableLiveData()
     val apps: MutableLiveData<List<AppInfo>> = MutableLiveData()
     val search: MutableLiveData<String> = MutableLiveData()
