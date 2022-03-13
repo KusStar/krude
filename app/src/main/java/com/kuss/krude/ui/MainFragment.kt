@@ -47,7 +47,6 @@ class MainFragment : Fragment() {
                 filterApps(search)
             }
         })
-
     }
 
     private fun dealSoftInput() {
