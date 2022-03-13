@@ -81,17 +81,21 @@ object ActivityHelper {
     }
 
     @JvmStatic
-    fun checkOrSetDefaultLauncher(activity: Activity) {
+    fun checkOrSetDefaultLauncher(activity: Activity, cb: () -> Unit) {
         if (!isDefaultLauncher(activity)) {
             AlertDialog.Builder(activity).apply {
                 setTitle("Set Krude as default launcher?")
                 setPositiveButton("Go to set") { _: DialogInterface, _: Int ->
                     startDefaultHome(activity)
+                    cb()
                 }
                 setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
                     dialogInterface.cancel()
+                    cb()
                 }
             }.show()
+        } else {
+            cb()
         }
     }
 

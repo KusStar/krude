@@ -17,13 +17,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.container, MainFragment.newInstance())
-                .replace(R.id.list_container, AppListFragment.newInstance())
-                .replace(R.id.filtered_list_container, FilteredListFragment.newInstance())
-                .commitNow()
-        }
 
         PinyinHelper.initDict()
 
@@ -31,8 +24,22 @@ class MainActivity : AppCompatActivity() {
             window.setDecorFitsSystemWindows(false)
         }
 
-        ActivityHelper.checkOrSetDefaultLauncher(this)
+        ActivityHelper.checkOrSetDefaultLauncher(this) {
+            commitFragments()
+        }
     }
 
-    override fun onBackPressed() {}
+    private fun commitFragments() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, MainFragment.newInstance())
+            .replace(R.id.list_container, AppListFragment.newInstance())
+            .replace(R.id.filtered_list_container, FilteredListFragment.newInstance())
+            .commitNow()
+    }
+
+    override fun onBackPressed() {
+        if (!ActivityHelper.isDefaultLauncher(this)) {
+            super.onBackPressed()
+        }
+    }
 }

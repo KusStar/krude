@@ -77,10 +77,8 @@ class AppListFragment : Fragment() {
     }
 
     private fun loadApps() {
-        AsyncHelper.doAsyncUI {
-            val apps = AppHelper.getInstalled(requireContext())
-            model.allApps.value = apps
-        }
+        val apps = AppHelper.getInstalled(requireContext())
+        model.allApps.value = apps
     }
 
     private fun updateRecycler() {
