@@ -29,7 +29,7 @@ class FilteredListFragment : Fragment() {
             context,
             LinearLayoutManager.HORIZONTAL, false
         )
-        model.apps.observe(viewLifecycleOwner, { apps ->
+        model.apps.observe(viewLifecycleOwner) { apps ->
             view.adapter = AppListAdapter(apps,
                 object : AppListAdapter.OnItemClickListener {
                     override fun onClick(view: View, packageName: String) {
@@ -45,7 +45,7 @@ class FilteredListFragment : Fragment() {
                         )
                     }
                 })
-        })
+        }
         return view
     }
 
