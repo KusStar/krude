@@ -82,6 +82,18 @@ object ActivityHelper {
 
     @JvmStatic
     fun checkOrSetDefaultLauncher(activity: Activity, cb: () -> Unit) {
+        val sharedPref = activity.getSharedPreferences(
+            "checkOrSetDefaultLauncher", Context.MODE_PRIVATE)
+        val askedKey = "asked"
+        val asked = sharedPref.getBoolean(askedKey, false)
+        if (asked) {
+            cb()
+            return
+        }
+        val reject = {
+            sharedPref.edit().putBoolean(askedKey, true).apply()
+            cb()
+        }
         if (!isDefaultLauncher(activity)) {
             AlertDialog.Builder(activity).apply {
                 setTitle("Set Krude as default launcher?")
@@ -91,11 +103,11 @@ object ActivityHelper {
                 }
                 setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
                     dialogInterface.cancel()
-                    cb()
+                    reject()
                 }
             }.show()
         } else {
-            cb()
+            reject()
         }
     }
 
