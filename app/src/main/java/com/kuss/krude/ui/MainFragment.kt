@@ -38,7 +38,7 @@ class MainFragment : Fragment() {
 
         binding.filterText.requestFocus()
 
-        model.search.observe(viewLifecycleOwner, { search ->
+        model.search.observe(viewLifecycleOwner) { search ->
             // TODO: fix duplicating executing when search.isEmpty()
             if (search.isEmpty()) {
                 binding.filterText.text.clear()
@@ -46,7 +46,7 @@ class MainFragment : Fragment() {
             } else {
                 filterApps(search)
             }
-        })
+        }
     }
 
     private fun dealSoftInput() {

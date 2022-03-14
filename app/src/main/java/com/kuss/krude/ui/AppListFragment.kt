@@ -58,9 +58,9 @@ class AppListFragment : Fragment() {
                 }
             })
 
-        model.allApps.observe(viewLifecycleOwner, { apps ->
+        model.allApps.observe(viewLifecycleOwner) { apps ->
             (recycler.adapter as AppListAdapter).apps = apps
-        })
+        }
 
         recycler.addOnItemTouchListener(ScaleGestureItemTouchListener(context, object :
             ScaleGestureItemTouchListener.Callback {
