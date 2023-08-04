@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">krude</string>
     <string name="app_icon">App icon</string>
+    <string name="title_activity_main2">MainActivity2</string>
 </resources>
