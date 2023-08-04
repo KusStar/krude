@@ -2,8 +2,21 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+    jvmToolchain(17)
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 android {
-    compileSdkVersion 32
 
     buildFeatures {
         viewBinding true
@@ -13,14 +26,21 @@ android {
     defaultConfig {
         applicationId "com.kuss.krude"
         minSdkVersion 26
-        targetSdkVersion 32
+        targetSdkVersion 34
+        compileSdk 34
         versionCode 2
         versionName "0.1.0"
     }
 
     signingConfigs {
+        debug {
+            storeFile file('./debug-key')
+            storePassword 'debugdebug'
+            keyAlias 'debugdebug'
+            keyPassword 'debugdebug'
+        }
         krude {
-            storeFile file('../keystore')
+            storeFile file('./keystore')
             storePassword 'krudekrude'
             keyAlias 'key0'
             keyPassword 'krudekrude'
@@ -35,36 +55,29 @@ android {
             signingConfig signingConfigs.krude
         }
         debug {
-            signingConfig signingConfigs.krude
+            signingConfig signingConfigs.debug
             versionNameSuffix '.debug'
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+    namespace 'com.kuss.krude'
 }
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.core:core-ktx:1.10.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.1'
+    implementation 'com.google.android.material:material:1.9.0'
     // android lifecycle
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version"
-    implementation "androidx.fragment:fragment-ktx:1.4.1"
+    implementation "androidx.fragment:fragment-ktx:1.6.1"
     // third party
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
     implementation 'com.github.promeg:tinypinyin:2.0.3'

@@ -62,7 +62,8 @@ class AppListFragment : Fragment() {
             (recycler.adapter as AppListAdapter).apps = apps
         }
 
-        recycler.addOnItemTouchListener(ScaleGestureItemTouchListener(context, object :
+        val ctx: Context = requireContext()
+        recycler.addOnItemTouchListener(ScaleGestureItemTouchListener(ctx, object :
             ScaleGestureItemTouchListener.Callback {
             override fun onScaleFactor(scaleFactor: Float) {
                 val next = MAX_SPAN - scaleFactor.toInt()

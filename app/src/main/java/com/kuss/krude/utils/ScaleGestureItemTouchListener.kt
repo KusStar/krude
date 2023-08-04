@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnItemTouchListener
 
 
-class ScaleGestureItemTouchListener(context: Context?, listener: Callback) :
+class ScaleGestureItemTouchListener(context: Context, listener: Callback) :
     OnItemTouchListener, OnScaleGestureListener {
     private val mScaleGestureDetector: ScaleGestureDetector = ScaleGestureDetector(context, this)
     private val mListener: Callback
