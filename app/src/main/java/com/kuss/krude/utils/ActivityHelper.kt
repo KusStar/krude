@@ -11,9 +11,6 @@ import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
-import com.kuss.krude.AppDetailActivity
-import com.kuss.krude.data.AppInfo
-
 
 object ActivityHelper {
     @JvmStatic
@@ -42,20 +39,6 @@ object ActivityHelper {
             context,
             intent,
             compat.toBundle()
-        )
-    }
-
-    @JvmStatic
-    fun startAppDetail(context: Context, view: View, item: AppInfo) {
-        val nextIntent = Intent(context, AppDetailActivity::class.java).apply {
-            putExtra("label", item.label)
-            putExtra("packageName", item.packageName)
-        }
-
-        startWithRevealAnimation(
-            context,
-            view,
-            nextIntent,
         )
     }
 

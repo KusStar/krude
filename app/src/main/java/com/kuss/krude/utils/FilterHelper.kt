@@ -2,8 +2,9 @@ package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
 import com.kuss.krude.data.AppInfo
+import com.kuss.krude.data.AppInfoWithIcon
 import java.text.Collator
-import java.util.*
+import java.util.Locale
 
 object FilterHelper {
     @JvmStatic
@@ -29,6 +30,18 @@ object FilterHelper {
     }
 
     @JvmStatic
+    fun getAbbr(label: String): String {
+        val pinyin = Pinyin.toPinyin(label, "")
+        val isChinese = pinyin != label
+        return if (isChinese) {
+            toAbbr(Pinyin.toPinyin(label, ","), ",")
+        } else {
+            toAbbr(label)
+        }
+    }
+
+
+    @JvmStatic
     fun toTarget(label: String, packageName: String): String {
         return "$label, $packageName, ${toPinyinWithAbbr(label)}"
     }
@@ -42,9 +55,9 @@ object FilterHelper {
     }
 
     @JvmStatic
-    fun getSorted(apps: List<AppInfo>): List<AppInfo> {
+    fun getSorted(apps: List<AppInfoWithIcon>): List<AppInfoWithIcon> {
         return apps.sortedWith { s1, s2 ->
-            Collator.getInstance(Locale.CHINESE).compare(s1.label, s2.label)
+            Collator.getInstance(Locale.CHINESE).compare(s1.abbr, s2.abbr)
         }
     }
 }

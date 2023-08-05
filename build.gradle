@@ -2,6 +2,7 @@
 buildscript {
     ext.kotlin_version = '1.9.0'
     ext.lifecycle_version = "2.3.1"
+    ext.accompanist_version = "0.31.6-rc"
     repositories {
         google()
         //noinspection JcenterRepositoryObsolete
