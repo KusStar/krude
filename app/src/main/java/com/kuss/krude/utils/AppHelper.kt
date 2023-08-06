@@ -20,6 +20,7 @@ object AppHelper {
         return FilterHelper.getSorted(validApps)
     }
 
+    @JvmStatic
     fun getAppInfo(app: ApplicationInfo, pm: PackageManager, context: Context): AppInfoWithIcon {
         val label = app.loadLabel(pm).toString()
         val abbr = FilterHelper.getAbbr(label)
