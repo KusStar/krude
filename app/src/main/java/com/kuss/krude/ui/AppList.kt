@@ -154,7 +154,6 @@ fun AppList() {
                             val item = items[index]
 
                             AppItem(item = item,
-                                modifier = Modifier.animateItemPlacement(),
                                 onClick = {
                                     openApp(item.packageName)
                                 }, onLongClick = {
@@ -163,7 +162,7 @@ fun AppList() {
                         }
                     } else {
                         items(16) {
-                            AppItemShimmer(Modifier.animateItemPlacement())
+                            AppItemShimmer()
                         }
                     }
                 }
