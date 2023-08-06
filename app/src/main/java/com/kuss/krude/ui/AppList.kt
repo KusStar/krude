@@ -1,7 +1,5 @@
 package com.kuss.krude.ui
 
-import android.content.Intent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +44,6 @@ import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppList() {
     val context = LocalContext.current
@@ -90,7 +87,6 @@ fun AppList() {
     fun openApp(packageName: String) {
         val intent = context
             .packageManager.getLaunchIntentForPackage(packageName)
-            ?.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ?: return
 
         ActivityCompat.startActivity(
@@ -101,7 +97,6 @@ fun AppList() {
 
         filtering = ""
     }
-
 
     fun toAppDetail(item: AppInfoWithIcon) {
         selectedDetailApp = item
@@ -150,7 +145,9 @@ fun AppList() {
                 ),
                 content = {
                     if (items.isNotEmpty()) {
-                        items(items.size) { index ->
+                        items(items.size, key = {
+                            items[it].packageName
+                        }) { index ->
                             val item = items[index]
 
                             AppItem(item = item,
