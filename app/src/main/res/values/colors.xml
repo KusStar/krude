@@ -3,4 +3,5 @@
     <color name="colorPrimary">#FFF</color>
     <color name="colorPrimaryDark">#EEE</color>
     <color name="colorAccent">#FFF</color>
+    <color name="debugBackground">#F0AD4E</color>
 </resources>
