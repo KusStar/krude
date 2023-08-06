@@ -92,6 +92,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version"
     implementation "androidx.fragment:fragment-ktx:1.6.1"
+    implementation("androidx.core:core-splashscreen:1.0.1")
     // third party
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
     implementation 'com.github.promeg:tinypinyin:2.0.3'
