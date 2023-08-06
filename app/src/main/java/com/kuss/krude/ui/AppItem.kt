@@ -93,12 +93,13 @@ fun AppItem(
 
 @Composable
 fun AppItemShimmer(
+    modifier: Modifier = Modifier,
     iconSize: Dp = 48.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(8.dp),
         contentAlignment = Alignment.Center

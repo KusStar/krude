@@ -9,7 +9,6 @@ object LocaleHelper {
         MainActivity.myLang = language
         return updateResources(context, language);
     }
-
     private fun updateResources(context: Context, language: String): Context? {
         val locale = Locale(language)
         Locale.setDefault(locale)

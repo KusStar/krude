@@ -40,7 +40,6 @@ object FilterHelper {
         }
     }
 
-
     @JvmStatic
     fun toTarget(label: String, packageName: String): String {
         return "$label, $packageName, ${toPinyinWithAbbr(label)}"

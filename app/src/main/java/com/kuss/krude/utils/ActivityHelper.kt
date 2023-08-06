@@ -14,7 +14,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 
 object ActivityHelper {
-
     @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
         val intent = context
