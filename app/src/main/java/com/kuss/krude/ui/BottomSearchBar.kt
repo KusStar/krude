@@ -117,6 +117,7 @@ fun BottomSearchBar(
             }
         }
         TextField(
+            enabled = items.isNotEmpty(),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
