@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_placeholder">搜索...</string>
+    <string name="no_match_app">无结果</string>
+    <string name="app_info">应用信息</string>
+    <string name="uninstall_app">卸载</string>
+    <string name="all_activities">所有 Activities</string>
+</resources>

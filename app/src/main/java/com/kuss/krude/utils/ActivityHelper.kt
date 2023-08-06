@@ -7,12 +7,14 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 
 object ActivityHelper {
+
     @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
         val intent = context
@@ -103,5 +105,30 @@ object ActivityHelper {
             activity.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         val currentHomePackage = resolveInfo!!.activityInfo.packageName
         return currentHomePackage.equals(activity.packageName)
+    }
+
+    @JvmStatic
+    fun toDetail(context: Context, packageName: String) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            data = Uri.parse("package:$packageName")
+        }
+        ActivityCompat.startActivity(
+            context,
+            intent,
+            null
+        )
+    }
+
+    @JvmStatic
+    fun toUninstall(context: Context, packageName: String) {
+        val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE).apply {
+            data = Uri.parse("package:$packageName")
+        }
+        ActivityCompat.startActivity(
+            context,
+            intent,
+            null
+        )
     }
 }
