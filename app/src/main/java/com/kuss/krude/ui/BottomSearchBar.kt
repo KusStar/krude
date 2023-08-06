@@ -1,14 +1,16 @@
 package com.kuss.krude.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,7 @@ import kotlinx.coroutines.launch
 import me.xdrop.fuzzywuzzy.FuzzySearch
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomSearchBar(
     filtering: String,
@@ -57,45 +60,50 @@ fun BottomSearchBar(
         visible = filtering.isNotEmpty(),
     ) {
         Divider()
-        if (filteredItems.isNotEmpty()) {
-            LazyRow(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                itemsIndexed(filteredItems) { index, item ->
-                    AppItem(
-                        modifier = Modifier.width(96.dp),
-                        item = item,
-                        titleFontSize = 14.sp,
-                        titleSingleLine = true,
-                        showSubtitle = false,
-                        onClick = {
-                            openApp(item.packageName)
-                        },
-                        onLongClick = {
-                            toAppDetail(item)
-                        }
+        Crossfade(targetState = filteredItems.isNotEmpty(), label = "filteredItems") {
+            val height = 108.dp
+            if (it) {
+                LazyRow(
+                    modifier = Modifier
+                        .height(height)
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    itemsIndexed(filteredItems) { _, item ->
+                        AppItem(
+                            modifier = Modifier
+                                .width(96.dp),
+                            item = item,
+                            titleFontSize = 14.sp,
+                            titleSingleLine = true,
+                            showSubtitle = false,
+                            onClick = {
+                                openApp(item.packageName)
+                            },
+                            onLongClick = {
+                                toAppDetail(item)
+                            }
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(height),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.mipmap.ic_launcher_foreground),
+                        contentDescription = null,
+                        modifier = Modifier.size(96.dp)
+                    )
+                    Text(
+                        text = stringResource(id = R.string.no_match_app),
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
-            }
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter = painterResource(R.mipmap.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(96.dp)
-                )
-                Text(
-                    text = stringResource(id = R.string.no_match_app),
-                    color = MaterialTheme.colorScheme.secondary
-                )
             }
         }
     }

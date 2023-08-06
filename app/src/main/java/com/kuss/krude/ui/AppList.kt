@@ -201,7 +201,7 @@ fun AppList() {
                         updateSelectedIndexIfNeeded(change.position.y)
                     }
                 }
-                .padding(4.dp)
+                .padding(8.dp)
         ) {
             headers.forEachIndexed { i, header ->
                 val active = i == selectedHeaderIndex
