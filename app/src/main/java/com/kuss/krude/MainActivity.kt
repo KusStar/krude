@@ -5,10 +5,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.kuss.krude.ui.AppList
 import com.kuss.krude.ui.theme.AppTheme
 import com.kuss.krude.utils.ActivityHelper
@@ -18,12 +22,29 @@ import com.kuss.krude.utils.PinyinHelper
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         PinyinHelper.initDict()
 
-
         setContent {
+            val systemUiController = rememberSystemUiController()
+            val useDarkIcons = !isSystemInDarkTheme()
+
+            DisposableEffect(systemUiController, useDarkIcons) {
+                // Update all of the system bar colors to be transparent, and use
+                // dark icons if we're in light theme
+                systemUiController.setSystemBarsColor(
+                    color = Color.Transparent,
+                    darkIcons = useDarkIcons
+                )
+
+                // setStatusBarColor() and setNavigationBarColor() also exist
+
+                onDispose {}
+            }
+
             AppTheme {
                 Surface(
                     modifier = Modifier
