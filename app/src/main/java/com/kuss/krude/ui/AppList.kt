@@ -29,15 +29,15 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
     val focusManager = LocalFocusManager.current
 
     val uiState by mainViewModel.state.collectAsState()
-    val items = uiState.items
-    val headers = uiState.headers
+    val apps = uiState.apps
+    val scrollbarItems = uiState.scrollbarItems
 
     val firstVisibleItemIndex by remember {
         derivedStateOf { listState.firstVisibleItemIndex }
     }
 
     LaunchedEffect(Unit) {
-        mainViewModel.loadItems(context)
+        mainViewModel.loadApps(context)
     }
 
     fun openApp(packageName: String) {
@@ -63,8 +63,8 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
 
     Row {
         LaunchedEffect(firstVisibleItemIndex) {
-            val next = headers.indexOfFirst {
-                it == items[firstVisibleItemIndex + 1].abbr.first().uppercase()
+            val next = scrollbarItems.indexOfFirst {
+                it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
             }
 
             mainViewModel.setSelectedHeaderIndex(next)
@@ -83,11 +83,11 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
                     bottom = 12.dp
                 ),
                 content = {
-                    if (items.isNotEmpty()) {
-                        items(items.size, key = {
-                            items[it].packageName
+                    if (apps.isNotEmpty()) {
+                        items(apps.size, key = {
+                            apps[it].packageName
                         }) { index ->
-                            val item = items[index]
+                            val item = apps[index]
 
                             AppItem(item = item,
                                 onClick = {

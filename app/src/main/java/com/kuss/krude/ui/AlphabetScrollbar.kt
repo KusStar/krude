@@ -47,9 +47,9 @@ fun AlphabetScrollbar(mainViewModel: MainViewModel, listState: LazyStaggeredGrid
                 .entries
                 .minByOrNull { it.value }
                 ?.key ?: return@launch
-            if (uiState.selectedHeaderIndex == index) return@launch
-            val selectedItemIndex = uiState.items.indexOfFirst {
-                it.abbr.first().uppercase() == uiState.headers[index]
+            if (uiState.currentScrollbarIndex == index) return@launch
+            val selectedItemIndex = uiState.apps.indexOfFirst {
+                it.abbr.first().uppercase() == uiState.scrollbarItems[index]
             }
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             listState.scrollToItem(selectedItemIndex)
@@ -75,8 +75,8 @@ fun AlphabetScrollbar(mainViewModel: MainViewModel, listState: LazyStaggeredGrid
             }
             .padding(8.dp)
     ) {
-        uiState.headers.forEachIndexed { i, header ->
-            val active = i == uiState.selectedHeaderIndex
+        uiState.scrollbarItems.forEachIndexed { i, header ->
+            val active = i == uiState.currentScrollbarIndex
             Text(
                 header,
                 color = MaterialTheme.colorScheme.primary,
