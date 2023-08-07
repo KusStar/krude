@@ -34,6 +34,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,15 +47,20 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.data.AppInfoWithIcon
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun AppDetailModal(showAppDetailSheet: Boolean, selectedDetailApp: AppInfoWithIcon?, onClose: () -> Unit = {}) {
+fun AppDetailModal(mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
+
+    val uiState by mainViewModel.state.collectAsState()
+    val showAppDetailSheet = uiState.showAppDetailSheet
+    val selectedDetailApp = uiState.selectedDetailApp
 
     fun openAppInfo(item: AppInfoWithIcon) {
         ActivityHelper.toDetail(context, item.packageName)
@@ -66,7 +73,7 @@ fun AppDetailModal(showAppDetailSheet: Boolean, selectedDetailApp: AppInfoWithIc
     if (showAppDetailSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                onClose()
+                mainViewModel.setShowAppDetailSheet(false)
             },
             sheetState = sheetState,
             dragHandle = {
