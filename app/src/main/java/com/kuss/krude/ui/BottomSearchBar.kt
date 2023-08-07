@@ -50,9 +50,9 @@ fun BottomSearchBar(
     toAppDetail: (AppInfoWithIcon) -> Unit
 ) {
     val uiState by mainViewModel.state.collectAsState()
-    val items = uiState.items
+    val apps = uiState.apps
     val filtering = uiState.filtering
-    val filteredItems = uiState.filteredItems
+    val filteredApps = uiState.filteredApps
 
     val scope = rememberCoroutineScope()
     val focusRequester = remember {
@@ -62,7 +62,7 @@ fun BottomSearchBar(
         visible = filtering.isNotEmpty(),
     ) {
         Divider()
-        Crossfade(targetState = filteredItems.isNotEmpty(), label = "filteredItems") {
+        Crossfade(targetState = filteredApps.isNotEmpty(), label = "filteredItems") {
             val height = 108.dp
             if (it) {
                 LazyRow(
@@ -71,7 +71,7 @@ fun BottomSearchBar(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    itemsIndexed(filteredItems) { _, item ->
+                    itemsIndexed(filteredApps) { _, item ->
                         AppItem(
                             modifier = Modifier
                                 .width(96.dp),
@@ -127,7 +127,7 @@ fun BottomSearchBar(
             }
         }
         TextField(
-            enabled = items.isNotEmpty(),
+            enabled = apps.isNotEmpty(),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -151,7 +151,7 @@ fun BottomSearchBar(
             onValueChange = { text ->
                 mainViewModel.setFiltering(text)
                 scope.launch {
-                    val next = if (items.isNotEmpty())
+                    val next = if (apps.isNotEmpty())
                     // TODO: options for fuzzy search and exact search
 //                            items.filter {
 //                                it.filterTarget.contains(
@@ -159,7 +159,7 @@ fun BottomSearchBar(
 //                                    ignoreCase = true
 //                                )
 //                            }
-                        items
+                        apps
                             .map {
                                 val ratio = FuzzySearch.partialRatio(
                                     it.abbr.lowercase(),
@@ -182,7 +182,7 @@ fun BottomSearchBar(
                             }
                     else emptyList()
 
-                    mainViewModel.setFilteredItems(next)
+                    mainViewModel.setFilteredApps(next)
                 }
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },

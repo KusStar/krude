@@ -13,10 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class MainState(
-    val items: List<AppInfoWithIcon> = listOf(),
-    val filteredItems: List<AppInfoWithIcon> = listOf(),
-    val headers: List<String> = listOf(),
-    val selectedHeaderIndex: Int = 0,
+    val apps: List<AppInfoWithIcon> = listOf(),
+    val filteredApps: List<AppInfoWithIcon> = listOf(),
+    val scrollbarItems: List<String> = listOf(),
+    val currentScrollbarIndex: Int = 0,
     val filtering: String = "",
     val showAppDetailSheet: Boolean = false,
     val selectedDetailApp: AppInfoWithIcon? = null
@@ -28,14 +28,14 @@ class MainViewModel : ViewModel() {
     val state: StateFlow<MainState>
         get() = _state
 
-    fun loadItems(context: Context) {
+    fun loadApps(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
                 _state.update { mainState ->
                     val items = AppHelper.getInstalled(context)
                     mainState.copy(
-                        items = items,
-                        headers = getHeadersFromItems(items)
+                        apps = items,
+                        scrollbarItems = getScrollbarItemsFromApps(items)
                     )
                 }
             }
@@ -48,17 +48,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun setFilteredItems(filteredItems: List<AppInfoWithIcon>) {
+    fun setFilteredApps(apps: List<AppInfoWithIcon>) {
         _state.update { mainState ->
-            mainState.copy(filteredItems = filteredItems)
-        }
-    }
-
-    fun updateHeaders() {
-        _state.update { mainState ->
-            mainState.copy(
-                headers = getHeadersFromItems(mainState.items)
-            )
+            mainState.copy(filteredApps = apps)
         }
     }
 
@@ -70,10 +62,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun setSelectedDetailApp(item: AppInfoWithIcon) {
+    fun setSelectedDetailApp(app: AppInfoWithIcon) {
         _state.update { mainState ->
             mainState.copy(
-                selectedDetailApp = item
+                selectedDetailApp = app
             )
         }
     }
@@ -81,13 +73,13 @@ class MainViewModel : ViewModel() {
     fun setSelectedHeaderIndex(i: Int) {
         _state.update { mainState ->
             mainState.copy(
-                selectedHeaderIndex = i
+                currentScrollbarIndex = i
             )
         }
     }
 
-    private fun getHeadersFromItems(items: List<AppInfoWithIcon>): List<String> {
-        return items.map { it.abbr.first().uppercase() }
+    private fun getScrollbarItemsFromApps(apps: List<AppInfoWithIcon>): List<String> {
+        return apps.map { it.abbr.first().uppercase() }
             .toSet().toList().sorted()
     }
 }
