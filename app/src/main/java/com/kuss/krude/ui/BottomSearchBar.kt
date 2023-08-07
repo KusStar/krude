@@ -2,7 +2,6 @@ package com.kuss.krude.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -24,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -37,21 +38,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.data.AppInfoWithIcon
+import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import me.xdrop.fuzzywuzzy.FuzzySearch
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomSearchBar(
-    filtering: String,
-    setFiltering: (String) -> Unit,
-    items: List<AppInfoWithIcon>,
-    filteredItems: List<AppInfoWithIcon>,
-    setFilteredItems: (List<AppInfoWithIcon>) -> Unit,
+    mainViewModel: MainViewModel,
     openApp: (String) -> Unit,
     toAppDetail: (AppInfoWithIcon) -> Unit
 ) {
+    val uiState by mainViewModel.state.collectAsState()
+    val items = uiState.items
+    val filtering = uiState.filtering
+    val filteredItems = uiState.filteredItems
+
     val scope = rememberCoroutineScope()
     val focusRequester = remember {
         FocusRequester()
@@ -116,7 +118,7 @@ fun BottomSearchBar(
         horizontalArrangement = Arrangement.Center
     ) {
         AnimatedVisibility(visible = filtering.isNotEmpty()) {
-            IconButton(onClick = { setFiltering("") }) {
+            IconButton(onClick = { mainViewModel.setFiltering("") }) {
                 Icon(
                     Icons.Filled.Clear,
                     contentDescription = "Clear",
@@ -147,7 +149,7 @@ fun BottomSearchBar(
                 focusedPlaceholderColor = MaterialTheme.colorScheme.primary
             ),
             onValueChange = { text ->
-                setFiltering(text)
+                mainViewModel.setFiltering(text)
                 scope.launch {
                     val next = if (items.isNotEmpty())
                     // TODO: options for fuzzy search and exact search
@@ -180,7 +182,7 @@ fun BottomSearchBar(
                             }
                     else emptyList()
 
-                    setFilteredItems(next)
+                    mainViewModel.setFilteredItems(next)
                 }
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
