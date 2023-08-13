@@ -1,6 +1,7 @@
 package com.kuss.krude.ui
 
 import android.util.Log
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,10 +18,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,15 +34,57 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kuss.krude.data.AppInfoWithIcon
+import com.kuss.krude.R
+import com.kuss.krude.data.AppInfo
 import com.valentinilk.shimmer.shimmer
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
+import me.zhanghai.android.appiconloader.AppIconLoader
+
+@Composable
+fun AsyncAppIcon(packageName: String, modifier: Modifier) {
+    val context = LocalContext.current
+
+    val bitmap = remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+
+    LaunchedEffect(packageName) {
+        withContext(IO) {
+            val packageManager = context.packageManager
+
+            val info = packageManager.getApplicationInfo(packageName, 0)
+
+            val iconSize = context.resources.getDimensionPixelSize(R.dimen.app_icon_size)
+            val icon = AppIconLoader(iconSize, true, context).loadIcon(info)
+
+            bitmap.value = icon.asImageBitmap()
+        }
+    }
+
+    Crossfade(targetState = bitmap.value != null, label = "appicon") {
+        if (it) {
+            Image(
+                bitmap = bitmap.value!!,
+                contentDescription = null,
+                modifier = modifier
+            )
+        } else {
+            Box(
+                modifier = modifier
+            )
+        }
+
+    }
+
+}
 
 @Composable
 fun AppItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
-    item: AppInfoWithIcon,
+    item: AppInfo,
     showSubtitle: Boolean = true,
     titleSingleLine: Boolean = false,
     enabled: Boolean = true,
@@ -63,10 +111,8 @@ fun AppItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Image(
-                bitmap = item.icon.asImageBitmap(),
-                contentDescription = "icon",
-                modifier = Modifier
+            AsyncAppIcon(
+                packageName = item.packageName, modifier = Modifier
                     .size(iconSize)
             )
             Spacing(1)
@@ -94,7 +140,7 @@ fun AppItem(
 @Composable
 fun AppItemShimmer(
     modifier: Modifier = Modifier,
-    iconSize: Dp = 48.dp,
+    iconSize: Dp = 56.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
 ) {

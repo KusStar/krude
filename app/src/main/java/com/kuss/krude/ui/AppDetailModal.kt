@@ -45,7 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
-import com.kuss.krude.data.AppInfoWithIcon
+import com.kuss.krude.data.AppInfo
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -62,11 +62,11 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
     val showAppDetailSheet = uiState.showAppDetailSheet
     val selectedDetailApp = uiState.selectedDetailApp
 
-    fun openAppInfo(item: AppInfoWithIcon) {
+    fun openAppInfo(item: AppInfo) {
         ActivityHelper.toDetail(context, item.packageName)
     }
 
-    fun uninstallApp(item: AppInfoWithIcon) {
+    fun uninstallApp(item: AppInfo) {
         ActivityHelper.toUninstall(context, item.packageName)
     }
 

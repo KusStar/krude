@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kuss.krude.data.AppInfoWithIcon
+import com.kuss.krude.data.AppInfo
 import com.kuss.krude.viewmodel.MainViewModel
 
 
@@ -54,7 +54,7 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         mainViewModel.setFiltering("")
     }
 
-    fun toAppDetail(item: AppInfoWithIcon) {
+    fun toAppDetail(item: AppInfo) {
         mainViewModel.setSelectedDetailApp(item)
         mainViewModel.setShowAppDetailSheet(true)
 
