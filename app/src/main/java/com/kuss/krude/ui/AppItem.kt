@@ -53,12 +53,16 @@ fun AsyncAppIcon(packageName: String, modifier: Modifier) {
         withContext(IO) {
             val packageManager = context.packageManager
 
-            val info = packageManager.getApplicationInfo(packageName, 0)
+            try {
+                val info = packageManager.getApplicationInfo(packageName, 0)
 
-            val iconSize = context.resources.getDimensionPixelSize(R.dimen.app_icon_size)
-            val icon = AppIconLoader(iconSize, true, context).loadIcon(info)
+                val iconSize = context.resources.getDimensionPixelSize(R.dimen.app_icon_size)
+                val icon = AppIconLoader(iconSize, true, context).loadIcon(info)
 
-            bitmap.value = icon.asImageBitmap()
+                bitmap.value = icon.asImageBitmap()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
