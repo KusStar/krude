@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="search_placeholder">搜索...</string>
+    <string name="app_name">Krude</string>
+    <string name="search_placeholder">搜索…</string>
     <string name="no_match_app">无结果</string>
     <string name="app_info">应用信息</string>
     <string name="uninstall_app">卸载</string>
     <string name="all_activities">所有 Activities</string>
+    <string name="reload_apps">重新加载应用</string>
+    <string name="auto_focus">输入框自动获取焦点</string>
 </resources>

@@ -64,8 +64,17 @@ class MainViewModel : ViewModel() {
                     }
                     Log.d(TAG, "load from db, ${dbApps.size} apps")
                 }
+            }
+        }
+        // load from packageManager
+        loadFromPackageManger(context)
+    }
 
-                // load from packageManager
+    fun loadFromPackageManger(context: Context) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+
                 val items = AppHelper.getInstalled(context)
 
                 db.appDao().deleteAllApp()
