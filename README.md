@@ -6,7 +6,7 @@
 
 # Krude
 
-> 一个简陋的应用启动器
+> A tiny but elegant app launcher / 一个简陋但可爱的桌面 / 应用启动器。Built with Jetpack Compose.
 
 ## Features
 
@@ -14,11 +14,13 @@
 
 ## TODO
 
+- [x] 模糊搜索
+
+- [x] 样式优化
+
+- [x] 支持拼音首字母搜索
+
 - [ ] 自定义应用别名，屏蔽应用
-
-- [ ] 模糊搜索
-
-- [ ] 样式优化
 
 - [ ] 常用的应用列表，按使用频率排序
 
@@ -28,8 +30,6 @@
 
 - [androidx](https://github.com/androidx/androidx)
 
-- [bosphere/Android-FadingEdgeLayout](https://github.com/bosphere/Android-FadingEdgeLayout)
-  
 - [promeG/TinyPinyin](https://github.com/promeG/TinyPinyin)
 
 ## LICENSE
