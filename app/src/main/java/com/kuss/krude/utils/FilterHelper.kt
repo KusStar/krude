@@ -2,7 +2,6 @@ package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
 import com.kuss.krude.data.AppInfo
-import com.kuss.krude.data.AppInfoWithIcon
 import java.text.Collator
 import java.util.Locale
 
@@ -54,7 +53,7 @@ object FilterHelper {
     }
 
     @JvmStatic
-    fun getSorted(apps: List<AppInfoWithIcon>): List<AppInfoWithIcon> {
+    fun getSorted(apps: List<AppInfo>): List<AppInfo> {
         return apps.sortedWith { s1, s2 ->
             Collator.getInstance(Locale.CHINESE).compare(s1.abbr, s2.abbr)
         }

@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
-import com.kuss.krude.data.AppInfoWithIcon
+import com.kuss.krude.data.AppInfo
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import me.xdrop.fuzzywuzzy.FuzzySearch
@@ -47,13 +48,12 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 fun BottomSearchBar(
     mainViewModel: MainViewModel,
     openApp: (String) -> Unit,
-    toAppDetail: (AppInfoWithIcon) -> Unit
+    toAppDetail: (AppInfo) -> Unit
 ) {
     val uiState by mainViewModel.state.collectAsState()
     val apps = uiState.apps
     val filtering = uiState.filtering
     val filteredApps = uiState.filteredApps
-
     val scope = rememberCoroutineScope()
     val focusRequester = remember {
         FocusRequester()

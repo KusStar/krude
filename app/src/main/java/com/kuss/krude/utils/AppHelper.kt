@@ -3,16 +3,14 @@ package com.kuss.krude.utils
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import com.kuss.krude.R
-import com.kuss.krude.data.AppInfoWithIcon
-import me.zhanghai.android.appiconloader.AppIconLoader
+import com.kuss.krude.data.AppInfo
 
 object AppHelper {
     @JvmStatic
-    fun getInstalled(context: Context): List<AppInfoWithIcon> {
+    fun getInstalled(context: Context): List<AppInfo> {
         val pm = context.packageManager
         val allApps = pm.getInstalledApplications(0)
-        val validApps: MutableList<AppInfoWithIcon> = ArrayList()
+        val validApps: MutableList<AppInfo> = ArrayList()
         for (app in allApps) {
             if (pm.getLaunchIntentForPackage(app.packageName) == null) continue
             validApps.add(getAppInfo(app, pm, context))
@@ -21,14 +19,17 @@ object AppHelper {
     }
 
     @JvmStatic
-    fun getAppInfo(app: ApplicationInfo, pm: PackageManager, context: Context): AppInfoWithIcon {
+    fun getAppInfo(app: ApplicationInfo, pm: PackageManager, context: Context): AppInfo {
         val label = app.loadLabel(pm).toString()
         val abbr = FilterHelper.getAbbr(label)
         val packageName = app.packageName
-        val iconSize = context.resources.getDimensionPixelSize(R.dimen.app_icon_size)
-        val icon = AppIconLoader(iconSize, true, context).loadIcon(app)
         val filterTarget = FilterHelper.toTarget(label, packageName)
-        return AppInfoWithIcon(label, abbr, packageName, filterTarget, icon)
+        return AppInfo(
+            label = label,
+            abbr = abbr,
+            packageName = packageName,
+            filterTarget = filterTarget
+        )
     }
 
 }
