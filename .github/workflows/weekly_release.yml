@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  android:
+  prerelease:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -16,17 +16,16 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
+      - name: Build Debug
+        run: ./gradlew assembleDebug
 
-      # Build Debug
-      - run: ./gradlew assembleDebug
-
-      # Prepare Keystore
-      - run: |
+      - name: Prepare Keystore
+        run: |
           echo "${{ secrets.RELEASE_KEYSTORE }}" > keystore.asc
           gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch keystore.asc > ./app/keystore
 
-      # Build Release
-      - run: ./gradlew assembleRelease
+      - name: Build Release
+        run: ./gradlew assembleRelease
 
       - uses: 'marvinpinto/action-automatic-releases@latest'
         with:
