@@ -1,0 +1,39 @@
+name: Android Weekly Release
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+
+      # Build Debug
+      - run: ./gradlew assembleDebug
+
+      # Prepare Keystore
+      - run: |
+          echo "${{ secrets.RELEASE_KEYSTORE }}" > keystore.asc
+          gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch keystore.asc > ./app/keystore
+
+      # Build Release
+      - run: ./gradlew assembleRelease
+
+      - uses: 'marvinpinto/action-automatic-releases@latest'
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: 'weekly'
+          prerelease: true
+          title: 'Weekly Debug & Release Build'
+          files: |
+            ./app/build/outputs/apk/release/*.apk
+            ./app/build/outputs/apk/debug/*.apk
