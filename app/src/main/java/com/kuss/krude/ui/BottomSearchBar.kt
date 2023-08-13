@@ -58,6 +58,13 @@ fun BottomSearchBar(
     val focusRequester = remember {
         FocusRequester()
     }
+
+    LaunchedEffect(apps.isNotEmpty()) {
+        if (apps.isNotEmpty()) {
+            focusRequester.requestFocus()
+        }
+    }
+
     AnimatedVisibility(
         visible = filtering.isNotEmpty(),
     ) {
