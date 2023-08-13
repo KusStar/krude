@@ -8,9 +8,6 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
-    <uses-permission android:name="android.permission.INTERNET" />
-
-
     <dist:module dist:instant="true" />
 
     <application
