@@ -1,6 +1,5 @@
 package com.kuss.krude
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,7 +12,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.kuss.krude.ui.AppList
 import com.kuss.krude.ui.theme.AppTheme
 import com.kuss.krude.utils.ActivityHelper
-import com.kuss.krude.utils.LocaleHelper
 import com.kuss.krude.utils.PinyinHelper
 
 
@@ -60,9 +58,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(LocaleHelper.setLocale(base, myLang))
-    }
+//    override fun attachBaseContext(base: Context) {
+//        super.attachBaseContext(LocaleHelper.setLocale(base, myLang))
+//    }
 
     companion object {
         var myLang: String = "zh"
