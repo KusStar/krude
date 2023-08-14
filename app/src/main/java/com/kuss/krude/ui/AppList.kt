@@ -37,6 +37,8 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
     }
 
     LaunchedEffect(Unit) {
+        mainViewModel.initPackageEventReceiver(context)
+
         mainViewModel.loadApps(context)
     }
 

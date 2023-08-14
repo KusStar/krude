@@ -1,6 +1,9 @@
 package com.kuss.krude.viewmodel
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 data class MainState(
     val apps: List<AppInfo> = listOf(),
@@ -32,6 +36,9 @@ class MainViewModel : ViewModel() {
         @Volatile
         private var DB: AppDatabase? = null
 
+        @Volatile
+        private var packageEventReceiver: BroadcastReceiver? = null
+
         fun getDatabase(context: Context): AppDatabase {
             // if the Instance is not null, return it, otherwise create a new database instance.
             return DB ?: synchronized(this) {
@@ -43,6 +50,29 @@ class MainViewModel : ViewModel() {
     }
 
     private val _state = MutableStateFlow(MainState())
+
+    fun initPackageEventReceiver(context: Context) {
+        if (packageEventReceiver == null) {
+            packageEventReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    Log.d(TAG, "onReceive: ${intent.action}")
+                    when (intent.action) {
+                        Intent.ACTION_PACKAGE_ADDED,
+                        Intent.ACTION_PACKAGE_REMOVED, Intent.ACTION_PACKAGE_REPLACED -> {
+                            loadFromPackageManger(context)
+                        }
+                    }
+                }
+            }
+
+            val filter = IntentFilter(Intent.ACTION_PACKAGE_ADDED)
+            filter.addAction(Intent.ACTION_PACKAGE_REMOVED)
+            filter.addAction(Intent.ACTION_PACKAGE_REPLACED)
+            filter.addDataScheme("package")
+
+            context.registerReceiver(packageEventReceiver, filter)
+        }
+    }
 
     val state: StateFlow<MainState>
         get() = _state
