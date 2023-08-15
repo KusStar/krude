@@ -86,9 +86,7 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
                 ),
                 content = {
                     if (apps.isNotEmpty()) {
-                        items(apps.size, key = {
-                            apps[it].packageName
-                        }) { index ->
+                        items(apps.size) { index ->
                             val item = apps[index]
 
                             AppItem(item = item,
