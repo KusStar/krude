@@ -24,7 +24,7 @@ interface AppDao {
     fun deleteApp(app: AppInfo)
 }
 
-@Database(entities = [AppInfo::class], version = 1)
+@Database(entities = [AppInfo::class], version = 1, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
 }
