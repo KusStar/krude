@@ -9,7 +9,6 @@ import androidx.room.Query
 import androidx.room.RoomDatabase
 import com.kuss.krude.data.AppInfo
 
-
 @Dao
 interface AppDao {
     @Query("SELECT * FROM apps")

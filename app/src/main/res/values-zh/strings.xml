@@ -8,4 +8,5 @@
     <string name="all_activities">所有 Activities</string>
     <string name="reload_apps">重新加载应用</string>
     <string name="auto_focus">输入框自动获取焦点</string>
+    <string name="reset_app_priority">重置应用使用频率权重</string>
 </resources>

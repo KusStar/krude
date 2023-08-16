@@ -24,22 +24,6 @@ class MainActivity : ComponentActivity() {
         PinyinHelper.initDict()
 
         setContent {
-//            val systemUiController = rememberSystemUiController()
-//            val useDarkIcons = !isSystemInDarkTheme()
-//
-//            DisposableEffect(systemUiController, useDarkIcons) {
-//                // Update all of the system bar colors to be transparent, and use
-//                // dark icons if we're in light theme
-//                systemUiController.setSystemBarsColor(
-//                    color = Color.Transparent,
-//                    darkIcons = useDarkIcons
-//                )
-//
-//                // setStatusBarColor() and setNavigationBarColor() also exist
-//
-//                onDispose {}
-//            }
-
             AppTheme {
                 Surface(
                     modifier = Modifier
@@ -57,10 +41,6 @@ class MainActivity : ComponentActivity() {
             super.onBackPressed()
         }
     }
-
-//    override fun attachBaseContext(base: Context) {
-//        super.attachBaseContext(LocaleHelper.setLocale(base, myLang))
-//    }
 
     companion object {
         var myLang: String = "zh"
