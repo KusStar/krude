@@ -20,8 +20,10 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,19 +49,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
-import com.alorma.compose.settings.ui.SettingsCheckbox
-import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.viewmodel.MainViewModel
-import kotlinx.coroutines.launch
-import me.xdrop.fuzzywuzzy.FuzzySearch
 
 
 @Composable
 fun BottomSearchBar(
     mainViewModel: MainViewModel,
-    openApp: (String) -> Unit,
+    openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
 ) {
     val context = LocalContext.current
@@ -104,7 +102,7 @@ fun BottomSearchBar(
                             titleSingleLine = true,
                             showSubtitle = false,
                             onClick = {
-                                openApp(item.packageName)
+                                openApp(item)
                             },
                             onLongClick = {
                                 toAppDetail(item)
@@ -172,41 +170,7 @@ fun BottomSearchBar(
                 focusedPlaceholderColor = MaterialTheme.colorScheme.primary
             ),
             onValueChange = { text ->
-                mainViewModel.setFiltering(text)
-                scope.launch {
-                    val next = if (apps.isNotEmpty())
-                    // TODO: options for fuzzy search and exact search
-//                            items.filter {
-//                                it.filterTarget.contains(
-//                                    text,
-//                                    ignoreCase = true
-//                                )
-//                            }
-                        apps
-                            .map {
-                                val ratio = FuzzySearch.partialRatio(
-                                    it.abbr.lowercase(),
-                                    text.lowercase()
-                                ) + FuzzySearch.partialRatio(
-                                    it.filterTarget.lowercase(),
-                                    text.lowercase()
-                                )
-                                Pair(
-                                    it,
-                                    ratio
-                                )
-                            }
-                            .filter {
-                                it.second > 80
-                            }
-                            .sortedByDescending { it.second }
-                            .map {
-                                it.first
-                            }
-                    else emptyList()
-
-                    mainViewModel.setFilteredApps(next)
-                }
+                mainViewModel.filterApps(text)
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
         )
@@ -228,33 +192,56 @@ fun BottomSearchBar(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-
-                SettingsMenuLink(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Wifi"
-                        )
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = stringResource(id = R.string.reset_app_priority)
+                            )
+                            Spacing(x = 1)
+                            Text(text = stringResource(id = R.string.reset_app_priority))
+                        }
                     },
-                    title = { Text(text = stringResource(id = R.string.reload_apps)) },
+                    onClick = {
+                        mainViewModel.resetDbAppsPriority(context)
+                        expanded = false
+                    })
+
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = stringResource(id = R.string.reload_apps)
+                            )
+                            Spacing(x = 1)
+                            Text(text = stringResource(id = R.string.reload_apps))
+                        }
+                    },
                     onClick = {
                         mainViewModel.loadFromPackageManger(context = context)
                         expanded = false
-                    },
+                    })
 
-                    )
-
-                SettingsCheckbox(
-                    state = autoFocus,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.CenterFocusWeak,
-                            contentDescription = "Wifi"
-                        )
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CenterFocusWeak,
+                                contentDescription = stringResource(id = R.string.auto_focus)
+                            )
+                            Spacing(x = 1)
+                            Text(text = stringResource(id = R.string.auto_focus))
+                            Spacing(x = 1)
+                            Checkbox(checked = autoFocus.value, onCheckedChange = {
+                                autoFocus.value = it
+                            })
+                        }
                     },
-                    title = { Text(text = stringResource(id = R.string.auto_focus)) },
-                    onCheckedChange = { newValue -> autoFocus.value = newValue },
-                )
+                    onClick = {
+                        autoFocus.value = !autoFocus.value
+                    })
             }
         }
 

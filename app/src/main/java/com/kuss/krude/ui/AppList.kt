@@ -42,9 +42,9 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         mainViewModel.loadApps(context)
     }
 
-    fun openApp(packageName: String) {
+    fun openApp(appInfo: AppInfo) {
         val intent = context
-            .packageManager.getLaunchIntentForPackage(packageName)
+            .packageManager.getLaunchIntentForPackage(appInfo.packageName)
             ?: return
 
         ActivityCompat.startActivity(
@@ -54,6 +54,8 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         )
 
         mainViewModel.setFiltering("")
+
+        mainViewModel.addAppPriority(context, appInfo)
     }
 
     fun toAppDetail(item: AppInfo) {
@@ -91,7 +93,7 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
 
                             AppItem(item = item,
                                 onClick = {
-                                    openApp(item.packageName)
+                                    openApp(item)
                                 }, onLongClick = {
                                     toAppDetail(item)
                                 })

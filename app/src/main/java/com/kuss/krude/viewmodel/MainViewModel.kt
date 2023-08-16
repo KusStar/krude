@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.xdrop.fuzzywuzzy.FuzzySearch
 
 
 data class MainState(
@@ -103,29 +104,79 @@ class MainViewModel : ViewModel() {
     fun loadFromPackageManger(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
+
+                val apps = AppHelper.getInstalled(context)
+
+                _state.update { mainState ->
+                    mainState.copy(
+                        apps = apps,
+                        scrollbarItems = getScrollbarItemsFromApps(apps)
+                    )
+                }
+
+                updateDbAppsPriority(context, apps)
+                Log.d(TAG, "load from packageManager, ${apps.size} apps")
+            }
+        }
+    }
+
+    private fun updateDbAppsPriority(context: Context, apps: List<AppInfo>) {
+        viewModelScope.launch {
+            withContext(IO) {
                 val db = getDatabase(context)
+                val priorityMap = HashMap<String, Int>()
 
-                val items = AppHelper.getInstalled(context)
+                db.appDao().getAllApps().forEach {
+                    priorityMap[it.packageName] = it.priority
+                }
 
-                db.appDao().deleteAllApp()
-
-                items.forEach {
+                apps.forEach {
+                    it.priority = priorityMap[it.packageName] ?: 0
                     db.appDao().insertApp(
                         it
                     )
                 }
-
-                _state.update { mainState ->
-                    mainState.copy(
-                        apps = items,
-                        scrollbarItems = getScrollbarItemsFromApps(items)
-                    )
-                }
-
-                Log.d(TAG, "load from packageManager, ${items.size} apps")
             }
         }
     }
+
+    fun resetDbAppsPriority(context: Context) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                val apps = state.value.apps
+                apps.forEach {
+                    it.priority = 0
+                    db.appDao().insertApp(
+                        it
+                    )
+                }
+            }
+        }
+    }
+
+    fun addAppPriority(context: Context, app: AppInfo) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val apps = state.value.apps.toMutableList()
+                val idx = apps.indexOf(app)
+                var item = apps[idx]
+                item = item.copy(priority = item.priority + 1)
+
+                apps[idx] = item
+
+                _state.update { mainState ->
+                    mainState.copy(
+                        apps = apps
+                    )
+                }
+
+                val db = getDatabase(context)
+                db.appDao().insertApp(item)
+            }
+        }
+    }
+
 
     fun setFiltering(filtering: String) {
         _state.update { mainState ->
@@ -160,6 +211,39 @@ class MainViewModel : ViewModel() {
             mainState.copy(
                 currentScrollbarIndex = i
             )
+        }
+    }
+
+    fun filterApps(text: String) {
+        val apps = state.value.apps
+        viewModelScope.launch {
+            val next = if (apps.isNotEmpty())
+                apps
+                    .map {
+                        val ratio = FuzzySearch.partialRatio(
+                            it.abbr.lowercase(),
+                            text.lowercase()
+                        ) + FuzzySearch.partialRatio(
+                            it.filterTarget.lowercase(),
+                            text.lowercase()
+                        ) + it.priority * it.priority * 10
+                        Pair(
+                            it,
+                            ratio
+                        )
+                    }
+                    .filter {
+                        it.second > 80
+                    }
+                    .sortedByDescending { it.second }
+                    .map {
+                        it.first
+                    }
+            else emptyList()
+
+            _state.update { mainState ->
+                mainState.copy(filteredApps = next, filtering = text)
+            }
         }
     }
 
