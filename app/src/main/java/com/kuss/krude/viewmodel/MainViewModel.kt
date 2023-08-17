@@ -160,19 +160,22 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val apps = state.value.apps.toMutableList()
                 val idx = apps.indexOf(app)
-                var item = apps[idx]
-                item = item.copy(priority = item.priority + 1)
 
-                apps[idx] = item
+                if (idx >= 0) {
+                    var item = apps[idx]
+                    item = item.copy(priority = item.priority + 1)
 
-                _state.update { mainState ->
-                    mainState.copy(
-                        apps = apps
-                    )
+                    apps[idx] = item
+
+                    _state.update { mainState ->
+                        mainState.copy(
+                            apps = apps
+                        )
+                    }
+
+                    val db = getDatabase(context)
+                    db.appDao().insertApp(item)
                 }
-
-                val db = getDatabase(context)
-                db.appDao().insertApp(item)
             }
         }
     }
