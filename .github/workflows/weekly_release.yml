@@ -23,7 +23,8 @@ jobs:
   
       - name: Prepare Google Service Json
         run: |
-          echo "${{ secrets.GOOGLE_SERVICE_JSON }}" > ./app/google-services.json
+          echo "${{ secrets.GOOGLE_SERVICE_JSON }}" > google-services.asc
+          gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch google-services.asc > ./app/src/google-services.json
   
       - name: Build Debug
         run: ./gradlew assembleDebug
