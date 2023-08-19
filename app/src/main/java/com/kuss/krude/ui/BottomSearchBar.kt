@@ -170,7 +170,7 @@ fun BottomSearchBar(
                 focusedPlaceholderColor = MaterialTheme.colorScheme.primary
             ),
             onValueChange = { text ->
-                mainViewModel.filterApps(text)
+                mainViewModel.filterApps(apps, text)
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
         )
