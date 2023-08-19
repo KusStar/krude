@@ -126,7 +126,7 @@ dependencies {
     releaseImplementation platform('com.google.firebase:firebase-bom:32.2.2')
     releaseImplementation("com.google.firebase:firebase-analytics-ktx")
     releaseImplementation('com.google.firebase:firebase-crashlytics-ktx')
-    implementation("com.google.firebase:firebase-perf-ktx")
+    releaseImplementation("com.google.firebase:firebase-perf-ktx")
     // third part
     implementation 'com.github.alorma:compose-settings-storage-preferences:0.27.0'
     implementation 'com.github.alorma:compose-settings-ui-m3:0.27.0'
