@@ -280,7 +280,7 @@ class MainViewModel : ViewModel() {
                         ) + FuzzySearch.partialRatio(
                             it.filterTarget.lowercase(),
                             text.lowercase()
-                        ) + it.priority * it.priority * 10
+                        )
                         Pair(
                             it,
                             ratio
@@ -289,7 +289,7 @@ class MainViewModel : ViewModel() {
                     .filter {
                         it.second > 80
                     }
-                    .sortedByDescending { it.second }
+                    .sortedByDescending { it.second + (it.first.priority * it.first.priority) }
                     .map {
                         it.first
                     }
