@@ -10,7 +10,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.db.AppDatabase
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
+import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.TAG
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,9 +60,11 @@ class MainViewModel : ViewModel() {
                 override fun onReceive(context: Context, intent: Intent) {
                     Log.d(TAG, "onReceive: ${intent.action}")
                     when (intent.action) {
-                        Intent.ACTION_PACKAGE_ADDED,
-                        Intent.ACTION_PACKAGE_REMOVED, Intent.ACTION_PACKAGE_REPLACED -> {
-                            loadFromPackageManger(context)
+                        Intent.ACTION_PACKAGE_ADDED -> {
+                            onPackageAdded(context, intent)
+                        }
+                        Intent.ACTION_PACKAGE_REMOVED -> {
+                            onPackageRemoved(intent)
                         }
                     }
                 }
@@ -77,6 +81,60 @@ class MainViewModel : ViewModel() {
 
     val state: StateFlow<MainState>
         get() = _state
+
+    fun onPackageAdded(context: Context, intent: Intent) {
+        val intentPackageName = intent.dataString?.substring(8)
+            ?: return
+
+        val list = ActivityHelper
+            .findActivitiesForPackage(context, intentPackageName)
+            ?: return
+
+        val pm = context.packageManager
+
+        val apps = state.value.apps.toMutableList()
+
+        for (item in list) {
+            if (item == null) continue
+            try {
+                val app = AppHelper.getAppInfo(
+                    item.activityInfo.applicationInfo,
+                    pm,
+                    context
+                )
+                Log.i(TAG, "onPackageAdded: ${app.label}, ${app.packageName}")
+                apps.add(
+                    app
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+                continue
+            }
+        }
+
+        FilterHelper.getSorted(apps).let { sorted ->
+            _state.update { mainState ->
+                mainState.copy(apps = sorted, showAppDetailSheet = false, filtering = "")
+            }
+        }
+    }
+
+    fun onPackageRemoved(intent: Intent) {
+        val apps = state.value.apps.toMutableList()
+        val toDeletePackageName = intent.dataString?.substring(8)
+            ?: return
+
+        val removedIndex = apps.indexOfFirst { it.packageName == toDeletePackageName }
+        if (removedIndex != -1) {
+            Log.i(TAG, "onPackageRemoved: removedIndex: $removedIndex, ${apps[removedIndex].label}")
+
+            apps.removeAt(removedIndex)
+
+            _state.update { mainState ->
+                mainState.copy(apps = apps, showAppDetailSheet = false, filtering = "")
+            }
+        }
+    }
 
     fun loadApps(context: Context) {
         viewModelScope.launch {
@@ -187,12 +245,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun setFilteredApps(apps: List<AppInfo>) {
-        _state.update { mainState ->
-            mainState.copy(filteredApps = apps)
-        }
-    }
-
     fun setShowAppDetailSheet(visible: Boolean) {
         _state.update { mainState ->
             mainState.copy(
@@ -217,8 +269,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun filterApps(text: String) {
-        val apps = state.value.apps
+    fun filterApps(apps: List<AppInfo>, text: String) {
         viewModelScope.launch {
             val next = if (apps.isNotEmpty())
                 apps
