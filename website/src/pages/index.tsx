@@ -22,8 +22,8 @@ const Index = () => {
         <link rel="manifest" href="/site.webmanifest"></link>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0"></meta>
       </Head>
-      <div className="min-w-full">
-        <div className="min-h-screen w-full flex justify-center items-center bg-gray-200 flex-col p-6">
+      <div className="w-full bg-gray-200 dark:bg-neutral-950 text-black dark:text-white">
+        <div className="min-h-screen w-full flex justify-center items-center flex-col p-6">
           <div data-scroll data-scroll-speed="0.25">
             <Draggable>
               <img src="/android-chrome-512x512.png" alt="icon"
@@ -38,19 +38,19 @@ const Index = () => {
             <p className="text-3xl font-bold  tracking-wider">Krude</p>
             <Spacer className="m-4" />
             <div data-scroll data-scroll-speed="0.1">
-              <p>A tiny but effective, elegant app launcher.</p>
+              <p className="opacity-75">A tiny but effective, elegant app launcher.</p>
             </div>
             <Spacer className="m-4" />
             <button
               data-scroll data-scroll-speed="0.2"
-              className="rounded-full bg-green-600 text-white text-xl px-4 py-2 active:bg-blue-700 outline-blue-500"
+              className="rounded-full bg-green-600 text-white text-xl px-4 py-2 active:bg-green-700 outline-green-500"
               onClick={toDownload}
             >
               Download
             </button>
           </div>
         </div>
-        <div className="min-h-screen w-full flex justify-center items-center bg-gray-200 flex-col">
+        <div className="min-h-screen w-full flex justify-center items-center bg-gray-200 dark:bg-neutral-950 flex-col">
           <Draggable>
             <p
               className="text-5xl font-bold tracking-wider">
