@@ -24,7 +24,16 @@ interface AppDao {
     fun deleteApp(app: AppInfo)
 }
 
-@Database(entities = [AppInfo::class], version = 1, exportSchema = true)
+@Database(entities = [AppInfo::class], version = 1, exportSchema = true, autoMigrations = [])
 abstract class AppDatabase : RoomDatabase() {
+//    @DeleteColumn(
+//        tableName = "apps",
+//        columnName = "id"
+//    )
+//    class Migrate1to2Spec: AutoMigrationSpec {
+//        override fun onPostMigrate(db: SupportSQLiteDatabase) {
+//            // Callback for any tasks to execute after migration is done
+//        }
+//    }
     abstract fun appDao(): AppDao
 }

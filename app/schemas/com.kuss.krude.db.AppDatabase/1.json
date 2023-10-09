@@ -2,16 +2,16 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "49db664357c6e1c98940e229c0ec8a40",
+    "identityHash": "23451f3da9a48540ef6e3372323bf970",
     "entities": [
       {
         "tableName": "apps",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `label` TEXT NOT NULL, `abbr` TEXT NOT NULL, `packageName` TEXT NOT NULL, `filterTarget` TEXT NOT NULL, `priority` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `label` TEXT NOT NULL, `abbr` TEXT NOT NULL, `filterTarget` TEXT NOT NULL, `priority` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
         "fields": [
           {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -23,12 +23,6 @@
           {
             "fieldPath": "abbr",
             "columnName": "abbr",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "packageName",
-            "columnName": "packageName",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -46,29 +40,19 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": true,
+          "autoGenerate": false,
           "columnNames": [
-            "id"
+            "packageName"
           ]
         },
-        "indices": [
-          {
-            "name": "index_apps_packageName",
-            "unique": true,
-            "columnNames": [
-              "packageName"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_apps_packageName` ON `${TABLE_NAME}` (`packageName`)"
-          }
-        ],
+        "indices": [],
         "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '49db664357c6e1c98940e229c0ec8a40')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '23451f3da9a48540ef6e3372323bf970')"
     ]
   }
 }
