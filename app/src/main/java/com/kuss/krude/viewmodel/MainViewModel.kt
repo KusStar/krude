@@ -297,7 +297,7 @@ class MainViewModel : ViewModel() {
                 else apps.filter {
                     it.abbr.lowercase().contains(text.lowercase()) || it.filterTarget.lowercase()
                         .contains(text.lowercase())
-                }
+                }.sortedByDescending { it.priority }
             else emptyList()
 
             _state.update { mainState ->

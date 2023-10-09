@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -95,6 +96,7 @@ fun AppItem(
     iconSize: Dp = 48.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
+    showTimes: Boolean = false
 ) {
     CustomButton(
         onClick = onClick,
@@ -128,6 +130,17 @@ fun AppItem(
                 maxLines = if (titleSingleLine) 1 else Int.MAX_VALUE,
                 overflow = TextOverflow.Ellipsis,
             )
+
+            if (showTimes) {
+                Spacing(1, 4)
+                Text(
+                    text = "${item.priority}${stringResource(id = R.string.open_times)}",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = subtitleFontSize,
+                )
+            }
+
             if (showSubtitle) {
                 Spacing(1, 4)
                 Text(

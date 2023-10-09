@@ -88,7 +88,7 @@ fun BottomSearchBar(
     ) {
         Divider()
         Crossfade(targetState = filteredApps.isNotEmpty(), label = "filteredItems") {
-            val height = 108.dp
+            val height = 128.dp
             if (it) {
                 LazyRow(
                     modifier = Modifier
@@ -109,7 +109,8 @@ fun BottomSearchBar(
                             },
                             onLongClick = {
                                 toAppDetail(item)
-                            }
+                            },
+                            showTimes = true,
                         )
                     }
                 }
@@ -179,6 +180,10 @@ fun BottomSearchBar(
         )
         var expanded by remember { mutableStateOf(false) }
 
+        fun refresh() {
+            mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
+        }
+
         Box(
             modifier = Modifier
                 .wrapContentSize(Alignment.TopStart)
@@ -186,7 +191,7 @@ fun BottomSearchBar(
             Row {
                 IconButton(onClick = {
                     fuzzySearch.value = !fuzzySearch.value
-                    mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
+                    refresh()
                 }) {
                     Icon(
                         imageVector = if (fuzzySearch.value) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
@@ -223,6 +228,7 @@ fun BottomSearchBar(
                     onClick = {
                         mainViewModel.resetDbAppsPriority(context)
                         expanded = false
+                        refresh()
                     })
 
                 DropdownMenuItem(
@@ -239,6 +245,7 @@ fun BottomSearchBar(
                     onClick = {
                         mainViewModel.loadFromPackageManger(context = context)
                         expanded = false
+                        refresh()
                     })
 
                 DropdownMenuItem(

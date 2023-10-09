@@ -9,4 +9,5 @@
     <string name="reload_apps">Reload apps</string>
     <string name="auto_focus">Auto focus</string>
     <string name="reset_app_priority">Reset app priority</string>
+    <string name="open_times">times</string>
 </resources>
