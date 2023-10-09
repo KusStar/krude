@@ -1,22 +1,16 @@
 package com.kuss.krude.data
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 
 
 @Entity(
-    tableName = "apps", indices = [Index(
-        value = ["packageName"],
-        unique = true
-    )]
+    tableName = "apps"
 )
 data class AppInfo(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey val packageName: String,
     val label: String,
     val abbr: String,
-    val packageName: String,
     val filterTarget: String,
     var priority: Int = 0
 )
