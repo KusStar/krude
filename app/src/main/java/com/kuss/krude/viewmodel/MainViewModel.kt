@@ -63,6 +63,7 @@ class MainViewModel : ViewModel() {
                         Intent.ACTION_PACKAGE_ADDED -> {
                             onPackageAdded(context, intent)
                         }
+
                         Intent.ACTION_PACKAGE_REMOVED -> {
                             onPackageRemoved(intent)
                         }
@@ -269,10 +270,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun filterApps(apps: List<AppInfo>, text: String) {
+    fun filterApps(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
         viewModelScope.launch {
             val next = if (apps.isNotEmpty())
-                apps
+                if (fuzzy) apps
                     .map {
                         val ratio = FuzzySearch.partialRatio(
                             it.abbr.lowercase(),
@@ -293,6 +294,10 @@ class MainViewModel : ViewModel() {
                     .map {
                         it.first
                     }
+                else apps.filter {
+                    it.abbr.lowercase().contains(text.lowercase()) || it.filterTarget.lowercase()
+                        .contains(text.lowercase())
+                }
             else emptyList()
 
             _state.update { mainState ->

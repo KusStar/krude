@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BlurOff
+import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
@@ -71,6 +73,7 @@ fun BottomSearchBar(
     }
 
     val autoFocus = rememberPreferenceBooleanSettingState(key = "auto_focus", defaultValue = true)
+    val fuzzySearch = rememberPreferenceBooleanSettingState(key = "fuzzy_search", defaultValue = true)
 
     LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
         if (apps.isNotEmpty() && autoFocus.value) {
@@ -170,7 +173,7 @@ fun BottomSearchBar(
                 focusedPlaceholderColor = MaterialTheme.colorScheme.primary
             ),
             onValueChange = { text ->
-                mainViewModel.filterApps(apps, text)
+                mainViewModel.filterApps(apps, text, fuzzySearch.value)
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
         )
@@ -180,14 +183,28 @@ fun BottomSearchBar(
             modifier = Modifier
                 .wrapContentSize(Alignment.TopStart)
         ) {
-            IconButton(onClick = { expanded = true }) {
-                Icon(
-                    Icons.Filled.MoreVert,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "MoreVert",
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
+            Row {
+                IconButton(onClick = {
+                    fuzzySearch.value = !fuzzySearch.value
+                    mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
+                }) {
+                    Icon(
+                        imageVector = if (fuzzySearch.value) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "fuzzysearch",
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                }
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "MoreVert",
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    )
+                }
             }
+
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
