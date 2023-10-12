@@ -1,5 +1,7 @@
 package com.kuss.krude.ui
 
+import android.app.Activity
+import android.app.ActivityOptions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,12 +52,12 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         ActivityCompat.startActivity(
             context,
             intent,
-            null,
+            ActivityOptions.makeSceneTransitionAnimation(context as Activity).toBundle()
         )
 
         mainViewModel.setFiltering("")
 
-        mainViewModel.addAppPriority(context, appInfo)
+        mainViewModel.recordOpenApp(context, appInfo)
     }
 
     fun toAppDetail(item: AppInfo) {

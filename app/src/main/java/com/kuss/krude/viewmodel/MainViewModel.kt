@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.data.AppInfo
+import com.kuss.krude.data.Usage
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
@@ -214,7 +215,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun addAppPriority(context: Context, app: AppInfo) {
+    fun recordOpenApp(context: Context, app: AppInfo) {
         viewModelScope.launch {
             withContext(IO) {
                 val apps = state.value.apps.toMutableList()
@@ -233,6 +234,9 @@ class MainViewModel : ViewModel() {
                     }
 
                     val db = getDatabase(context)
+
+                    db.usageDao().insertUsage(Usage(packageName = app.packageName))
+
                     db.appDao().insertApp(item)
                 }
             }
