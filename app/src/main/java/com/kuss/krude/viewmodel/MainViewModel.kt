@@ -31,7 +31,8 @@ data class MainState(
     val currentScrollbarIndex: Int = 0,
     val filtering: String = "",
     val showAppDetailSheet: Boolean = false,
-    val selectedDetailApp: AppInfo? = null
+    val selectedDetailApp: AppInfo? = null,
+    val showAppUsageSheet: Boolean = false,
 )
 
 class MainViewModel : ViewModel() {
@@ -254,6 +255,14 @@ class MainViewModel : ViewModel() {
         _state.update { mainState ->
             mainState.copy(
                 showAppDetailSheet = visible
+            )
+        }
+    }
+
+    fun setShowAppUsageSheet(visible: Boolean) {
+        _state.update { mainState ->
+            mainState.copy(
+                showAppUsageSheet = visible
             )
         }
     }
