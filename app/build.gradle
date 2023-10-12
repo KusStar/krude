@@ -81,7 +81,7 @@ android {
     namespace 'com.kuss.krude'
 
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.1'
+        kotlinCompilerExtensionVersion '1.5.3'
     }
     packaging {
         resources {
@@ -101,6 +101,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-extended:1.5.3"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
+    //noinspection KaptUsageInsteadOfKsp
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
@@ -136,4 +137,5 @@ dependencies {
     implementation 'me.zhanghai.android.appiconloader:appiconloader:1.5.0'
     implementation 'me.xdrop:fuzzywuzzy:1.4.0'
     implementation 'com.valentinilk.shimmer:compose-shimmer:1.0.5'
+    implementation 'com.kizitonwose.calendar:compose:2.4.0'
 }

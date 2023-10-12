@@ -77,6 +77,8 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         }
 
         Column(modifier = Modifier.weight(1f)) {
+            UsageHeatMap()
+
             LazyVerticalStaggeredGrid(
                 state = listState,
                 columns = StaggeredGridCells.Adaptive(128.dp),
