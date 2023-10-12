@@ -1,7 +1,10 @@
 package com.kuss.krude.ui
 
+import android.content.Context
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -47,8 +50,10 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
+import java.util.Collections
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -112,12 +117,30 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                         PackageManager.GET_ACTIVITIES
                     )
 
-                    AppItem(
-                        item = app,
-                        iconSize = 64.dp,
-                        titleFontSize = 20.sp, subtitleFontSize = 16.sp,
-                        enabled = false
-                    )
+                    val packageName = app.packageName
+
+                    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+
+                    Log.d(TAG, "launcherApps.hasShortcutHostPermission(): ${launcherApps.hasShortcutHostPermission()}")
+                    launcherApps.hasShortcutHostPermission()
+
+                    val shortcutQuery = LauncherApps.ShortcutQuery()
+// Set these flags to match your use case, for static shortcuts only,
+// use FLAG_MATCH_MANIFEST on its own.
+                    shortcutQuery.setQueryFlags(LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST)
+                    shortcutQuery.setPackage(packageName)
+
+                    val shortcuts = try {
+                        launcherApps.getShortcuts(shortcutQuery, android.os.Process.myUserHandle())
+                    } catch (e: SecurityException) {
+                        // This exception will be thrown if your app is not the default launcher
+                        Collections.emptyList()
+                    }
+
+                    if (shortcuts != null) {
+                        Log.d(TAG, "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
+                    }
+
                     // extra info
                     Row {
                         Text(
