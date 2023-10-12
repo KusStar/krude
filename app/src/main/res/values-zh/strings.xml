@@ -10,4 +10,5 @@
     <string name="auto_focus">输入框自动获取焦点</string>
     <string name="reset_app_priority">重置应用使用频率权重</string>
     <string name="open_times">次</string>
+    <string name="app_usage">应用使用情况</string>
 </resources>

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
@@ -266,7 +267,27 @@ fun BottomSearchBar(
                     onClick = {
                         autoFocus.value = !autoFocus.value
                     })
+
+
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.ShowChart,
+                                contentDescription = stringResource(id = R.string.app_usage)
+                            )
+                            Spacing(x = 1)
+                            Text(text = stringResource(id = R.string.app_usage))
+                        }
+                    },
+                    onClick = {
+                        mainViewModel.setShowAppUsageSheet(true)
+
+                        expanded = false
+                    })
             }
+
+            AppUsageModal(mainViewModel)
         }
 
     }
