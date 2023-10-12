@@ -276,31 +276,36 @@ class MainViewModel : ViewModel() {
 
     fun filterApps(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
         viewModelScope.launch {
+            val search = text.lowercase()
             val next = if (apps.isNotEmpty())
                 if (fuzzy) apps
                     .map {
-                        val ratio = FuzzySearch.partialRatio(
+                        val abbrRatio = FuzzySearch.partialRatio(
                             it.abbr.lowercase(),
-                            text.lowercase()
-                        ) + FuzzySearch.partialRatio(
+                            search
+                        )
+                        val filterTargetRadio = FuzzySearch.partialRatio(
                             it.filterTarget.lowercase(),
-                            text.lowercase()
+                            search
                         )
-                        Pair(
-                            it,
-                            ratio
-                        )
+                        Fuzzy(it, abbrRatio, filterTargetRadio)
                     }
                     .filter {
-                        it.second > 80
+                        it.abbrRatio >= 50 || it.filterTargetRadio >= 50
                     }
-                    .sortedByDescending { it.second + (it.first.priority * it.first.priority) }
+                    .sortedByDescending {
+                        var abbrWeight = it.abbrRatio
+                        if (it.abbrRatio > 80) {
+                            abbrWeight *= it.app.priority
+                        }
+                        it.filterTargetRadio * it.app.priority + abbrWeight
+                    }
                     .map {
-                        it.first
+                        it.app
                     }
                 else apps.filter {
-                    it.abbr.lowercase().contains(text.lowercase()) || it.filterTarget.lowercase()
-                        .contains(text.lowercase())
+                    it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
+                        .contains(search)
                 }.sortedByDescending { it.priority }
             else emptyList()
 
@@ -315,3 +320,5 @@ class MainViewModel : ViewModel() {
             .toSet().toList().sorted()
     }
 }
+
+data class Fuzzy(val app: AppInfo, val abbrRatio: Int, val filterTargetRadio: Int)
