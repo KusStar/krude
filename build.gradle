@@ -1,19 +1,22 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.9.0'
-    ext.lifecycle_version = "2.3.1"
-    ext.accompanist_version = "0.31.6-rc"
+    ext {
+        kotlin_version = '1.9.0'
+        lifecycle_version = "2.6.2"
+        accompanist_version = "0.31.6-rc"
+        room_version = "2.5.2"
+    }
     repositories {
         google()
         //noinspection JcenterRepositoryObsolete
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1'
+        classpath 'com.android.tools.build:gradle:8.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'androidx.benchmark:benchmark-baseline-profile-gradle-plugin:1.2.0-beta03'
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.8'
+        classpath 'androidx.benchmark:benchmark-baseline-profile-gradle-plugin:1.2.0-rc02'
+        classpath 'com.google.gms:google-services:4.4.0'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
         classpath 'com.google.firebase:perf-plugin:1.4.2'
     }
 }
