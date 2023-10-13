@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import com.kuss.krude.data.AppInfo
 import com.kuss.krude.data.AppInfoWithUsage
 import com.kuss.krude.data.Usage
+import com.kuss.krude.data.UsageCountByDay
 
 
 @Dao
@@ -34,6 +35,9 @@ interface AppDao {
 interface UsageDao {
     @Query("SELECT * FROM usage where packageName = :packageName")
     fun getPackageUsage(packageName: String): List<Usage>
+
+    @Query("SELECT strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch', 'localtime')) AS day, COUNT(*) as count FROM usage GROUP BY day")
+    fun getUsageCountByDay(): List<UsageCountByDay>
 
     @Insert
     fun insertUsage(usage: Usage)

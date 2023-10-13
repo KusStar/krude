@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -35,6 +36,7 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
+import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
@@ -42,7 +44,6 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 private enum class Level(val color: Color) {
@@ -51,28 +52,37 @@ private enum class Level(val color: Color) {
     Two(Color(0xFF40C463)),
     Three(Color(0xFF30A14E)),
     Four(Color(0xFF216E3A)),
+    Five(Color(0xFF1A4E2C));
 }
 
-private fun generateRandomData(startDate: LocalDate, endDate: LocalDate): Map<LocalDate, Level> {
-    val levels = Level.values()
-    return (0..ChronoUnit.DAYS.between(startDate, endDate))
-        .associateTo(hashMapOf()) { count ->
-            startDate.plusDays(count) to levels.random()
-        }
+private fun findColorLevel(count: Int): Level {
+    return when {
+        count == 0 -> Level.Zero
+        count in 1..3 -> Level.One
+        count in 4..9 -> Level.Two
+        count in 10..17 -> Level.Three
+        count in 18..25 -> Level.Four
+        count >= 26 -> Level.Five
+        else -> Level.Five
+    }
 }
 
 @Composable
-fun UsageHeatMap() {
-    var refreshKey by remember { mutableStateOf(1) }
+fun UsageHeatMap(mainViewModel: MainViewModel) {
+    val context = LocalContext.current
     val endDate = remember { LocalDate.now() }
     // GitHub only shows contributions for the past 12 months
     val startDate = remember { endDate.minusMonths(12) }
     val data = remember { mutableStateOf<Map<LocalDate, Level>>(emptyMap()) }
     var selection by remember { mutableStateOf<Pair<LocalDate, Level>?>(null) }
-    LaunchedEffect(startDate, endDate, refreshKey) {
+    LaunchedEffect(startDate, endDate) {
         selection = null
+
         data.value = withContext(Dispatchers.IO) {
-            generateRandomData(startDate, endDate)
+            val result = mainViewModel.getUsageCountByDay(context)
+            result.associateTo(hashMapOf()) {
+                LocalDate.parse(it.day) to findColorLevel(it.count)
+            }
         }
     }
     val state = rememberHeatMapCalendarState(

@@ -28,6 +28,11 @@ data class Usage(
 )
 
 
+data class UsageCountByDay(
+    val day: String,
+    val count: Int
+)
+
 data class AppInfoWithUsage(
     @Embedded val appInfo: AppInfo,
     @Relation(
