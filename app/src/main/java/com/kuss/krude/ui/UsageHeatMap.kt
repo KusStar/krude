@@ -1,5 +1,6 @@
 package com.kuss.krude.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,8 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
+import com.kuss.krude.data.AppInfo
+import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -76,10 +81,11 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
     val data = remember { mutableStateOf<Map<LocalDate, Level>>(emptyMap()) }
     var selection by remember { mutableStateOf<Pair<LocalDate, Level>?>(null) }
     LaunchedEffect(startDate, endDate) {
-        selection = null
+        selection = Pair(endDate, Level.Zero)
 
         data.value = withContext(Dispatchers.IO) {
             val result = mainViewModel.getUsageCountByDay(context)
+            Log.d(TAG, "UsageHeatMap: $result")
             result.associateTo(hashMapOf()) {
                 LocalDate.parse(it.day) to findColorLevel(it.count)
             }
@@ -109,6 +115,41 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
         weekHeader = { WeekHeader(it) },
         monthHeader = { MonthHeader(it, endDate, state) },
     )
+    if (selection != null) {
+        val (date, _) = selection!!
+        val selectedDayData = remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+
+        LaunchedEffect(selectedDayData, selection) {
+            withContext(Dispatchers.IO) {
+                selectedDayData.value = mainViewModel.getAppsByDay(context, date.toString())
+            }
+        }
+
+        LazyColumn{
+            val items = selectedDayData.value
+            if (items.isNotEmpty()) {
+                item {
+                    Text(text = "$date, ${items.size} Activities", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Spacing(x = 1)
+                }
+                items(items.size) { index ->
+                    val item = items[index]
+                    AppItem(item = item,
+                        onClick = {
+//                                openApp(item)
+                        }, onLongClick = {
+//                                toAppDetail(item)
+                        })
+                    Spacing(2)
+
+                }
+            } else {
+                item {
+                    Text(text = "No data")
+                }
+            }
+        }
+    }
 }
 
 

@@ -31,13 +31,20 @@ interface AppDao {
     fun deleteApp(app: AppInfo)
 }
 
+
 @Dao
 interface UsageDao {
     @Query("SELECT * FROM usage where packageName = :packageName")
     fun getPackageUsage(packageName: String): List<Usage>
 
-    @Query("SELECT strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch', 'localtime')) AS day, COUNT(*) as count FROM usage GROUP BY day")
+    @Query("SELECT strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch', 'localtime')) AS day, COUNT(*) as count FROM usage GROUP BY day ORDER BY day DESC")
     fun getUsageCountByDay(): List<UsageCountByDay>
+
+    @Query("SELECT apps.*\n" +
+            "        FROM usage\n" +
+            "        INNER JOIN apps ON apps.packageName = usage.packageName\n" +
+            "        WHERE strftime('%Y-%m-%d', usage.createdAt / 1000, 'unixepoch', 'localtime') = :day")
+    fun getAppsByDay(day: String): List<AppInfo>
 
     @Insert
     fun insertUsage(usage: Usage)
