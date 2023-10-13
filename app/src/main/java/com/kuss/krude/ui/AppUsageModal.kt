@@ -71,7 +71,7 @@ fun AppUsageModal(mainViewModel: MainViewModel) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                UsageHeatMap()
+                UsageHeatMap(mainViewModel)
             }
         }
     }

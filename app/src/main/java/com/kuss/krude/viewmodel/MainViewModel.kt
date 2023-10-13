@@ -9,7 +9,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.data.AppInfo
+import com.kuss.krude.data.AppInfoWithUsage
 import com.kuss.krude.data.Usage
+import com.kuss.krude.data.UsageCountByDay
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
@@ -160,6 +162,20 @@ class MainViewModel : ViewModel() {
         }
         // load from packageManager
         loadFromPackageManger(context)
+    }
+
+    fun getAppsWithUsage(context: Context): List<AppInfoWithUsage> {
+        val db = getDatabase(context)
+
+        val dbApps = db.appDao().getAppsWithUsages()
+
+        return dbApps
+    }
+
+    fun getUsageCountByDay(context: Context): List<UsageCountByDay> {
+        val db = getDatabase(context)
+
+        return db.usageDao().getUsageCountByDay()
     }
 
     fun loadFromPackageManger(context: Context) {
