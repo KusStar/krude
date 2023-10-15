@@ -63,11 +63,11 @@ private enum class Level(val color: Color) {
 private fun findColorLevel(count: Int): Level {
     return when {
         count == 0 -> Level.Zero
-        count in 1..3 -> Level.One
-        count in 4..9 -> Level.Two
-        count in 10..17 -> Level.Three
-        count in 18..25 -> Level.Four
-        count >= 26 -> Level.Five
+        count in 1..20 -> Level.One
+        count in 20..40 -> Level.Two
+        count in 40..60 -> Level.Three
+        count in 60..80 -> Level.Four
+        count >=80 -> Level.Five
         else -> Level.Five
     }
 }
