@@ -299,40 +299,38 @@ class MainViewModel : ViewModel() {
     fun filterApps(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
         viewModelScope.launch {
             val search = text.lowercase()
-            val next = if (apps.isNotEmpty())
-                if (fuzzy) apps
-                    .map {
-                        val abbrRatio = FuzzySearch.partialRatio(
-                            it.abbr.lowercase(),
-                            search
-                        )
-                        val filterTargetRadio = FuzzySearch.partialRatio(
-                            it.filterTarget.lowercase(),
-                            search
-                        )
-                        Fuzzy(it, abbrRatio, filterTargetRadio)
-                    }
-                    .filter {
-                        it.abbrRatio >= 50 || it.filterTargetRadio >= 50
-                    }
-                    .sortedByDescending {
-                        var abbrWeight = it.abbrRatio
-                        if (it.abbrRatio > 80) {
-                            abbrWeight *= it.app.priority
+            var match = apps.filter {
+                it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
+                    .contains(search)
+            }.sortedByDescending { it.priority }
+            val exactMatchSet = match.associateTo(hashMapOf()) {
+                it.packageName to true
+            }
+            if (fuzzy) {
+                match =
+                    apps
+                        .asSequence()
+                        .map {
+                            val ratio = FuzzySearch.partialRatio(
+                                it.abbr.lowercase() + " " + it.filterTarget.lowercase(),
+                                search
+                            )
+                            Fuzzy(it, ratio)
                         }
-                        it.filterTargetRadio * it.app.priority + abbrWeight
-                    }
-                    .map {
-                        it.app
-                    }
-                else apps.filter {
-                    it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
-                        .contains(search)
-                }.sortedByDescending { it.priority }
-            else emptyList()
+                        .filter {
+                            (it.ratio >= 50)
+                        }
+                        .sortedByDescending {
+                            it.ratio * (it.app.priority + 1)
+                        }
+                        .map {
+                            it.app
+                        }
+                        .toList()
+            }
 
             _state.update { mainState ->
-                mainState.copy(filteredApps = next, filtering = text)
+                mainState.copy(filteredApps = match, filtering = text)
             }
         }
     }
@@ -343,4 +341,4 @@ class MainViewModel : ViewModel() {
     }
 }
 
-data class Fuzzy(val app: AppInfo, val abbrRatio: Int, val filterTargetRadio: Int)
+data class Fuzzy(val app: AppInfo, val ratio: Int)
