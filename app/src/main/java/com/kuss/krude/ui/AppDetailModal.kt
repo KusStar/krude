@@ -1,5 +1,6 @@
 package com.kuss.krude.ui
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
@@ -191,7 +192,7 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     Spacing(3)
                     val activitiesListState = rememberLazyListState()
                     if (info.activities.isNotEmpty()) {
-                        LazyColumn(state = activitiesListState) {
+                        LazyColumn(state = activitiesListState, modifier = Modifier.fillMaxWidth()) {
                             stickyHeader {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -215,13 +216,35 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                                 }
                             }
                             items(info.activities.filter { it.exported && it.enabled }) {
-                                TextButton(onClick = {  }) {
+
+                                TextButton(onClick = {
+                                    val intent = context.packageManager.getLaunchIntentForPackage(it.packageName)
+                                    if (intent != null) {
+                                        try {
+                                            intent.component = ComponentName(it.packageName, it.name)
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            intent.component = null
+                                            context.startActivity(intent)
+                                        }
+
+                                    }
+                                }) {
                                     Column {
-                                        Text(
-                                            text = it.name,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontSize = 16.sp,
-                                        )
+                                        val label = it.loadLabel(context.packageManager).toString()
+                                        if (label != app.label) {
+                                            Text(
+                                                text = label,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontSize = 16.sp,
+                                            )
+                                        } else {
+                                            Text(
+                                                text = it.name,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontSize = 16.sp,
+                                            )
+                                        }
                                         Text(
                                             text = it.packageName,
                                             color = MaterialTheme.colorScheme.secondary,
