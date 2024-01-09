@@ -27,6 +27,9 @@ interface AppDao {
     @Query("DELETE FROM apps")
     fun deleteAllApp()
 
+    @Query("DELETE FROM apps WHERE packageName = :packageName")
+    fun deleteApp(packageName: String)
+
     @Delete
     fun deleteApp(app: AppInfo)
 }

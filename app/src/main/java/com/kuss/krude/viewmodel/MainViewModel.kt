@@ -157,10 +157,11 @@ class MainViewModel : ViewModel() {
                     }
                     Log.d(TAG, "load from db, ${dbApps.size} apps")
                 }
+                // load from packageManager
+                loadFromPackageManger(context, dbApps)
             }
         }
-        // load from packageManager
-        loadFromPackageManger(context)
+
     }
 
     fun getUsageCountByDay(context: Context): List<UsageCountByDay> {
@@ -175,10 +176,9 @@ class MainViewModel : ViewModel() {
         return db.usageDao().getAppsByDay(day)
     }
 
-    fun loadFromPackageManger(context: Context) {
+    fun loadFromPackageManger(context: Context, dbApps: List<AppInfo>? = null) {
         viewModelScope.launch {
             withContext(IO) {
-
                 val apps = AppHelper.getInstalled(context)
 
                 _state.update { mainState ->
@@ -189,10 +189,32 @@ class MainViewModel : ViewModel() {
                 }
 
                 updateDbAppsPriority(context, apps)
+
                 Log.d(TAG, "load from packageManager, ${apps.size} apps")
+
+                checkAndCleanDbApps(context, apps, dbApps)
             }
         }
     }
+
+    private fun checkAndCleanDbApps(context: Context, apps: List<AppInfo>, dbApps: List<AppInfo>?) {
+        viewModelScope.launch {
+            withContext(IO) {
+                if (dbApps?.size!! > apps.size) {
+                    val appsSet = apps.map{it.packageName}.toSet()
+                    val db = getDatabase(context)
+
+                    dbApps.forEach {
+                        if (!appsSet.contains(it.packageName)) {
+                            db.appDao().deleteApp(it)
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
 
     private fun updateDbAppsPriority(context: Context, apps: List<AppInfo>) {
         viewModelScope.launch {
@@ -303,9 +325,6 @@ class MainViewModel : ViewModel() {
                 it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
                     .contains(search)
             }.sortedByDescending { it.priority }
-            val exactMatchSet = match.associateTo(hashMapOf()) {
-                it.packageName to true
-            }
             if (fuzzy) {
                 match =
                     apps
