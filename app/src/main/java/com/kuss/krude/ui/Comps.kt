@@ -53,10 +53,10 @@ fun CustomButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     content: @Composable RowScope.() -> Unit
 ) {
-    val containerColor = colors.containerColor(enabled).value
-    val contentColor = colors.contentColor(enabled).value
+    val containerColor = colors.containerColor(enabled)
+    val contentColor = colors.contentColor(enabled)
     val shadowElevation = elevation?.shadowElevation(enabled, interactionSource)?.value ?: 0.dp
-    val tonalElevation = elevation?.tonalElevation(enabled, interactionSource)?.value ?: 0.dp
+    val tonalElevation = elevation?.tonalElevation(enabled) ?: 0.dp
     val haptic = LocalHapticFeedback.current
     Surface(
         modifier = modifier.combinedClickable(
