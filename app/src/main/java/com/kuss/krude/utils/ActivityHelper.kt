@@ -15,23 +15,6 @@ import androidx.core.app.ActivityOptionsCompat
 
 object ActivityHelper {
     @JvmStatic
-    fun startWithRevealAnimation(context: Context, view: View, packageName: String) {
-        val intent = context
-            .packageManager.getLaunchIntentForPackage(packageName)
-            ?.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            ?: return
-
-        val compat = ActivityOptionsCompat.makeClipRevealAnimation(
-            view, 0, 0, view.width, view.height
-        )
-        ActivityCompat.startActivity(
-            context,
-            intent,
-            compat.toBundle()
-        )
-    }
-
-    @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, intent: Intent) {
         val compat = ActivityOptionsCompat.makeClipRevealAnimation(
             view, 0, 0, view.width, view.height
