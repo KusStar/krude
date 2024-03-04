@@ -1,7 +1,6 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
-import android.app.ActivityOptions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -52,7 +51,7 @@ fun AppList(mainViewModel: MainViewModel = viewModel()) {
         ActivityCompat.startActivity(
             context,
             intent,
-            ActivityOptions.makeSceneTransitionAnimation(context as Activity).toBundle()
+            null
         )
 
         mainViewModel.setFiltering("")
