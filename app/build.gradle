@@ -81,7 +81,7 @@ android {
     namespace 'com.kuss.krude'
 
     composeOptions {
-        kotlinCompilerExtensionVersion '1.5.3'
+        kotlinCompilerExtensionVersion '1.5.10'
     }
     packaging {
         resources {
@@ -98,7 +98,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
     implementation "com.google.accompanist:accompanist-themeadapter-appcompat:$accompanist_version"
-    implementation "androidx.compose.material:material-icons-extended:1.5.4"
+    implementation "androidx.compose.material:material-icons-extended:1.6.2"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     //noinspection KaptUsageInsteadOfKsp
@@ -111,20 +111,20 @@ dependencies {
     implementation "androidx.fragment:fragment-ktx:1.6.2"
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation 'androidx.activity:activity-compose:1.8.2'
-    implementation 'androidx.compose.runtime:runtime-android:1.5.4'
-    implementation platform('androidx.compose:compose-bom:2023.10.01')
+    implementation 'androidx.compose.runtime:runtime-android:1.6.2'
+    implementation platform('androidx.compose:compose-bom:2024.02.01')
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-graphics'
     implementation 'androidx.compose.ui:ui-tooling-preview'
-    implementation 'androidx.compose.material3:material3:1.1.2'
+    implementation 'androidx.compose.material3:material3:1.2.0'
     implementation 'androidx.profileinstaller:profileinstaller:1.3.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2023.10.01')
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.02.01')
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     baselineProfile project(':baselineprofile')
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     // google services
-    releaseImplementation platform('com.google.firebase:firebase-bom:32.7.0')
+    releaseImplementation platform('com.google.firebase:firebase-bom:32.7.3')
     releaseImplementation("com.google.firebase:firebase-analytics-ktx")
     releaseImplementation('com.google.firebase:firebase-crashlytics-ktx')
     releaseImplementation("com.google.firebase:firebase-perf-ktx")
