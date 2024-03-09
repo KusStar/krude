@@ -1,6 +1,5 @@
 package com.kuss.krude.ui
 
-import android.app.Activity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,7 +18,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 import com.kuss.krude.viewmodel.MainViewModel
 
 

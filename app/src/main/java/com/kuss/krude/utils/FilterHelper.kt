@@ -1,7 +1,7 @@
 package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 import java.text.Collator
 import java.util.Locale
 

@@ -1,4 +1,4 @@
-package com.kuss.krude.data
+package com.kuss.krude.db
 
 import androidx.room.Embedded
 import androidx.room.Entity
