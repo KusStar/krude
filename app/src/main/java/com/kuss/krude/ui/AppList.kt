@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.AppItemShimmer
 import com.kuss.krude.viewmodel.MainViewModel
 
 
