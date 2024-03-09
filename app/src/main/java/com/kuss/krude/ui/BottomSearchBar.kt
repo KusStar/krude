@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
 import com.kuss.krude.R
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 import com.kuss.krude.viewmodel.MainViewModel
 
 

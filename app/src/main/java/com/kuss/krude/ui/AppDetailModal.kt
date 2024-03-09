@@ -49,7 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel

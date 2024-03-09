@@ -3,7 +3,7 @@ package com.kuss.krude.utils
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 
 object AppHelper {
     @JvmStatic

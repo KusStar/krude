@@ -4,8 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.kuss.krude.data.AppInfo
-import com.kuss.krude.data.Usage
 import java.util.Date
 
 

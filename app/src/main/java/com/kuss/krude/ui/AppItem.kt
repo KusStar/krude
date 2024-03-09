@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
-import com.kuss.krude.data.AppInfo
+import com.kuss.krude.db.AppInfo
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext

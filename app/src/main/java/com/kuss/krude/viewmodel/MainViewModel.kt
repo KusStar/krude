@@ -8,9 +8,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
-import com.kuss.krude.data.AppInfo
-import com.kuss.krude.data.Usage
-import com.kuss.krude.data.UsageCountByDay
+import com.kuss.krude.db.AppInfo
+import com.kuss.krude.db.Usage
+import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
