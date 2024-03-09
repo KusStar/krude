@@ -1,4 +1,4 @@
-package com.kuss.krude.ui
+package com.kuss.krude.ui.components
 
 import android.util.Log
 import androidx.compose.animation.Crossfade

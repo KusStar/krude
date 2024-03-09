@@ -1,4 +1,4 @@
-package com.kuss.krude.ui
+package com.kuss.krude.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -31,11 +29,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-
-@Composable
-fun Spacing(x: Int, factor: Int = 8) {
-    Spacer(modifier = Modifier.size((x * factor).dp))
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")

@@ -15,18 +15,18 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.sp
 import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
 
 
@@ -87,7 +89,7 @@ fun BottomSearchBar(
     AnimatedVisibility(
         visible = filtering.isNotEmpty(),
     ) {
-        Divider()
+        HorizontalDivider()
         Crossfade(targetState = filteredApps.isNotEmpty(), label = "filteredItems") {
             val height = 128.dp
             if (it) {
@@ -137,7 +139,7 @@ fun BottomSearchBar(
         }
     }
 
-    Divider()
+    HorizontalDivider()
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -273,7 +275,7 @@ fun BottomSearchBar(
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.ShowChart,
+                                imageVector = Icons.AutoMirrored.Default.ShowChart,
                                 contentDescription = stringResource(id = R.string.app_usage)
                             )
                             Spacing(x = 1)
