@@ -8,10 +8,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
+import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
-import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
@@ -34,6 +34,7 @@ data class MainState(
     val showAppDetailSheet: Boolean = false,
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
+    val showMoreSheet: Boolean = false,
 )
 
 class MainViewModel : ViewModel() {
@@ -298,6 +299,14 @@ class MainViewModel : ViewModel() {
         _state.update { mainState ->
             mainState.copy(
                 showAppUsageSheet = visible
+            )
+        }
+    }
+
+    fun setShowMoreSheet(visible: Boolean) {
+        _state.update { mainState ->
+            mainState.copy(
+                showMoreSheet = visible
             )
         }
     }

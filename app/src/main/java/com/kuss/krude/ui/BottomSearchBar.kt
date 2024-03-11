@@ -15,17 +15,11 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,16 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -55,7 +45,6 @@ import com.alorma.compose.settings.storage.preferences.rememberPreferenceBoolean
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
-import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
 
 
@@ -65,18 +54,17 @@ fun BottomSearchBar(
     openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
 ) {
-    val context = LocalContext.current
     val uiState by mainViewModel.state.collectAsState()
     val apps = uiState.apps
     val filtering = uiState.filtering
     val filteredApps = uiState.filteredApps
-    val scope = rememberCoroutineScope()
     val focusRequester = remember {
         FocusRequester()
     }
 
     val autoFocus = rememberPreferenceBooleanSettingState(key = "auto_focus", defaultValue = true)
-    val fuzzySearch = rememberPreferenceBooleanSettingState(key = "fuzzy_search", defaultValue = true)
+    val fuzzySearch =
+        rememberPreferenceBooleanSettingState(key = "fuzzy_search", defaultValue = true)
 
     LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
         if (apps.isNotEmpty() && autoFocus.value) {
@@ -181,8 +169,6 @@ fun BottomSearchBar(
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
         )
-        var expanded by remember { mutableStateOf(false) }
-
         fun refresh() {
             mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
         }
@@ -203,7 +189,7 @@ fun BottomSearchBar(
                         modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
                 }
-                IconButton(onClick = { expanded = true }) {
+                IconButton(onClick = { mainViewModel.setShowMoreSheet(true) }) {
                     Icon(
                         Icons.Filled.MoreVert,
                         tint = MaterialTheme.colorScheme.primary,
@@ -213,81 +199,7 @@ fun BottomSearchBar(
                 }
             }
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = stringResource(id = R.string.reset_app_priority)
-                            )
-                            Spacing(x = 1)
-                            Text(text = stringResource(id = R.string.reset_app_priority))
-                        }
-                    },
-                    onClick = {
-                        mainViewModel.resetDbAppsPriority(context)
-                        expanded = false
-                        refresh()
-                    })
-
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = stringResource(id = R.string.reload_apps)
-                            )
-                            Spacing(x = 1)
-                            Text(text = stringResource(id = R.string.reload_apps))
-                        }
-                    },
-                    onClick = {
-                        mainViewModel.loadFromPackageManger(context = context)
-                        expanded = false
-                        refresh()
-                    })
-
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.CenterFocusWeak,
-                                contentDescription = stringResource(id = R.string.auto_focus)
-                            )
-                            Spacing(x = 1)
-                            Text(text = stringResource(id = R.string.auto_focus))
-                            Spacing(x = 1)
-                            Checkbox(checked = autoFocus.value, onCheckedChange = {
-                                autoFocus.value = it
-                            })
-                        }
-                    },
-                    onClick = {
-                        autoFocus.value = !autoFocus.value
-                    })
-
-
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Default.ShowChart,
-                                contentDescription = stringResource(id = R.string.app_usage)
-                            )
-                            Spacing(x = 1)
-                            Text(text = stringResource(id = R.string.app_usage))
-                        }
-                    },
-                    onClick = {
-                        mainViewModel.setShowAppUsageSheet(true)
-
-                        expanded = false
-                    })
-            }
+            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel)
 
             AppUsageModal(mainViewModel)
         }
