@@ -1,7 +1,10 @@
 package com.kuss.krude.ui
 
+import android.annotation.SuppressLint
+import android.os.Handler
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +43,7 @@ import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 
+@SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
@@ -142,6 +146,10 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     val licenseSheetState = rememberModalBottomSheetState(
                         skipPartiallyExpanded = true
                     )
+                    val r = MaterialTheme.colorScheme.background.red * 255
+                    val g = MaterialTheme.colorScheme.background.green * 255
+                    val b = MaterialTheme.colorScheme.background.blue * 255
+                    val backgroundColor = "rgb(${r.toInt()}, ${g.toInt()}, ${b.toInt()})"
                     ModalBottomSheet(
                         onDismissRequest = {
                             showLicenseModal.value = false
@@ -151,10 +159,18 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     ) {
                         AndroidView(factory = {
                             WebView(it).apply {
+                                settings.javaScriptEnabled = true
                                 layoutParams = ViewGroup.LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT
                                 )
+                                webViewClient = object: WebViewClient() {
+                                    override fun onPageFinished(view: WebView?, url: String?) {
+                                        view?.evaluateJavascript("function setBg() { document.body.style.background = \"$backgroundColor\"; }; setBg();", null)
+                                        super.onPageFinished(view, url)
+                                    }
+                                }
+
                             }
                         }, update = {
                             it.loadUrl("file:///android_asset/open_source_licenses.html")
@@ -165,8 +181,6 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                         )
                     }
                 }
-
-
             }
         }
     }
