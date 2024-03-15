@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'androidx.baselineprofile'
+apply plugin: 'com.jaredsburrows.license'
 
 if (getGradle().getStartParameter().getTaskRequests()
         .toString().contains("Release")){
