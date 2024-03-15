@@ -6,16 +6,10 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,14 +20,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -54,6 +46,7 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AsyncAppIcon
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
@@ -85,34 +78,10 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                 mainViewModel.setShowAppDetailSheet(false)
             },
             sheetState = sheetState,
-            dragHandle = {
-                AnimatedContent(
-                    targetState = sheetState.currentValue,
-                    label = "DragHandle",
-                    transitionSpec = {
-                        scaleIn(
-                            initialScale = 0.92f,
-                            animationSpec = tween(220, delayMillis = 90)
-                        ).togetherWith(
-                            fadeOut(animationSpec = tween(90))
-                        )
-                    }) {
-                    when (it) {
-                        SheetValue.Expanded -> BottomSheetDefaults.DragHandle(
-                            modifier = Modifier.padding(
-                                vertical = 20.dp
-                            )
-                        )
-
-                        else -> BottomSheetDefaults.DragHandle()
-                    }
-                }
-            }
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = ModalSheetModifier
                     .padding(16.dp)
             ) {
                 selectedDetailApp?.let { app ->
@@ -123,9 +92,13 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
 
                     val packageName = app.packageName
 
-                    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+                    val launcherApps =
+                        context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
 
-                    Log.d(TAG, "launcherApps.hasShortcutHostPermission(): ${launcherApps.hasShortcutHostPermission()}")
+                    Log.d(
+                        TAG,
+                        "launcherApps.hasShortcutHostPermission(): ${launcherApps.hasShortcutHostPermission()}"
+                    )
                     launcherApps.hasShortcutHostPermission()
 
                     val shortcutQuery = LauncherApps.ShortcutQuery()
@@ -142,10 +115,12 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     }
 
                     if (shortcuts != null) {
-                        Log.d(TAG, "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
+                        Log.d(
+                            TAG,
+                            "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
                     }
 
-                    AsyncAppIcon(packageName = info.packageName, modifier = Modifier.size(64.dp) )
+                    AsyncAppIcon(packageName = info.packageName, modifier = Modifier.size(64.dp))
                     Text(
                         text = app.label,
                         textAlign = TextAlign.Center,
@@ -204,7 +179,10 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     Spacing(3)
                     val activitiesListState = rememberLazyListState()
                     if (info.activities.isNotEmpty()) {
-                        LazyColumn(state = activitiesListState, modifier = Modifier.fillMaxWidth()) {
+                        LazyColumn(
+                            state = activitiesListState,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             stickyHeader {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -230,10 +208,12 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                             items(info.activities.filter { it.exported && it.enabled }) {
 
                                 TextButton(onClick = {
-                                    val intent = context.packageManager.getLaunchIntentForPackage(it.packageName)
+                                    val intent =
+                                        context.packageManager.getLaunchIntentForPackage(it.packageName)
                                     if (intent != null) {
                                         try {
-                                            intent.component = ComponentName(it.packageName, it.name)
+                                            intent.component =
+                                                ComponentName(it.packageName, it.name)
                                             context.startActivity(intent)
                                         } catch (e: Exception) {
                                             intent.component = null

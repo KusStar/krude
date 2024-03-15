@@ -12,4 +12,8 @@
     <string name="open_times">次</string>
     <string name="app_usage">应用使用情况</string>
     <string name="show_usage_count">显示应用启动次数</string>
+    <string name="about">关于</string>
+    <string name="open_source_license">开放源代码许可</string>
+    <string name="created_by">"开发者 "</string>
+    <string name="open_sourced_at">"开源地址 "</string>
 </resources>
