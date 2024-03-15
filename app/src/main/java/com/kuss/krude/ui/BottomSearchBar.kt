@@ -66,6 +66,8 @@ fun BottomSearchBar(
     val fuzzySearch =
         rememberPreferenceBooleanSettingState(key = "fuzzy_search", defaultValue = true)
 
+    val showUsageCount = rememberPreferenceBooleanSettingState(key = "show_usage_count", defaultValue = false)
+
     LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
         if (apps.isNotEmpty() && autoFocus.value) {
             focusRequester.requestFocus()
@@ -101,7 +103,7 @@ fun BottomSearchBar(
                             onLongClick = {
                                 toAppDetail(item)
                             },
-                            showTimes = true,
+                            showTimes = showUsageCount.value,
                         )
                     }
                 }
