@@ -3,13 +3,14 @@ package com.kuss.krude.ui
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
-import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
@@ -37,6 +37,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val autoFocus = rememberPreferenceBooleanSettingState(key = "auto_focus", defaultValue = true)
+    val showUsageCount = rememberPreferenceBooleanSettingState(key = "show_usage_count", defaultValue = false)
     val uiState by mainViewModel.state.collectAsState()
     val showAppUsageSheet = uiState.showMoreSheet
 
@@ -99,7 +100,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                                 contentDescription = stringResource(id = R.string.auto_focus)
                             )
                             Spacing(x = 1)
-                            Text(text = stringResource(id = R.string.auto_focus))
+                            Text(text = stringResource(id = R.string.auto_focus), modifier = Modifier.fillMaxWidth())
                             Spacing(x = 1)
                             Checkbox(checked = autoFocus.value, onCheckedChange = {
                                 autoFocus.value = it
@@ -108,6 +109,25 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                     },
                     onClick = {
                         autoFocus.value = !autoFocus.value
+                    })
+
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = stringResource(id = R.string.show_usage_count)
+                            )
+                            Spacing(x = 1)
+                            Text(text = stringResource(id = R.string.show_usage_count), modifier = Modifier.fillMaxWidth())
+                            Spacing(x = 1)
+                            Checkbox(checked = showUsageCount.value, onCheckedChange = {
+                                showUsageCount.value = it
+                            })
+                        }
+                    },
+                    onClick = {
+                        showUsageCount.value = !showUsageCount.value
                     })
 
 
