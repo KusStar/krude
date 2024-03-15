@@ -131,8 +131,8 @@ dependencies {
     releaseImplementation('com.google.firebase:firebase-crashlytics-ktx')
     releaseImplementation("com.google.firebase:firebase-perf-ktx")
     // third part
-    implementation 'com.github.alorma:compose-settings-storage-preferences:0.27.0'
-    implementation 'com.github.alorma:compose-settings-ui-m3:0.27.0'
+    implementation "com.github.alorma:compose-settings-ui:2.0.0"
+    implementation "com.github.alorma:compose-settings-storage-preferences:1.0.3"
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
     implementation 'com.github.promeg:tinypinyin:2.0.3'

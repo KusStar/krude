@@ -8,7 +8,11 @@
     <string name="reload_apps">Reload apps</string>
     <string name="auto_focus">Auto focus</string>
     <string name="reset_app_priority">Reset app priority</string>
-    <string name="open_times">times</string>
+    <string name="open_times">" times"</string>
     <string name="app_usage">App Usage</string>
     <string name="show_usage_count">Show usage count</string>
+    <string name="about">About</string>
+    <string name="open_source_license">Open source sicenses</string>
+    <string name="created_by">"Created by "</string>
+    <string name="open_sourced_at">"Open sourced at "</string>
 </resources>
