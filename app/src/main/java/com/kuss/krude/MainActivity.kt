@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.kuss.krude.ui.AppList
 import com.kuss.krude.ui.theme.AppTheme
-import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.PinyinHelper
 
 
@@ -33,12 +32,6 @@ class MainActivity : ComponentActivity() {
                     AppList()
                 }
             }
-        }
-    }
-
-    override fun onBackPressed() {
-        if (!ActivityHelper.isDefaultLauncher(this)) {
-            super.onBackPressed()
         }
     }
 

@@ -1,11 +1,8 @@
 package com.kuss.krude.utils
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.provider.Settings
@@ -45,48 +42,6 @@ object ActivityHelper {
             activity.window.decorView,
             Intent(Settings.ACTION_HOME_SETTINGS)
         )
-    }
-
-    @JvmStatic
-    fun checkOrSetDefaultLauncher(activity: Activity, cb: () -> Unit) {
-        val sharedPref = activity.getSharedPreferences(
-            "checkOrSetDefaultLauncher", Context.MODE_PRIVATE)
-        val askedKey = "asked"
-        val asked = sharedPref.getBoolean(askedKey, false)
-        if (asked) {
-            cb()
-            return
-        }
-        val reject = {
-            sharedPref.edit().putBoolean(askedKey, true).apply()
-            cb()
-        }
-        if (!isDefaultLauncher(activity)) {
-            AlertDialog.Builder(activity).apply {
-                setTitle("Set Krude as default launcher?")
-                setPositiveButton("Go to set") { _: DialogInterface, _: Int ->
-                    startDefaultHome(activity)
-                    cb()
-                }
-                setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
-                    dialogInterface.cancel()
-                    reject()
-                }
-            }.show()
-        } else {
-            reject()
-        }
-    }
-
-    @JvmStatic
-    fun isDefaultLauncher(activity: Activity): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-        }
-        val resolveInfo =
-            activity.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        val currentHomePackage = resolveInfo!!.activityInfo.packageName
-        return currentHomePackage.equals(activity.packageName)
     }
 
     @JvmStatic
