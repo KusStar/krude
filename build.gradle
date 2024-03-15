@@ -10,6 +10,7 @@ buildscript {
         google()
         //noinspection JcenterRepositoryObsolete
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.3.0'
@@ -18,6 +19,7 @@ buildscript {
         classpath 'com.google.gms:google-services:4.4.1'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
         classpath 'com.google.firebase:perf-plugin:1.4.2'
+        classpath 'com.jaredsburrows:gradle-license-plugin:0.9.7'
     }
 }
 
