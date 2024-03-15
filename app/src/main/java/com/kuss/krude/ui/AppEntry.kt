@@ -25,7 +25,7 @@ import com.kuss.krude.viewmodel.MainViewModel
 
 
 @Composable
-fun AppList(mainViewModel: MainViewModel = viewModel()) {
+fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
     val context = LocalContext.current
     val listState = rememberLazyStaggeredGridState()
     val focusManager = LocalFocusManager.current

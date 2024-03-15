@@ -9,7 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.kuss.krude.ui.AppList
+import com.kuss.krude.ui.AppEntry
 import com.kuss.krude.ui.theme.AppTheme
 import com.kuss.krude.utils.PinyinHelper
 
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(Color.Transparent),
                 ) {
-                    AppList()
+                    AppEntry()
                 }
             }
         }
