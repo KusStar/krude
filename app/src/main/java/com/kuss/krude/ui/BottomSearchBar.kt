@@ -41,10 +41,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.utils.useAutoFocus
+import com.kuss.krude.utils.useFuzzySearch
+import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
 
 
@@ -62,11 +64,8 @@ fun BottomSearchBar(
         FocusRequester()
     }
 
-    val autoFocus = rememberPreferenceBooleanSettingState(key = "auto_focus", defaultValue = true)
-    val fuzzySearch =
-        rememberPreferenceBooleanSettingState(key = "fuzzy_search", defaultValue = true)
-
-    val showUsageCount = rememberPreferenceBooleanSettingState(key = "show_usage_count", defaultValue = false)
+    val autoFocus = useAutoFocus()
+    val fuzzySearch = useFuzzySearch()
 
     LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
         if (apps.isNotEmpty() && autoFocus.value) {
@@ -83,6 +82,8 @@ fun BottomSearchBar(
         Crossfade(targetState = filteredApps.isNotEmpty(), label = "filteredItems") {
             val height = 128.dp
             if (it) {
+                val showUsageCount = useShowUsageCount()
+
                 LazyRow(
                     modifier = Modifier
                         .height(height)

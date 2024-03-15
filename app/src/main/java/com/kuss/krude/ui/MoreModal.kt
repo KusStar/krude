@@ -26,9 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.alorma.compose.settings.storage.preferences.rememberPreferenceBooleanSettingState
 import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.utils.useAutoFocus
+import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,8 +37,6 @@ import com.kuss.krude.viewmodel.MainViewModel
 fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
-    val autoFocus = rememberPreferenceBooleanSettingState(key = "auto_focus", defaultValue = true)
-    val showUsageCount = rememberPreferenceBooleanSettingState(key = "show_usage_count", defaultValue = false)
     val uiState by mainViewModel.state.collectAsState()
     val showAppUsageSheet = uiState.showMoreSheet
 
@@ -58,6 +57,10 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
+                val autoFocus = useAutoFocus()
+
+                val showUsageCount = useShowUsageCount()
+
                 DropdownMenuItem(
                     text = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
