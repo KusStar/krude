@@ -46,10 +46,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.ui.components.AsyncAppIcon
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.TAG
@@ -143,6 +145,15 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                         Log.d(TAG, "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
                     }
 
+                    AsyncAppIcon(packageName = info.packageName, modifier = Modifier.size(64.dp) )
+                    Text(
+                        text = app.label,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 16.sp,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding()
+                    )
                     // extra info
                     Row {
                         Text(
