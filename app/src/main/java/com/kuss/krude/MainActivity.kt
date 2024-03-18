@@ -12,6 +12,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.kuss.krude.ui.AppEntry
 import com.kuss.krude.ui.theme.AppTheme
 import com.kuss.krude.utils.PinyinHelper
+import com.kuss.krude.utils.Umami
 
 
 class MainActivity : ComponentActivity() {
@@ -21,6 +22,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         PinyinHelper.initDict()
+
+        Umami.trackInit()
 
         setContent {
             AppTheme {
