@@ -21,11 +21,6 @@ jobs:
           echo "${{ secrets.RELEASE_KEYSTORE }}" > keystore.asc
           gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch keystore.asc > ./app/keystore
   
-      - name: Prepare Google Service Json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICE_JSON }}" > google-services.asc
-          gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch google-services.asc > ./app/src/google-services.json
-  
       - name: Build Debug
         run: ./gradlew assembleDebug
 

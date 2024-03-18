@@ -4,13 +4,6 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'androidx.baselineprofile'
 apply plugin: 'com.jaredsburrows.license'
 
-if (getGradle().getStartParameter().getTaskRequests()
-        .toString().contains("Release")){
-    apply plugin: 'com.google.gms.google-services'
-    apply plugin: 'com.google.firebase.crashlytics'
-    apply plugin: 'com.google.firebase.firebase-perf'
-}
-
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
@@ -98,8 +91,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-themeadapter-appcompat:$accompanist_version"
     implementation "androidx.compose.material:material-icons-extended:1.6.2"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
@@ -125,11 +116,6 @@ dependencies {
     baselineProfile project(':baselineprofile')
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
-    // google services
-    releaseImplementation platform('com.google.firebase:firebase-bom:32.7.3')
-    releaseImplementation("com.google.firebase:firebase-analytics-ktx")
-    releaseImplementation('com.google.firebase:firebase-crashlytics-ktx')
-    releaseImplementation("com.google.firebase:firebase-perf-ktx")
     // third part
     implementation "com.github.alorma:compose-settings-ui:2.0.0"
     implementation "com.github.alorma:compose-settings-storage-preferences:1.0.3"
