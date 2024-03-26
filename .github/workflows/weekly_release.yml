@@ -20,6 +20,10 @@ jobs:
         run: |
           echo "${{ secrets.RELEASE_KEYSTORE }}" > keystore.asc
           gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch keystore.asc > ./app/keystore
+
+      - name: Bump prepare version
+        run: |
+          sh ./bump.sh
   
       - name: Build Debug
         run: ./gradlew assembleDebug
