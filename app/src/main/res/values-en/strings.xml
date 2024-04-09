@@ -15,5 +15,5 @@
     <string name="about">About</string>
     <string name="open_source_license">Open source licenses</string>
     <string name="created_by">"Created by "</string>
-    <string name="open_sourced_at">Open sourced at</string>
+    <string name="open_sourced_at">"Open sourced at "</string>
 </resources>

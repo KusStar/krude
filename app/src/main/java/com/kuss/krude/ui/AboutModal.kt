@@ -1,10 +1,8 @@
 package com.kuss.krude.ui
 
 import android.annotation.SuppressLint
-import android.os.Handler
 import android.view.ViewGroup
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,10 +53,11 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                 onDismiss()
             },
             sheetState = sheetState,
+            modifier = ModalSheetModifier
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = ModalSheetModifier.padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
@@ -79,7 +78,9 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
 
 //                developer info
                 val developerString = buildAnnotatedString {
-                    append(stringResource(R.string.created_by))
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                        append(stringResource(R.string.created_by))
+                    }
 
                     pushStringAnnotation(tag = "KusStar", annotation = "https://github.com/KusStar")
                     withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
@@ -104,7 +105,9 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                 Spacing(x = 1)
 //                open source info
                 val ossString = buildAnnotatedString {
-                    append(stringResource(R.string.open_sourced_at))
+                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
+                        append(stringResource(R.string.open_sourced_at))
+                    }
 
                     pushStringAnnotation("krude", "https://github.com/KusStar/krude")
                     withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
@@ -146,10 +149,6 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     val licenseSheetState = rememberModalBottomSheetState(
                         skipPartiallyExpanded = true
                     )
-                    val r = MaterialTheme.colorScheme.background.red * 255
-                    val g = MaterialTheme.colorScheme.background.green * 255
-                    val b = MaterialTheme.colorScheme.background.blue * 255
-                    val backgroundColor = "rgb(${r.toInt()}, ${g.toInt()}, ${b.toInt()})"
                     ModalBottomSheet(
                         onDismissRequest = {
                             showLicenseModal.value = false
@@ -164,12 +163,6 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT
                                 )
-                                webViewClient = object: WebViewClient() {
-                                    override fun onPageFinished(view: WebView?, url: String?) {
-                                        view?.evaluateJavascript("function setBg() { document.body.style.background = \"$backgroundColor\"; }; setBg();", null)
-                                        super.onPageFinished(view, url)
-                                    }
-                                }
 
                             }
                         }, update = {

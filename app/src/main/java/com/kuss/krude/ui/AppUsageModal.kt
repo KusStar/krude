@@ -1,17 +1,10 @@
 package com.kuss.krude.ui
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 
 
@@ -36,29 +30,7 @@ fun AppUsageModal(mainViewModel: MainViewModel) {
                 mainViewModel.setShowAppUsageSheet(false)
             },
             sheetState = sheetState,
-            dragHandle = {
-                AnimatedContent(
-                    targetState = sheetState.currentValue,
-                    label = "DragHandle",
-                    transitionSpec = {
-                        scaleIn(
-                            initialScale = 0.92f,
-                            animationSpec = tween(220, delayMillis = 90)
-                        ).togetherWith(
-                            fadeOut(animationSpec = tween(90))
-                        )
-                    }) {
-                    when (it) {
-                        SheetValue.Expanded -> BottomSheetDefaults.DragHandle(
-                            modifier = Modifier.padding(
-                                vertical = 20.dp
-                            )
-                        )
-
-                        else -> BottomSheetDefaults.DragHandle()
-                    }
-                }
-            }
+            modifier = ModalSheetModifier
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
