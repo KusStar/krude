@@ -78,10 +78,11 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                 mainViewModel.setShowAppDetailSheet(false)
             },
             sheetState = sheetState,
+            modifier = ModalSheetModifier
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = ModalSheetModifier
+                modifier = Modifier
                     .padding(16.dp)
             ) {
                 selectedDetailApp?.let { app ->
