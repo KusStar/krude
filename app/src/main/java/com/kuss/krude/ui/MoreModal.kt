@@ -2,7 +2,6 @@ package com.kuss.krude.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
@@ -24,15 +23,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.ui.SettingsCheckbox
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
+import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.useAutoFocus
 import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
-
-private val MODAL_HEIGHT = 500.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +53,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                 dismiss()
             },
             sheetState = sheetState,
-            modifier = Modifier.height(MODAL_HEIGHT)
+            modifier = ModalSheetModifier
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

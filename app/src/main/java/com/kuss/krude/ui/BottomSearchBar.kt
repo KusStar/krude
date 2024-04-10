@@ -141,7 +141,8 @@ fun BottomSearchBar(
                 Icon(
                     Icons.Filled.Clear,
                     contentDescription = "Clear",
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                    tint = MaterialTheme.colorScheme.secondary
                 )
             }
         }
