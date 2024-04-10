@@ -1,15 +1,12 @@
 package com.kuss.krude.ui.components
 
-import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -98,21 +94,7 @@ fun AppItem(
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false
 ) {
-    CustomButton(
-        onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        Log.d("AppItem", "onLongPress")
-                    }
-                )
-            },
-        shape = RoundedCornerShape(8.dp),
-        enabled = enabled
-    ) {
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -151,7 +133,6 @@ fun AppItem(
                 )
             }
         }
-    }
 }
 
 @Composable
