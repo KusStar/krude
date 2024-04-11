@@ -1,5 +1,6 @@
 package com.kuss.krude.db
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
@@ -20,19 +21,11 @@ class Converters {
 }
 
 @TypeConverters(Converters::class)
-@Database(entities = [AppInfo::class, Usage::class], version = 1, exportSchema = true, autoMigrations = [])
+@Database(entities = [AppInfo::class, Usage::class,  Star::class], version = 2, exportSchema = true, autoMigrations = [AutoMigration(from = 1, to = 2)])
 abstract class AppDatabase : RoomDatabase() {
-//    @DeleteColumn(
-//        tableName = "apps",
-//        columnName = "id"
-//    )
-//    class Migrate1to2Spec: AutoMigrationSpec {
-//        override fun onPostMigrate(db: SupportSQLiteDatabase) {
-//            // Callback for any tasks to execute after migration is done
-//        }
-//    }
     abstract fun appDao(): AppDao
 
     abstract fun usageDao(): UsageDao
 
+    abstract fun starDao(): StarDao
 }

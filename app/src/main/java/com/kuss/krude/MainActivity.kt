@@ -16,7 +16,6 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-
         PinyinHelper.initDict()
 
         Umami.trackInit()

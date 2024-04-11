@@ -27,6 +27,17 @@ data class Usage(
     val createdAt: Date = Date()
 )
 
+@Entity(
+    tableName = "Star"
+)
+data class Star(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val keyword: String,
+    val packageName: String,
+    val createdAt: Date = Date()
+)
+
 
 data class UsageCountByDay(
     val day: String,

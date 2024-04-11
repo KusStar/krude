@@ -54,3 +54,18 @@ interface UsageDao {
     @Delete
     fun deleteUsage(usage: Usage)
 }
+
+@Dao
+interface StarDao {
+    @Query("SELECT * FROM star where keyword = :keyword")
+    fun getKeywordStars(keyword: String): List<Star>
+
+    @Insert
+    fun insertStar(star: Star)
+
+    @Query("DELETE FROM star")
+    fun deleteAllStar()
+
+    @Delete
+    fun deleteStar(star: Star)
+}

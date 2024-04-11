@@ -35,6 +35,7 @@ data class MainState(
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
     val showMoreSheet: Boolean = false,
+    val currentStarPackageNameSet: Set<String> = setOf()
 )
 
 class MainViewModel : ViewModel() {
@@ -359,6 +360,26 @@ class MainViewModel : ViewModel() {
 
             _state.update { mainState ->
                 mainState.copy(filteredApps = match, filtering = text)
+            }
+        }
+    }
+
+    fun filterKeywordStars(context: Context, keyword: String) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                val stars = db.starDao().getKeywordStars(keyword)
+                if (stars.isNotEmpty()) {
+                    val starSet = HashSet<String>()
+
+                    stars.forEach {
+                        starSet.add(it.packageName)
+                    }
+
+                    _state.update { mainState ->
+                        mainState.copy(currentStarPackageNameSet = starSet)
+                    }
+                }
             }
         }
     }
