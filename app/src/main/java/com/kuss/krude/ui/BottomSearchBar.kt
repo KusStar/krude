@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -56,7 +59,9 @@ fun BottomSearchBar(
     openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by mainViewModel.state.collectAsState()
+    val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
     val filtering = uiState.filtering
     val filteredApps = uiState.filteredApps
@@ -170,6 +175,7 @@ fun BottomSearchBar(
             ),
             onValueChange = { text ->
                 mainViewModel.filterApps(apps, text, fuzzySearch.value)
+                mainViewModel.filterKeywordStars(context = context, text)
             },
             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
         )
@@ -182,6 +188,17 @@ fun BottomSearchBar(
                 .wrapContentSize(Alignment.TopStart)
         ) {
             Row {
+                AnimatedVisibility(visible = filtering.isNotEmpty()) {
+                    val hasStar = currentStarPackageNameSet.isNotEmpty()
+                    IconButton(onClick = { }) {
+                        Icon(
+                            if (hasStar) Icons.Filled.Star else Icons.TwoTone.Star,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Star",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
+                }
                 IconButton(onClick = {
                     fuzzySearch.value = !fuzzySearch.value
                     refresh()
