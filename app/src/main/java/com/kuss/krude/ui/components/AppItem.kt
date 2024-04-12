@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,6 +94,7 @@ fun AppItem(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     item: AppInfo,
+    showStar: Boolean = false,
     showSubtitle: Boolean = true,
     titleSingleLine: Boolean = false,
     enabled: Boolean = true,
@@ -122,14 +127,26 @@ fun AppItem(
                     .size(iconSize)
             )
             Spacing(1)
-            Text(
-                text = item.label,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = titleFontSize,
-                maxLines = if (titleSingleLine) 1 else Int.MAX_VALUE,
-                overflow = TextOverflow.Ellipsis,
-            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showStar) {
+                    Icon(
+                        Icons.Filled.Star,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = "Star",
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+                Text(
+                    text = item.label,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = titleFontSize,
+                    maxLines = if (titleSingleLine) 1 else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
 
             if (showTimes) {
                 Spacing(1, 4)

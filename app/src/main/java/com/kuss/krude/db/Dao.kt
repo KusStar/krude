@@ -66,6 +66,6 @@ interface StarDao {
     @Query("DELETE FROM star")
     fun deleteAllStar()
 
-    @Delete
-    fun deleteStar(star: Star)
+    @Query("DELETE FROM star where packageName = :packageName and keyword = :keyword")
+    fun deleteStarPackage(packageName: String, keyword: String)
 }

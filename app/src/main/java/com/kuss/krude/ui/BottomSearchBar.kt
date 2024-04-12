@@ -1,10 +1,12 @@
 package com.kuss.krude.ui
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -47,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.utils.TAG
 import com.kuss.krude.utils.useAutoFocus
 import com.kuss.krude.utils.useFuzzySearch
 import com.kuss.krude.utils.useShowUsageCount
@@ -69,6 +74,10 @@ fun BottomSearchBar(
         FocusRequester()
     }
 
+    var starMode by remember {
+        mutableStateOf(false)
+    }
+
     val autoFocus = useAutoFocus()
     val fuzzySearch = useFuzzySearch()
 
@@ -84,52 +93,75 @@ fun BottomSearchBar(
         visible = filtering.isNotEmpty(),
     ) {
         HorizontalDivider()
-        Crossfade(targetState = filteredApps.isNotEmpty(), label = "filteredItems") {
-            val height = 128.dp
-            if (it) {
-                val showUsageCount = useShowUsageCount()
 
-                LazyRow(
-                    modifier = Modifier
-                        .height(height)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    itemsIndexed(filteredApps) { _, item ->
-                        AppItem(
-                            modifier = Modifier
-                                .width(96.dp),
-                            item = item,
-                            titleFontSize = 14.sp,
-                            titleSingleLine = true,
-                            showSubtitle = false,
-                            onClick = {
-                                openApp(item)
-                            },
-                            onLongClick = {
-                                toAppDetail(item)
-                            },
-                            showTimes = showUsageCount.value,
-                        )
-                    }
-                }
-            } else {
-                Row(
+        Column {
+            val hasMatch = filteredApps.isNotEmpty();
+            AnimatedVisibility(visible = starMode && hasMatch) {
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(height),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                        .padding(top = 16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = painterResource(R.mipmap.ic_launcher_foreground),
-                        contentDescription = null,
-                        modifier = Modifier.size(96.dp)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.no_match_app),
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    Text(text = "Click app to star", color = MaterialTheme.colorScheme.secondary)
+                }
+            }
+
+            Crossfade(targetState = hasMatch, label = "filteredItems") {
+                val height = 128.dp
+                if (it) {
+                    val showUsageCount = useShowUsageCount()
+
+                    LazyRow(
+                        modifier = Modifier
+                            .height(height)
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(filteredApps) { _, item ->
+                            val isStar = currentStarPackageNameSet.contains(item.packageName)
+                            AppItem(
+                                modifier = Modifier
+                                    .width(96.dp),
+                                item = item,
+                                titleFontSize = 14.sp,
+                                showStar = isStar,
+                                titleSingleLine = true,
+                                showSubtitle = false,
+                                onClick = {
+                                    if (starMode) {
+                                        Log.d(TAG, "star $item")
+                                        mainViewModel.starApp(context, item.packageName, keyword = filtering, isStar)
+                                    } else {
+                                        openApp(item)
+                                    }
+                                },
+                                onLongClick = {
+                                    toAppDetail(item)
+                                },
+                                showTimes = showUsageCount.value,
+                            )
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(height),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.mipmap.ic_launcher_foreground),
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp)
+                        )
+                        Text(
+                            text = stringResource(id = R.string.no_match_app),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
         }
@@ -174,6 +206,7 @@ fun BottomSearchBar(
                 focusedPlaceholderColor = MaterialTheme.colorScheme.primary
             ),
             onValueChange = { text ->
+                starMode = false
                 mainViewModel.filterApps(apps, text, fuzzySearch.value)
                 mainViewModel.filterKeywordStars(context = context, text)
             },
@@ -188,9 +221,11 @@ fun BottomSearchBar(
                 .wrapContentSize(Alignment.TopStart)
         ) {
             Row {
-                AnimatedVisibility(visible = filtering.isNotEmpty()) {
+                AnimatedVisibility(visible = filtering.isNotEmpty() && filteredApps.isNotEmpty()) {
                     val hasStar = currentStarPackageNameSet.isNotEmpty()
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        starMode = !starMode
+                    }) {
                         Icon(
                             if (hasStar) Icons.Filled.Star else Icons.TwoTone.Star,
                             tint = MaterialTheme.colorScheme.primary,
