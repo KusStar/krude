@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.utils.ActivityHelper
@@ -369,17 +370,32 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 val stars = db.starDao().getKeywordStars(keyword)
-                if (stars.isNotEmpty()) {
-                    val starSet = HashSet<String>()
+                Log.d(TAG, "filterKeywordStars: ${stars.joinToString { it.packageName }}")
+                val starSet = HashSet<String>()
 
-                    stars.forEach {
-                        starSet.add(it.packageName)
-                    }
-
-                    _state.update { mainState ->
-                        mainState.copy(currentStarPackageNameSet = starSet)
-                    }
+                stars.forEach {
+                    starSet.add(it.packageName)
                 }
+
+                val apps = _state.value.filteredApps
+
+                _state.update { mainState ->
+                    mainState.copy(currentStarPackageNameSet = starSet, filteredApps = apps.sortedByDescending { starSet.contains(it.packageName) })
+                }
+            }
+        }
+    }
+
+    fun starApp(context: Context, packageName: String, keyword: String, isStar: Boolean) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                if (!isStar) {
+                    db.starDao().insertStar(Star(packageName = packageName, keyword = keyword))
+                } else {
+                    db.starDao().deleteStarPackage(packageName, keyword)
+                }
+                filterKeywordStars(context, keyword = keyword)
             }
         }
     }
