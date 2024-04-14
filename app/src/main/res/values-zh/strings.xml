@@ -16,4 +16,7 @@
     <string name="open_source_license">开放源代码许可</string>
     <string name="created_by">"开发者 "</string>
     <string name="open_sourced_at">"开源地址 "</string>
+    <string name="sponsor">赞赏</string>
+    <string name="save_wechat_sponsor">保存赞赏码</string>
+    <string name="jump_alipay_sponsor">跳转支付宝打赏</string>
 </resources>

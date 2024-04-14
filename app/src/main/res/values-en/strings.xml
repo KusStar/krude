@@ -16,4 +16,7 @@
     <string name="open_source_license">Open source licenses</string>
     <string name="created_by">"Created by "</string>
     <string name="open_sourced_at">"Open sourced at "</string>
+    <string name="sponsor">Sponsor</string>
+    <string name="save_wechat_sponsor">Save Wechat Sponsor Image</string>
+    <string name="jump_alipay_sponsor">Jump to AliPay Sponsor</string>
 </resources>

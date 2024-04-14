@@ -214,6 +214,9 @@ fun BottomSearchBar(
         )
         fun refresh() {
             mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
+            if (filtering.isNotEmpty()) {
+                mainViewModel.filterKeywordStars(context = context, filtering)
+            }
         }
 
         Box(
