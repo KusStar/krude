@@ -3,27 +3,39 @@ package com.kuss.krude.ui
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,15 +49,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.alorma.compose.settings.ui.SettingsMenuLink
+import com.kuss.krude.BuildConfig
 import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
+import com.kuss.krude.utils.SponsorHelper
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     if (visible) {
         ModalBottomSheet(
@@ -57,7 +77,9 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
@@ -70,6 +92,13 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = BuildConfig.VERSION_NAME,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 16.sp,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacing(x = 1)
@@ -122,14 +151,132 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     onClick = { offset ->
                         ossString.getStringAnnotations(tag = "krude", start = offset, end = offset)
                             .firstOrNull()?.let {
-                            urlHandler.openUri(it.item)
-                        }
+                                urlHandler.openUri(it.item)
+                            }
                     })
 
                 Spacing(x = 2)
 
-                val showLicenseModal = remember {
+                var showLicenseModal by remember {
                     mutableStateOf(false)
+                }
+
+                var showSponsorModal by remember {
+                    mutableStateOf(false)
+                }
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.ThumbUp,
+                            contentDescription = stringResource(id = R.string.sponsor)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.sponsor)) },
+                    onClick = {
+                        showSponsorModal = true
+                    },
+                )
+
+                if (showSponsorModal) {
+                    var toWechatDialog by remember {
+                        mutableStateOf(false)
+                    }
+                    val context = LocalContext.current
+                    val sponsorSheetState = rememberModalBottomSheetState(
+                        skipPartiallyExpanded = true
+                    )
+                    val uriHandler = LocalUriHandler.current
+                    val coroutineScope = rememberCoroutineScope()
+                    ModalBottomSheet(
+                        onDismissRequest = {
+                            showSponsorModal = false
+                        },
+                        sheetState = sponsorSheetState,
+                        modifier = ModalSheetModifier
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                                .fillMaxSize()
+                                .padding()
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.sponsor),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Spacing(x = 2)
+                            Image(
+                                painter = painterResource(id = R.drawable.wechat_reward),
+                                contentDescription = "wechat_reward",
+                                Modifier
+                                    .size(256.dp)
+                                    .clip(
+                                        RoundedCornerShape(8.dp)
+                                    )
+                            )
+                            Spacing(x = 1)
+                            Button(onClick = {
+                                coroutineScope.launch {
+                                    withContext(IO) {
+                                        SponsorHelper.saveWechatSponsor(context)
+                                        withContext(Main) {
+                                            Toast.makeText(
+                                                context,
+                                                "已保存到相册",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            toWechatDialog = true
+                                        }
+                                    }
+                                }
+                            }) {
+                                Text(stringResource(id = R.string.save_wechat_sponsor))
+                            }
+                            Spacing(x = 1)
+                            Button(onClick = {
+                                uriHandler.openUri(SponsorHelper.ALIPAY_SPONSOR_URI)
+                            }) {
+                                Text(stringResource(id = R.string.jump_alipay_sponsor))
+                            }
+                        }
+                    }
+
+                    if (toWechatDialog) {
+                        AlertDialog(
+                            title = {
+                                Text(text = "保存成功！")
+                            },
+                            text = {
+                                Text(text = "请打开微信-扫一扫-相册，选择刚刚保存的赞赏码，赞赏开发者")
+                            },
+                            onDismissRequest = {
+                                toWechatDialog = false
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        SponsorHelper.openWechatScan(context)
+                                    }
+                                ) {
+                                    Text("跳转到微信")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        toWechatDialog = false
+                                    }
+                                ) {
+                                    Text("关闭")
+                                }
+                            }
+                        )
+                    }
                 }
 
                 SettingsMenuLink(
@@ -141,17 +288,17 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     },
                     title = { Text(text = stringResource(id = R.string.open_source_license)) },
                     onClick = {
-                          showLicenseModal.value = true
+                        showLicenseModal = true
                     },
                 )
 
-                if (showLicenseModal.value) {
+                if (showLicenseModal) {
                     val licenseSheetState = rememberModalBottomSheetState(
                         skipPartiallyExpanded = true
                     )
                     ModalBottomSheet(
                         onDismissRequest = {
-                            showLicenseModal.value = false
+                            showLicenseModal = false
                         },
                         sheetState = licenseSheetState,
                         modifier = ModalSheetModifier
