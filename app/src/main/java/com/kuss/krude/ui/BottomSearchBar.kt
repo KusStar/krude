@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -46,11 +45,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.TAG
 import com.kuss.krude.utils.useAutoFocus
 import com.kuss.krude.utils.useFuzzySearch
@@ -104,7 +105,18 @@ fun BottomSearchBar(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "Click app to star", color = MaterialTheme.colorScheme.secondary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.TwoTone.Star,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Star",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacing(x = 1)
+                        Text(text = filtering, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Spacing(x = 1)
+                        Text(text = "to app", color = MaterialTheme.colorScheme.secondary)
+                    }
                 }
             }
 
@@ -225,12 +237,11 @@ fun BottomSearchBar(
         ) {
             Row {
                 AnimatedVisibility(visible = filtering.isNotEmpty() && filteredApps.isNotEmpty()) {
-                    val hasStar = currentStarPackageNameSet.isNotEmpty()
                     IconButton(onClick = {
                         starMode = !starMode
                     }) {
                         Icon(
-                            if (hasStar) Icons.Filled.Star else Icons.TwoTone.Star,
+                            Icons.TwoTone.Star,
                             tint = MaterialTheme.colorScheme.primary,
                             contentDescription = "Star",
                             modifier = Modifier.size(ButtonDefaults.IconSize)
