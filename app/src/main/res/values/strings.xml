@@ -18,4 +18,7 @@
     <string name="sponsor">Sponsor</string>
     <string name="save_wechat_sponsor">Save Wechat Sponsor Image</string>
     <string name="jump_alipay_sponsor">Jump to AliPay Sponsor</string>
+    <string name="feedback_issue">Feture Request/Issue</string>
+    <string name="send_email">Send Email</string>
+    <string name="github_issues" translatable="false">Github Issue</string>
 </resources>
