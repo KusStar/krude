@@ -19,4 +19,6 @@
     <string name="sponsor">赞赏</string>
     <string name="save_wechat_sponsor">保存赞赏码</string>
     <string name="jump_alipay_sponsor">跳转支付宝打赏</string>
+    <string name="feedback_issue">功能建议/BUG反馈</string>
+    <string name="send_email">发送邮件</string>
 </resources>

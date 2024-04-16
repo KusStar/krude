@@ -16,7 +16,10 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -165,6 +168,12 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     mutableStateOf(false)
                 }
 
+                var showReportModal by remember {
+                    mutableStateOf(false)
+                }
+
+                val uriHandler = LocalUriHandler.current
+
                 SettingsMenuLink(
                     icon = {
                         Icon(
@@ -178,6 +187,32 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     },
                 )
 
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Report,
+                            contentDescription = stringResource(id = R.string.feedback_issue)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.feedback_issue)) },
+                    onClick = {
+                        showReportModal = true
+                    },
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Book,
+                            contentDescription = stringResource(id = R.string.open_source_license)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.open_source_license)) },
+                    onClick = {
+                        showLicenseModal = true
+                    },
+                )
+
                 if (showSponsorModal) {
                     var toWechatDialog by remember {
                         mutableStateOf(false)
@@ -186,14 +221,13 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     val sponsorSheetState = rememberModalBottomSheetState(
                         skipPartiallyExpanded = true
                     )
-                    val uriHandler = LocalUriHandler.current
+
                     val coroutineScope = rememberCoroutineScope()
                     ModalBottomSheet(
                         onDismissRequest = {
                             showSponsorModal = false
                         },
                         sheetState = sponsorSheetState,
-                        modifier = ModalSheetModifier
                     ) {
                         Column(
                             verticalArrangement = Arrangement.Center,
@@ -279,18 +313,42 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     }
                 }
 
-                SettingsMenuLink(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Book,
-                            contentDescription = stringResource(id = R.string.open_source_license)
-                        )
-                    },
-                    title = { Text(text = stringResource(id = R.string.open_source_license)) },
-                    onClick = {
-                        showLicenseModal = true
-                    },
-                )
+                if (showReportModal) {
+                    val reportSheetState = rememberModalBottomSheetState()
+                    ModalBottomSheet(
+                        onDismissRequest = {
+                            showReportModal = false
+                        },
+                        sheetState = reportSheetState,
+                    ) {
+                        Column(verticalArrangement = Arrangement.Center) {
+                            SettingsMenuLink(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Public,
+                                        contentDescription = stringResource(id = R.string.github_issues)
+                                    )
+                                },
+                                title = { Text(text = stringResource(id = R.string.github_issues)) },
+                                onClick = {
+                                    uriHandler.openUri("https://github.com/KusStar/krude/issues")
+                                },
+                            )
+                            SettingsMenuLink(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Mail,
+                                        contentDescription = stringResource(id = R.string.open_source_license)
+                                    )
+                                },
+                                title = { Text(text = stringResource(id = R.string.send_email)) },
+                                onClick = {
+                                    uriHandler.openUri("mailto:kussssss@outlook.com")
+                                },
+                            )
+                        }
+                    }
+                }
 
                 if (showLicenseModal) {
                     val licenseSheetState = rememberModalBottomSheetState(

@@ -1,6 +1,7 @@
 package com.kuss.krude.ui
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -74,6 +75,7 @@ private fun findColorLevel(count: Int): Level {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UsageHeatMap(mainViewModel: MainViewModel) {
     val context = LocalContext.current
@@ -130,7 +132,7 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
         LazyColumn{
             val items = selectedDayData.value
             if (items.isNotEmpty()) {
-                item {
+                stickyHeader {
                     Text(text = "$date, ${items.size} Activities", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     Spacing(x = 1)
                 }
