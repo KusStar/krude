@@ -377,10 +377,14 @@ class MainViewModel : ViewModel() {
                     starSet.add(it.packageName)
                 }
 
-                val apps = _state.value.filteredApps
+                val apps = _state.value.apps
+
+                val starApps = apps.filter { starSet.contains(it.packageName) }
+
+                val restApps = _state.value.filteredApps.filter { !starSet.contains(it.packageName) }
 
                 _state.update { mainState ->
-                    mainState.copy(currentStarPackageNameSet = starSet, filteredApps = apps.sortedByDescending { starSet.contains(it.packageName) })
+                    mainState.copy(currentStarPackageNameSet = starSet, filteredApps = starApps.sortedByDescending { it.priority }.plus(restApps))
                 }
             }
         }
