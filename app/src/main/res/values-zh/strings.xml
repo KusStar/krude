@@ -21,4 +21,5 @@
     <string name="jump_alipay_sponsor">跳转支付宝打赏</string>
     <string name="feedback_issue">功能建议/BUG反馈</string>
     <string name="send_email">发送邮件</string>
+    <string name="star_table">Star 列表</string>
 </resources>

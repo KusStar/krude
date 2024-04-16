@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -76,7 +77,8 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                 onDismiss()
             },
             sheetState = sheetState,
-            modifier = ModalSheetModifier
+            modifier = ModalSheetModifier,
+                    windowInsets = BottomSheetDefaults.windowInsets,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
