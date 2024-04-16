@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -19,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,23 +39,27 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val uiState by mainViewModel.state.collectAsState()
-    val showAppUsageSheet = uiState.showMoreSheet
+    val showMoreModal = uiState.showMoreSheet
 
     fun dismiss() {
         mainViewModel.setShowMoreSheet(false)
     }
 
-    val showAbout = remember {
+    var showAbout by remember {
         mutableStateOf(false)
     }
 
-    if (showAppUsageSheet) {
+    var showStarTable by remember {
+        mutableStateOf(false)
+    }
+
+    if (showMoreModal) {
         ModalBottomSheet(
             onDismissRequest = {
                 dismiss()
             },
             sheetState = sheetState,
-            modifier = ModalSheetModifier
+            modifier = ModalSheetModifier,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -138,21 +144,38 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                 SettingsMenuLink(
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = stringResource(id = R.string.star_table)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.star_table)) },
+                    onClick = {
+                        showStarTable = true
+                        dismiss()
+                    },
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = stringResource(id = R.string.about)
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.about)) },
                     onClick = {
-                        showAbout.value = true
+                        showAbout = true
                     },
                 )
             }
         }
-        AboutModal(visible = showAbout.value) {
-            showAbout.value = false
+        AboutModal(visible = showAbout) {
+            showAbout = false
         }
+
     }
 
-
+    StarTableModal(mainViewModel, visible = showStarTable) {
+        showStarTable = false
+    }
 }
