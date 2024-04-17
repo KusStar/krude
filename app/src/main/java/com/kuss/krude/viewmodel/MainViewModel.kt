@@ -18,7 +18,7 @@ import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.TAG
 import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -60,6 +60,8 @@ class MainViewModel : ViewModel() {
     }
 
     private val _state = MutableStateFlow(MainState())
+
+    private var filterKeywordJob: Job? = null
 
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
@@ -367,7 +369,8 @@ class MainViewModel : ViewModel() {
     }
 
     fun filterKeywordStars(context: Context, keyword: String) {
-        viewModelScope.launch {
+        filterKeywordJob?.cancel()
+        filterKeywordJob = viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)
                 val stars = db.starDao().getKeywordStars(keyword)
@@ -383,8 +386,6 @@ class MainViewModel : ViewModel() {
                 val starApps = apps.filter { starSet.contains(it.packageName) }
 
                 val restApps = _state.value.filteredApps.filter { !starSet.contains(it.packageName) }
-
-                delay(16)
 
                 _state.update { mainState ->
                     mainState.copy(currentStarPackageNameSet = starSet, filteredApps = starApps.sortedByDescending { it.priority }.plus(restApps))
