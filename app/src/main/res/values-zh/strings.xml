@@ -23,4 +23,5 @@
     <string name="send_email">发送邮件</string>
     <string name="star_table">Star 列表</string>
     <string name="delete">删除</string>
+    <string name="update">更新</string>
 </resources>

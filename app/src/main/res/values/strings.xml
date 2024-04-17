@@ -23,4 +23,5 @@
     <string name="github_issues" translatable="false">Github Issue</string>
     <string name="star_table">Star Table</string>
     <string name="delete">Delete</string>
+    <string name="update">Update</string>
 </resources>
