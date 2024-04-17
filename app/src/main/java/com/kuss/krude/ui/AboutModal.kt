@@ -19,9 +19,9 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -78,13 +78,11 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
             },
             sheetState = sheetState,
             modifier = ModalSheetModifier,
-                    windowInsets = BottomSheetDefaults.windowInsets,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
@@ -122,7 +120,6 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     }
                     pop()
                 }
-
 
                 ClickableText(
                     text = developerString,
@@ -205,6 +202,19 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                 SettingsMenuLink(
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.Update,
+                            contentDescription = stringResource(id = R.string.update)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.update)) },
+                    onClick = {
+                        uriHandler.openUri("https://github.com/KusStar/krude/releases")
+                    },
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.Book,
                             contentDescription = stringResource(id = R.string.open_source_license)
                         )
@@ -214,7 +224,7 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                         showLicenseModal = true
                     },
                 )
-
+                
                 if (showSponsorModal) {
                     var toWechatDialog by remember {
                         mutableStateOf(false)
@@ -322,6 +332,7 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                             showReportModal = false
                         },
                         sheetState = reportSheetState,
+                        modifier = ModalSheetModifier
                     ) {
                         Column(verticalArrangement = Arrangement.Center) {
                             SettingsMenuLink(

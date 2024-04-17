@@ -4,5 +4,5 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.Modifier
 
 val ModalSheetModifier = Modifier
-    .fillMaxHeight(0.85f)
+    .fillMaxHeight()
 
