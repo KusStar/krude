@@ -18,6 +18,7 @@ import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.TAG
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -382,6 +383,8 @@ class MainViewModel : ViewModel() {
                 val starApps = apps.filter { starSet.contains(it.packageName) }
 
                 val restApps = _state.value.filteredApps.filter { !starSet.contains(it.packageName) }
+
+                delay(16)
 
                 _state.update { mainState ->
                     mainState.copy(currentStarPackageNameSet = starSet, filteredApps = starApps.sortedByDescending { it.priority }.plus(restApps))
