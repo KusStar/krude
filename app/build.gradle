@@ -126,4 +126,5 @@ dependencies {
     implementation 'me.xdrop:fuzzywuzzy:1.4.0'
     implementation 'com.valentinilk.shimmer:compose-shimmer:1.0.5'
     implementation 'com.kizitonwose.calendar:compose:2.4.0'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
 }

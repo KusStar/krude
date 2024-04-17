@@ -1,6 +1,5 @@
 package com.kuss.krude.ui
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -52,11 +51,11 @@ import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.utils.TAG
 import com.kuss.krude.utils.useAutoFocus
 import com.kuss.krude.utils.useFuzzySearch
 import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
+import timber.log.Timber
 
 
 @Composable
@@ -143,7 +142,7 @@ fun BottomSearchBar(
                                 showSubtitle = false,
                                 onClick = {
                                     if (starMode) {
-                                        Log.d(TAG, "star $item")
+                                        Timber.d("star $item")
                                         mainViewModel.starApp(context, item.packageName, keyword = filtering, isStar)
                                     } else {
                                         openApp(item)

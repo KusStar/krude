@@ -8,6 +8,7 @@ import com.kuss.krude.ui.AppEntry
 import com.kuss.krude.ui.theme.AppTheme
 import com.kuss.krude.utils.PinyinHelper
 import com.kuss.krude.utils.Umami
+import timber.log.Timber
 
 
 class MainActivity : ComponentActivity() {
@@ -15,6 +16,8 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
+
+        Timber.plant(Timber.DebugTree())
 
         PinyinHelper.initDict()
 

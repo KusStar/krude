@@ -43,10 +43,10 @@ import com.kizitonwose.calendar.core.yearMonth
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.Month
@@ -89,7 +89,7 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
 
         data.value = withContext(Dispatchers.IO) {
             val result = mainViewModel.getUsageCountByDay(context)
-            Log.d(TAG, "UsageHeatMap: $result")
+            Timber.d("UsageHeatMap: $result")
             result.associateTo(hashMapOf()) {
                 LocalDate.parse(it.day) to findColorLevel(it.count)
             }

@@ -1,9 +1,9 @@
 package com.kuss.krude.utils
 
 import android.os.Build
-import android.util.Log
 import com.kuss.krude.BuildConfig
 import org.json.JSONObject
+import timber.log.Timber
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.HttpURLConnection.HTTP_OK
@@ -154,14 +154,13 @@ object Umami {
                 if (responseCode == HTTP_OK) {
                     val data = connection.inputStream.bufferedReader().readText()
                     cache = data
-                    Log.d(TAG, cache!!)
+                    Timber.i("Umami Response: $cache")
                 } else {
                     val errorText = connection.errorStream?.bufferedReader()?.readText()
-                    Log.e(TAG, "Error: $responseCode, ${connection.responseMessage}, $errorText")
+                    Timber.e("Umami Error: $responseCode, ${connection.responseMessage}, $errorText")
                 }
-
             } catch (e: Exception) {
-                Log.e(TAG, e.stackTraceToString())
+                Timber.e(e.stackTraceToString())
             } finally {
                 connection.disconnect()
             }

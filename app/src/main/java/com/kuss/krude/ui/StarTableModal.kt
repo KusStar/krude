@@ -1,6 +1,5 @@
 package com.kuss.krude.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,10 +27,10 @@ import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Star
 import com.kuss.krude.utils.ModalSheetModifier
-import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @Composable
 fun RowScope.TableCell(
@@ -64,7 +63,7 @@ fun StarTableModal(
         LaunchedEffect(true) {
             withContext(IO) {
                 val allStars = mainViewModel.getAllStars(context)
-                Log.d(TAG, "getAllStars, ${allStars.size}")
+                Timber.d("getAllStars, ${allStars.size}")
                 stars.addAll(allStars)
             }
         }

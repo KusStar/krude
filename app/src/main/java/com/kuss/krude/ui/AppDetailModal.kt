@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -47,9 +46,9 @@ import com.kuss.krude.ui.components.AsyncAppIcon
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.ModalSheetModifier
-import com.kuss.krude.utils.TAG
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Collections
 
 
@@ -96,8 +95,7 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     val launcherApps =
                         context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
 
-                    Log.d(
-                        TAG,
+                    Timber.d(
                         "launcherApps.hasShortcutHostPermission(): ${launcherApps.hasShortcutHostPermission()}"
                     )
                     launcherApps.hasShortcutHostPermission()
@@ -116,8 +114,7 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     }
 
                     if (shortcuts != null) {
-                        Log.d(
-                            TAG,
+                        Timber.d(
                             "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
                     }
 
