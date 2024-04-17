@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
@@ -16,7 +15,6 @@ import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
-import com.kuss.krude.utils.TAG
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.xdrop.fuzzywuzzy.FuzzySearch
+import timber.log.Timber
 
 
 data class MainState(
@@ -67,7 +66,7 @@ class MainViewModel : ViewModel() {
         if (packageEventReceiver == null) {
             packageEventReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    Log.d(TAG, "onReceive: ${intent.action}")
+                    Timber.d("onReceive: ${intent.action}")
                     when (intent.action) {
                         Intent.ACTION_PACKAGE_ADDED -> {
                             onPackageAdded(context, intent)
@@ -112,7 +111,7 @@ class MainViewModel : ViewModel() {
                     pm,
                     context
                 )
-                Log.i(TAG, "onPackageAdded: ${app.label}, ${app.packageName}")
+                Timber.i("onPackageAdded: ${app.label}, ${app.packageName}")
                 apps.add(
                     app
                 )
@@ -136,7 +135,7 @@ class MainViewModel : ViewModel() {
 
         val removedIndex = apps.indexOfFirst { it.packageName == toDeletePackageName }
         if (removedIndex != -1) {
-            Log.i(TAG, "onPackageRemoved: removedIndex: $removedIndex, ${apps[removedIndex].label}")
+            Timber.i("onPackageRemoved: removedIndex: $removedIndex, ${apps[removedIndex].label}")
 
             apps.removeAt(removedIndex)
 
@@ -161,7 +160,7 @@ class MainViewModel : ViewModel() {
                             scrollbarItems = getScrollbarItemsFromApps(dbApps)
                         )
                     }
-                    Log.d(TAG, "load from db, ${dbApps.size} apps")
+                    Timber.d("load from db, ${dbApps.size} apps")
                 }
                 // load from packageManager
                 loadFromPackageManger(context, dbApps)
@@ -196,7 +195,7 @@ class MainViewModel : ViewModel() {
 
                 updateDbAppsPriority(context, apps)
 
-                Log.d(TAG, "load from packageManager, ${apps.size} apps")
+                Timber.d("load from packageManager, ${apps.size} apps")
 
                 checkAndCleanDbApps(context, apps, dbApps)
             }
@@ -374,7 +373,7 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 val stars = db.starDao().getKeywordStars(keyword)
-                Log.d(TAG, "filterKeywordStars: ${stars.joinToString { it.packageName }}")
+                Timber.d("filterKeywordStars: ${stars.joinToString { it.packageName }}")
                 val starSet = HashSet<String>()
 
                 stars.forEach {

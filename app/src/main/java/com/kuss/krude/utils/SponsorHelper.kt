@@ -14,6 +14,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import com.kuss.krude.R
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -65,14 +66,14 @@ object SponsorHelper {
             contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Screenshots")
             val imageUri =
                 resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-            Log.i(TAG, "saveBitmapToFile: $imageUri")
+            Timber.i("saveBitmapToFile: $imageUri")
             fos = resolver.openOutputStream(imageUri!!)
         } else {
             val imagesDir =
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
                     .toString()
             val image = File(imagesDir, "Screenshots/$name.png")
-            Log.i(TAG, "saveBitmapToFile: $image")
+            Timber.i("saveBitmapToFile: $image")
             fos = FileOutputStream(image)
         }
         if (fos != null) {
