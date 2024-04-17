@@ -57,6 +57,10 @@ interface UsageDao {
 
 @Dao
 interface StarDao {
+    @Query("SELECT * FROM star ORDER BY createdAt DESC")
+    fun getAllStars(): List<Star>
+
+
     @Query("SELECT * FROM star where keyword = :keyword")
     fun getKeywordStars(keyword: String): List<Star>
 
@@ -65,6 +69,9 @@ interface StarDao {
 
     @Query("DELETE FROM star")
     fun deleteAllStar()
+
+    @Delete
+    fun deleteStar(star: Star)
 
     @Query("DELETE FROM star where packageName = :packageName and keyword = :keyword")
     fun deleteStarPackage(packageName: String, keyword: String)
