@@ -404,6 +404,20 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun getAllStars(context: Context): List<Star> {
+        val db = getDatabase(context)
+        return db.starDao().getAllStars()
+    }
+
+    fun deleteStar(context: Context, star: Star) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                db.starDao().deleteStar(star)
+            }
+        }
+    }
+
     private fun getScrollbarItemsFromApps(apps: List<AppInfo>): List<String> {
         return apps.map { it.abbr.first().uppercase() }
             .toSet().toList().sorted()
