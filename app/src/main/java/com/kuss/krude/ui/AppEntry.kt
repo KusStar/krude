@@ -1,5 +1,6 @@
 package com.kuss.krude.ui
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,17 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.AppItemShimmer
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
-
 
 @Composable
 fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
     val context = LocalContext.current
+    val activity = LocalContext.current as Activity
     val listState = rememberLazyStaggeredGridState()
     val focusManager = LocalFocusManager.current
 
@@ -45,15 +46,7 @@ fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
     }
 
     fun openApp(appInfo: AppInfo) {
-        val intent = context
-            .packageManager.getLaunchIntentForPackage(appInfo.packageName)
-            ?: return
-
-        ActivityCompat.startActivity(
-            context,
-            intent,
-            null
-        )
+        ActivityHelper.startPackageActivity(context, appInfo.packageName, activity.window.decorView)
 
         mainViewModel.setFiltering("")
 
