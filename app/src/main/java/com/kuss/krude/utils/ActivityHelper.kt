@@ -5,12 +5,44 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 
 object ActivityHelper {
+    @JvmStatic
+    fun startPackageActivity(context: Context, packageName: String, view: View? = null) {
+        val intent = context
+            .packageManager.getLaunchIntentForPackage(packageName)
+            ?: return
+
+        var bundle: Bundle? = null
+        if (view != null) {
+            val activityOptionsCompat: ActivityOptionsCompat =
+                ActivityOptionsCompat.makeScaleUpAnimation(
+                    view,
+                    view.measuredWidth / 2, view.measuredHeight, 256, 256
+                )
+            bundle = activityOptionsCompat.toBundle()
+        }
+        if (bundle == null) {
+            bundle = Bundle()
+        }
+        // show Android 12 splash screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            bundle.putInt("android.activity.splashScreenStyle", 1)
+        }
+
+        ActivityCompat.startActivity(
+            context,
+            intent,
+            bundle
+        )
+    }
+
     @JvmStatic
     fun startWithRevealAnimation(context: Context, view: View, intent: Intent) {
         val compat = ActivityOptionsCompat.makeClipRevealAnimation(
