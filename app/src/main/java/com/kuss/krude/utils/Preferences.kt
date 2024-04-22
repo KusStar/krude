@@ -7,6 +7,8 @@ import com.alorma.compose.settings.storage.preferences.rememberPreferenceBoolean
 private const val KEY_AUTO_FOCUS = "auto_focus"
 private const val KEY_FUZZY_SEARCH = "fuzzy_search"
 private const val KEY_SHOW_USAGE_COUNT = "show_usage_count"
+private const val KEY_SHOW_EMBED_KEYBOARD = "embed_keyboard"
+
 
 @Composable
 fun useAutoFocus(): BooleanPreferenceSettingValueState {
@@ -21,4 +23,10 @@ fun useFuzzySearch(): BooleanPreferenceSettingValueState {
 @Composable
 fun useShowUsageCount(): BooleanPreferenceSettingValueState {
     return rememberPreferenceBooleanSettingState(key = KEY_SHOW_USAGE_COUNT, defaultValue = false)
+}
+
+
+@Composable
+fun useEmbedKeyboard(): BooleanPreferenceSettingValueState {
+    return rememberPreferenceBooleanSettingState(key = KEY_SHOW_EMBED_KEYBOARD, defaultValue = false)
 }

@@ -24,4 +24,5 @@
     <string name="star_table">Star 列表</string>
     <string name="delete">删除</string>
     <string name="update">更新</string>
+    <string name="embed_keyboard">使用内置键盘</string>
 </resources>
