@@ -60,16 +60,16 @@ fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
         focusManager.clearFocus()
     }
 
-    Row {
-        LaunchedEffect(firstVisibleItemIndex) {
-            val next = scrollbarItems.indexOfFirst {
-                it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
+    Column {
+        Row(modifier = Modifier.weight(1f, false)) {
+            LaunchedEffect(firstVisibleItemIndex) {
+                val next = scrollbarItems.indexOfFirst {
+                    it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
+                }
+
+                mainViewModel.setSelectedHeaderIndex(next)
             }
 
-            mainViewModel.setSelectedHeaderIndex(next)
-        }
-
-        Column(modifier = Modifier.weight(1f)) {
             LazyVerticalStaggeredGrid(
                 state = listState,
                 columns = StaggeredGridCells.Adaptive(128.dp),
@@ -100,19 +100,16 @@ fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
                     }
                 }
             )
-
-            BottomSearchBar(
-                mainViewModel,
-                openApp = {
-                    openApp(it)
-                },
-                toAppDetail = {
-                    toAppDetail(it)
-                })
+            AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
         }
-
-        AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
-
-        AppDetailModal(mainViewModel)
+        BottomSearchBar(
+            mainViewModel,
+            openApp = {
+                openApp(it)
+            },
+            toAppDetail = {
+                toAppDetail(it)
+            })
     }
+    AppDetailModal(mainViewModel)
 }
