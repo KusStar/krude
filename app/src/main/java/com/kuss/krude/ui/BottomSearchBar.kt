@@ -10,6 +10,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,17 +22,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.twotone.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -49,12 +49,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -154,7 +157,7 @@ fun BottomSearchBar(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        itemsIndexed(filteredApps) { _, item ->
+                        itemsIndexed(filteredApps, key = { _, item -> item.packageName }) { _, item ->
                             val isStar = currentStarPackageNameSet.contains(item.packageName)
                             AppItem(
                                 modifier = Modifier
@@ -215,10 +218,15 @@ fun BottomSearchBar(
         mutableStateOf(false)
     }
 
-    fun onTextChange(text: String) {
+    var selection by remember {
+        mutableStateOf(TextRange(filtering.length))
+    }
+
+    fun onTextChange(value: TextFieldValue) {
         starMode = false
-        mainViewModel.filterApps(apps, text, fuzzySearch.value)
-        mainViewModel.filterKeywordStars(context = context, text)
+        mainViewModel.filterApps(apps, value.text, fuzzySearch.value)
+        mainViewModel.filterKeywordStars(context = context, value.text)
+        selection = value.selection
     }
 
     Row(
@@ -226,7 +234,10 @@ fun BottomSearchBar(
         horizontalArrangement = Arrangement.Center
     ) {
         AnimatedVisibility(visible = filtering.isNotEmpty()) {
-            IconButton(onClick = { mainViewModel.setFiltering("") }) {
+            IconButton(onClick = {
+                mainViewModel.setFiltering("")
+                selection = TextRange(0)
+            }) {
                 Icon(
                     Icons.Filled.Clear,
                     contentDescription = "Clear",
@@ -245,10 +256,7 @@ fun BottomSearchBar(
                     .onFocusChanged {
                         isFocused.value = it.isFocused
                     },
-                value = if (embedKeyboard.value) TextFieldValue(
-                    filtering,
-                    selection = TextRange(filtering.length)
-                ) else TextFieldValue(filtering),
+                value = TextFieldValue(filtering, selection),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.secondary,
@@ -265,7 +273,7 @@ fun BottomSearchBar(
                     focusedPlaceholderColor = MaterialTheme.colorScheme.primary
                 ),
                 onValueChange = {
-                    onTextChange(it.text)
+                    onTextChange(it)
                 },
                 placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
             )
@@ -328,42 +336,76 @@ fun BottomSearchBar(
         focusManager.clearFocus()
     })
 
-    val keymaps = listOf("1234567890-", "qwertyuiop", "asdfghjkl", "zxcvbnm")
+    val keymaps = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm-")
     AnimatedVisibility(
         visible = embedKeyboard.value && isFocused.value,
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
-        LazyColumn(
+        val haptic = LocalHapticFeedback.current
+        Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 36.dp),
         ) {
-            items(keymaps) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    items(it.toList()) {
+            keymaps.forEach {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    it.toList().forEach {
+                        val isDeleting = it == '-'
                         fun onClick() {
-                            if (it == '-') {
-                                onTextChange(filtering.dropLast(1))
+                            val sb = StringBuilder(filtering)
+                            var range = selection
+                            if (isDeleting) {
+                                if (selection.end > 0) {
+                                    sb.deleteCharAt(selection.end - 1)
+                                    range = TextRange(selection.end - 1)
+                                }
                             } else {
-                                onTextChange(filtering.plus(it))
-                                focusRequester.requestFocus()
+                                if (selection.end < filtering.length)
+                                    sb.insert(selection.end, it)
+                                else
+                                    sb.append(it)
+                                range = TextRange(selection.end + 1)
                             }
+                            onTextChange(TextFieldValue(sb.toString(), selection = range))
                         }
-
-                        Button(
+                        Column(
                             modifier = Modifier
-                                .padding(horizontal = 4.dp),
-                            onClick = {
-                                onClick()
-                            }) {
-                            if (it == '-') {
+                                .height(56.dp)
+                                .width(40.dp)
+                                .padding(horizontal = 3.dp, vertical = 3.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(
+                                    if (isDeleting)
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    else
+                                        MaterialTheme.colorScheme.secondary
+                                )
+                                .clickable() {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onClick()
+                                },
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (isDeleting) {
                                 Icon(
                                     Icons.Filled.Clear,
                                     contentDescription = "Clear",
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             } else {
-                                Text(text = "$it", fontSize = 18.sp)
+                                Text(
+                                    text = "$it",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSecondary
+                                )
                             }
                         }
                     }
