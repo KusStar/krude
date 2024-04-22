@@ -21,10 +21,14 @@ object ActivityHelper {
 
         var bundle: Bundle? = null
         if (view != null) {
+            val w = view.measuredWidth
+            val h = view.measuredHeight
+            val startWidth = w / 4
+            val startHeight = h / 4
             val activityOptionsCompat: ActivityOptionsCompat =
                 ActivityOptionsCompat.makeScaleUpAnimation(
                     view,
-                    view.measuredWidth / 2, view.measuredHeight, 256, 256
+                    w / 2 - startWidth / 2, h + startHeight, startWidth, startHeight
                 )
             bundle = activityOptionsCompat.toBundle()
         }
