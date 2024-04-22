@@ -1,8 +1,10 @@
 package com.kuss.krude.utils
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
@@ -13,6 +15,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 
 object ActivityHelper {
+    @JvmStatic
+    fun reloadApp(context: Context) {
+        val packageManager: PackageManager = context.packageManager
+        val intent: Intent = packageManager.getLaunchIntentForPackage(context.packageName)!!
+        val componentName: ComponentName = intent.component!!
+        val restartIntent: Intent = Intent.makeRestartActivityTask(componentName)
+        context.startActivity(restartIntent)
+        Runtime.getRuntime().exit(0)
+    }
+
     @JvmStatic
     fun startPackageActivity(context: Context, packageName: String, view: View? = null) {
         val intent = context

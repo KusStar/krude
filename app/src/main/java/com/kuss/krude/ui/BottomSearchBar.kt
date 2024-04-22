@@ -102,6 +102,21 @@ fun BottomSearchBar(
 
     val autoFocus = useAutoFocus()
     val fuzzySearch = useFuzzySearch()
+    val embedKeyboard = useEmbedKeyboard()
+    val isFocused = remember {
+        mutableStateOf(false)
+    }
+
+    var selection by remember {
+        mutableStateOf(TextRange(filtering.length))
+    }
+
+    fun onTextChange(value: TextFieldValue) {
+        starMode = false
+        mainViewModel.filterApps(apps, value.text, fuzzySearch.value)
+        mainViewModel.filterKeywordStars(context = context, value.text)
+        selection = value.selection
+    }
 
     LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
         if (apps.isNotEmpty() && autoFocus.value) {
@@ -211,23 +226,6 @@ fun BottomSearchBar(
     }
 
     HorizontalDivider()
-
-    // TODO: fix LocalTextInputService reset when embedKeyboard value changed
-    val embedKeyboard = useEmbedKeyboard()
-    val isFocused = remember {
-        mutableStateOf(false)
-    }
-
-    var selection by remember {
-        mutableStateOf(TextRange(filtering.length))
-    }
-
-    fun onTextChange(value: TextFieldValue) {
-        starMode = false
-        mainViewModel.filterApps(apps, value.text, fuzzySearch.value)
-        mainViewModel.filterKeywordStars(context = context, value.text)
-        selection = value.selection
-    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
