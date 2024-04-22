@@ -1,7 +1,14 @@
 package com.kuss.krude.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BlurOff
@@ -21,6 +30,7 @@ import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.twotone.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,18 +40,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +80,8 @@ fun BottomSearchBar(
     toAppDetail: (AppInfo) -> Unit
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+
     val uiState by mainViewModel.state.collectAsState()
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
@@ -86,6 +103,7 @@ fun BottomSearchBar(
             focusRequester.requestFocus()
         } else if (!autoFocus.value) {
             focusRequester.freeFocus()
+            focusManager.clearFocus()
         }
     }
 
@@ -112,7 +130,11 @@ fun BottomSearchBar(
                             modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                         Spacing(x = 1)
-                        Text(text = filtering, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = filtering,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacing(x = 1)
                         Text(text = "to app", color = MaterialTheme.colorScheme.secondary)
                     }
@@ -143,7 +165,12 @@ fun BottomSearchBar(
                                 onClick = {
                                     if (starMode) {
                                         Timber.d("star $item")
-                                        mainViewModel.starApp(context, item.packageName, keyword = filtering, isStar)
+                                        mainViewModel.starApp(
+                                            context,
+                                            item.packageName,
+                                            keyword = filtering,
+                                            isStar
+                                        )
                                     } else {
                                         openApp(item)
                                     }
@@ -180,6 +207,17 @@ fun BottomSearchBar(
 
     HorizontalDivider()
 
+    // TODO: fix LocalTextInputService reset when embedKeyboard value changed
+    val embedKeyboard = useAutoFocus()
+    val isFocused = remember {
+        mutableStateOf(false)
+    }
+    fun onTextChange(text: String) {
+        starMode = false
+        mainViewModel.filterApps(apps, text, fuzzySearch.value)
+        mainViewModel.filterKeywordStars(context = context, text)
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -194,35 +232,39 @@ fun BottomSearchBar(
                 )
             }
         }
-        TextField(
-            enabled = apps.isNotEmpty(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .focusRequester(focusRequester),
-            value = filtering,
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                unfocusedTextColor = MaterialTheme.colorScheme.secondary,
-                focusedTextColor = MaterialTheme.colorScheme.primary,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                disabledContainerColor = Color.Transparent,
-                errorContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
-                focusedPlaceholderColor = MaterialTheme.colorScheme.primary
-            ),
-            onValueChange = { text ->
-                starMode = false
-                mainViewModel.filterApps(apps, text, fuzzySearch.value)
-                mainViewModel.filterKeywordStars(context = context, text)
-            },
-            placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
-        )
+        CompositionLocalProvider(LocalTextInputService provides if (embedKeyboard.value) null else LocalTextInputService.current) {
+            TextField(
+                enabled = apps.isNotEmpty(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged {
+                        isFocused.value = it.isFocused
+                    },
+                value = filtering,
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = Color.Transparent,
+                    errorContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
+                    focusedPlaceholderColor = MaterialTheme.colorScheme.primary
+                ),
+                onValueChange = { text ->
+                    onTextChange(text)
+                },
+                placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
+            )
+        }
+
         fun refresh() {
             mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
             if (filtering.isNotEmpty()) {
@@ -273,6 +315,57 @@ fun BottomSearchBar(
             AppUsageModal(mainViewModel)
         }
 
+    }
+
+    BackHandler(enabled = embedKeyboard.value, onBack = {
+        isFocused.value = false
+        focusManager.clearFocus()
+    })
+
+    val keymaps = listOf("1234567890-", "qwertyuiop", "asdfghjkl", "zxcvbnm")
+    AnimatedVisibility(
+        visible = embedKeyboard.value && isFocused.value,
+        enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
+        exit = slideOutVertically() + shrinkVertically() + fadeOut()
+    ) {
+        val coroutineScope = rememberCoroutineScope()
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(keymaps) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(it.toList()) {
+                        // TODO: fix TextField cursor
+                        fun onClick() {
+                            if (it == '-') {
+                                onTextChange(filtering.dropLast(1))
+                            } else {
+                                onTextChange(filtering.plus(it))
+                                focusRequester.requestFocus()
+                            }
+                        }
+
+                        Button(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp),
+                            onClick = {
+                                onClick()
+                            }) {
+                            if (it == '-') {
+                                Icon(
+                                    Icons.Filled.Clear,
+                                    contentDescription = "Clear",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                                )
+                            } else {
+                                Text(text = "$it", fontSize = 18.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

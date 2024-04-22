@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
@@ -68,6 +69,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
             ) {
                 val autoFocus = useAutoFocus()
                 val showUsageCount = useShowUsageCount()
+                val embedKeyboard = useAutoFocus()
 
                 SettingsMenuLink(
                     icon = {
@@ -110,6 +112,20 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                     state = autoFocus.value,
                     onCheckedChange = { next ->
                         autoFocus.value = next
+                    }
+                )
+
+                SettingsCheckbox(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Keyboard,
+                            contentDescription = stringResource(id = R.string.embed_keyboard)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.embed_keyboard)) },
+                    state = embedKeyboard.value,
+                    onCheckedChange = { next ->
+                        embedKeyboard.value = next
                     }
                 )
 
