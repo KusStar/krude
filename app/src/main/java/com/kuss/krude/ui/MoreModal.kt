@@ -31,6 +31,7 @@ import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.useAutoFocus
+import com.kuss.krude.utils.useEmbedKeyboard
 import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
 
@@ -69,7 +70,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
             ) {
                 val autoFocus = useAutoFocus()
                 val showUsageCount = useShowUsageCount()
-                val embedKeyboard = useAutoFocus()
+                val embedKeyboard = useEmbedKeyboard()
 
                 SettingsMenuLink(
                     icon = {

@@ -46,7 +46,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +58,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
@@ -67,6 +68,7 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.useAutoFocus
+import com.kuss.krude.utils.useEmbedKeyboard
 import com.kuss.krude.utils.useFuzzySearch
 import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
@@ -208,10 +210,11 @@ fun BottomSearchBar(
     HorizontalDivider()
 
     // TODO: fix LocalTextInputService reset when embedKeyboard value changed
-    val embedKeyboard = useAutoFocus()
+    val embedKeyboard = useEmbedKeyboard()
     val isFocused = remember {
         mutableStateOf(false)
     }
+
     fun onTextChange(text: String) {
         starMode = false
         mainViewModel.filterApps(apps, text, fuzzySearch.value)
@@ -242,7 +245,10 @@ fun BottomSearchBar(
                     .onFocusChanged {
                         isFocused.value = it.isFocused
                     },
-                value = filtering,
+                value = if (embedKeyboard.value) TextFieldValue(
+                    filtering,
+                    selection = TextRange(filtering.length)
+                ) else TextFieldValue(filtering),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.secondary,
@@ -258,8 +264,8 @@ fun BottomSearchBar(
                     unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
                     focusedPlaceholderColor = MaterialTheme.colorScheme.primary
                 ),
-                onValueChange = { text ->
-                    onTextChange(text)
+                onValueChange = {
+                    onTextChange(it.text)
                 },
                 placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
             )
@@ -317,7 +323,7 @@ fun BottomSearchBar(
 
     }
 
-    BackHandler(enabled = embedKeyboard.value, onBack = {
+    BackHandler(enabled = embedKeyboard.value && isFocused.value, onBack = {
         isFocused.value = false
         focusManager.clearFocus()
     })
@@ -328,7 +334,6 @@ fun BottomSearchBar(
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
-        val coroutineScope = rememberCoroutineScope()
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
@@ -336,7 +341,6 @@ fun BottomSearchBar(
             items(keymaps) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(it.toList()) {
-                        // TODO: fix TextField cursor
                         fun onClick() {
                             if (it == '-') {
                                 onTextChange(filtering.dropLast(1))
