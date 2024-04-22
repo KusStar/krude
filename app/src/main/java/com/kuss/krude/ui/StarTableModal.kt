@@ -1,7 +1,6 @@
 package com.kuss.krude.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -19,10 +18,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Star
@@ -39,8 +40,9 @@ fun RowScope.TableCell(
 ) {
     Text(
         text = text,
-        Modifier
-            .border(1.dp, MaterialTheme.colorScheme.onBackground)
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
             .weight(weight)
             .padding(8.dp)
     )
@@ -60,11 +62,15 @@ fun StarTableModal(
         val stars = remember {
             mutableStateListOf<Star>()
         }
+        val packageNameLabelMap = remember {
+            mutableStateOf<Map<String, String>>(mapOf())
+        }
         LaunchedEffect(true) {
             withContext(IO) {
                 val allStars = mainViewModel.getAllStars(context)
                 Timber.d("getAllStars, ${allStars.size}")
                 stars.addAll(allStars)
+                packageNameLabelMap.value = mainViewModel.getPackageNameMap()
             }
         }
         ModalBottomSheet(
@@ -74,26 +80,37 @@ fun StarTableModal(
             sheetState = sheetState,
             modifier = ModalSheetModifier
         ) {
-            val column1Weight = .3f
-            val column2Weight = .5f
-            val column3Weight = .2f
+            val column1Weight = .2f
+            val column2Weight = .2f
+            val column3Weight = .4f
+            val column4Weight = .2f
             LazyColumn(
                 Modifier
                     .fillMaxSize()
-                    .padding(16.dp)) {
+                    .padding(16.dp)
+            ) {
                 item {
                     Row(Modifier.background(MaterialTheme.colorScheme.surfaceBright)) {
                         TableCell(text = "keyword", weight = column1Weight)
-                        TableCell(text = "packageName", weight = column2Weight)
-                        Row(modifier = Modifier.weight(column3Weight)) {
-                        }
+                        TableCell(text = "appName", weight = column2Weight)
+                        TableCell(text = "packageName", weight = column3Weight)
+                        Row(modifier = Modifier.weight(column4Weight)) {}
                     }
                 }
                 items(stars) {
                     Row(Modifier.fillMaxWidth()) {
                         TableCell(text = it.keyword, weight = column1Weight)
-                        TableCell(text = it.packageName, weight = column2Weight)
-                        Row(modifier = Modifier.weight(column3Weight), horizontalArrangement = Arrangement.Center) {
+                        packageNameLabelMap.value[it.packageName]?.let { label ->
+                            TableCell(
+                                text = label,
+                                weight = column2Weight
+                            )
+                        }
+                        TableCell(text = it.packageName, weight = column3Weight)
+                        Row(
+                            modifier = Modifier.weight(column4Weight),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
                             TextButton(onClick = {
                                 mainViewModel.deleteStar(context, it)
                                 stars.remove(it)
