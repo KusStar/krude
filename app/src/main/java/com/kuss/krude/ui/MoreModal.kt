@@ -11,10 +11,12 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import com.alorma.compose.settings.ui.SettingsCheckbox
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.useAutoFocus
 import com.kuss.krude.utils.useEmbedKeyboard
@@ -55,6 +58,10 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
         mutableStateOf(false)
     }
 
+    var showReload by remember {
+        mutableStateOf(false)
+    }
+
     if (showMoreModal) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -71,7 +78,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                 val autoFocus = useAutoFocus()
                 val showUsageCount = useShowUsageCount()
                 val embedKeyboard = useEmbedKeyboard()
-
+                
                 SettingsMenuLink(
                     icon = {
                         Icon(
@@ -127,6 +134,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                     state = embedKeyboard.value,
                     onCheckedChange = { next ->
                         embedKeyboard.value = next
+                        showReload = true
                     }
                 )
 
@@ -194,5 +202,37 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
 
     StarTableModal(mainViewModel, visible = showStarTable) {
         showStarTable = false
+    }
+
+    if (showReload) {
+        AlertDialog(
+            title = {
+                Text(text = stringResource(id = R.string.edit_saved))
+            },
+            text = {
+                Text(text = stringResource(id = R.string.restart_to_apply))
+            },
+            onDismissRequest = {
+                showReload = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        ActivityHelper.reloadApp(context)
+                    }
+                ) {
+                    Text(stringResource(id = R.string.restart))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showReload = false
+                    }
+                ) {
+                    Text(stringResource(id = R.string.close))
+                }
+            }
+        )
     }
 }

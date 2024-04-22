@@ -25,4 +25,8 @@
     <string name="delete">删除</string>
     <string name="update">更新</string>
     <string name="embed_keyboard">使用内置键盘</string>
+    <string name="edit_saved">修改成功</string>
+    <string name="restart_to_apply">重启后生效，立刻重启？</string>
+    <string name="restart">重启</string>
+    <string name="close">关闭</string>
 </resources>

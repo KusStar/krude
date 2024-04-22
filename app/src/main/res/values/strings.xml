@@ -25,4 +25,8 @@
     <string name="delete">Delete</string>
     <string name="update">Update</string>
     <string name="embed_keyboard">Use embed keyboard</string>
+    <string name="edit_saved">Edit saved</string>
+    <string name="restart_to_apply">Restart to apply, right now?</string>
+    <string name="restart">Restart</string>
+    <string name="close">Close</string>
 </resources>
