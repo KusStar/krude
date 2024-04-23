@@ -23,13 +23,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -37,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -44,8 +48,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,24 +76,26 @@ import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.utils.useAutoFocus
-import com.kuss.krude.utils.useEmbedKeyboard
-import com.kuss.krude.utils.useFuzzySearch
-import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.SettingViewModel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
 @Composable
 fun BottomSearchBar(
     mainViewModel: MainViewModel,
+    settingViewModel: SettingViewModel,
     openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
+
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
 
     val uiState by mainViewModel.state.collectAsState()
+    val settingState by settingViewModel.state.collectAsState()
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
     val filtering = uiState.filtering
@@ -96,13 +104,12 @@ fun BottomSearchBar(
         FocusRequester()
     }
 
+    val searchResultList = rememberLazyListState()
+
     var starMode by remember {
         mutableStateOf(false)
     }
 
-    val autoFocus = useAutoFocus()
-    val fuzzySearch = useFuzzySearch()
-    val embedKeyboard = useEmbedKeyboard()
     val isFocused = remember {
         mutableStateOf(false)
     }
@@ -111,17 +118,31 @@ fun BottomSearchBar(
         mutableStateOf(TextRange(filtering.length))
     }
 
-    fun onTextChange(value: TextFieldValue) {
-        starMode = false
-        mainViewModel.filterApps(apps, value.text, fuzzySearch.value)
-        mainViewModel.filterKeywordStars(context = context, value.text)
-        selection = value.selection
+    val searchKeywordHistory = remember {
+        mutableStateListOf<String>()
     }
 
-    LaunchedEffect(apps.isNotEmpty(), autoFocus.value) {
-        if (apps.isNotEmpty() && autoFocus.value) {
+    fun insertSearchHistory(text: String) {
+        searchKeywordHistory.removeIf {
+            it == text
+        }
+        searchKeywordHistory.add(0, text)
+    }
+
+    fun onTextChange(value: TextFieldValue) {
+        starMode = false
+        mainViewModel.filterApps(apps, value.text, settingState.fuzzySearch)
+        mainViewModel.filterKeywordStars(context = context, value.text)
+        selection = value.selection
+        coroutineScope.launch {
+            searchResultList.animateScrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(apps.isNotEmpty(), settingState.autoFocus) {
+        if (apps.isNotEmpty() && settingState.autoFocus) {
             focusRequester.requestFocus()
-        } else if (!autoFocus.value) {
+        } else if (!settingState.autoFocus) {
             focusRequester.freeFocus()
             focusManager.clearFocus()
         }
@@ -164,15 +185,17 @@ fun BottomSearchBar(
             Crossfade(targetState = hasMatch, label = "filteredItems") {
                 val height = 128.dp
                 if (it) {
-                    val showUsageCount = useShowUsageCount()
-
                     LazyRow(
                         modifier = Modifier
                             .height(height)
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        itemsIndexed(filteredApps, key = { _, item -> item.packageName }) { _, item ->
+                        state = searchResultList,
+
+                        ) {
+                        itemsIndexed(
+                            filteredApps,
+                            key = { _, item -> item.packageName }) { _, item ->
                             val isStar = currentStarPackageNameSet.contains(item.packageName)
                             AppItem(
                                 modifier = Modifier
@@ -193,12 +216,13 @@ fun BottomSearchBar(
                                         )
                                     } else {
                                         openApp(item)
+                                        insertSearchHistory(filtering)
                                     }
                                 },
                                 onLongClick = {
                                     toAppDetail(item)
                                 },
-                                showTimes = showUsageCount.value,
+                                showTimes = settingState.showUsageCount,
                             )
                         }
                     }
@@ -244,7 +268,7 @@ fun BottomSearchBar(
                 )
             }
         }
-        CompositionLocalProvider(LocalTextInputService provides if (embedKeyboard.value) null else LocalTextInputService.current) {
+        CompositionLocalProvider(LocalTextInputService provides if (settingState.embedKeyboard) null else LocalTextInputService.current) {
             TextField(
                 enabled = apps.isNotEmpty(),
                 modifier = Modifier
@@ -278,7 +302,7 @@ fun BottomSearchBar(
         }
 
         fun refresh() {
-            mainViewModel.filterApps(apps, filtering, fuzzySearch.value)
+            mainViewModel.filterApps(apps, filtering, settingState.fuzzySearch)
             if (filtering.isNotEmpty()) {
                 mainViewModel.filterKeywordStars(context = context, filtering)
             }
@@ -302,11 +326,11 @@ fun BottomSearchBar(
                     }
                 }
                 IconButton(onClick = {
-                    fuzzySearch.value = !fuzzySearch.value
+                    settingViewModel.setFuzzySearch(!settingState.fuzzySearch)
                     refresh()
                 }) {
                     Icon(
-                        imageVector = if (fuzzySearch.value) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
+                        imageVector = if (settingState.fuzzySearch) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = "fuzzysearch",
                         modifier = Modifier.size(ButtonDefaults.IconSize)
@@ -322,21 +346,21 @@ fun BottomSearchBar(
                 }
             }
 
-            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel)
+            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel, settingViewModel = settingViewModel)
 
             AppUsageModal(mainViewModel)
         }
 
     }
 
-    BackHandler(enabled = embedKeyboard.value && isFocused.value, onBack = {
+    BackHandler(enabled = settingState.embedKeyboard && isFocused.value, onBack = {
         isFocused.value = false
         focusManager.clearFocus()
     })
 
     val keymaps = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm-")
     AnimatedVisibility(
-        visible = embedKeyboard.value && isFocused.value,
+        visible = settingState.embedKeyboard && isFocused.value,
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
@@ -409,7 +433,44 @@ fun BottomSearchBar(
                     }
                 }
             }
+
+            AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    item {
+                        AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    searchKeywordHistory.clear()
+                                }) {
+                                Icon(
+                                    Icons.TwoTone.Delete,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = "delete",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            }
+                        }
+                    }
+                    items(searchKeywordHistory) {
+                        TextButton(onClick = {
+                            onTextChange(TextFieldValue(it, TextRange(it.length)))
+                            insertSearchHistory(it)
+                        })
+                        {
+                            Text(
+                                text = it,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
+
 }
 

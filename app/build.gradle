@@ -117,8 +117,7 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     // third part
-    implementation "com.github.alorma:compose-settings-ui:2.0.0"
-    implementation "com.github.alorma:compose-settings-storage-preferences:1.0.3"
+    implementation 'com.github.alorma.compose-settings:ui-tiles:2.1.0'
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
     implementation 'com.github.promeg:tinypinyin:2.0.3'
