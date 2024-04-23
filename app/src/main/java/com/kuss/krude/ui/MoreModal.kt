@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.HistoryToggleOff
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Numbers
@@ -33,17 +34,16 @@ import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.ModalSheetModifier
-import com.kuss.krude.utils.useAutoFocus
-import com.kuss.krude.utils.useEmbedKeyboard
-import com.kuss.krude.utils.useShowUsageCount
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.SettingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
+fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewModel: SettingViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val uiState by mainViewModel.state.collectAsState()
+    val settingState by settingViewModel.state.collectAsState()
     val showMoreModal = uiState.showMoreSheet
 
     fun dismiss() {
@@ -75,10 +75,11 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                val autoFocus = useAutoFocus()
-                val showUsageCount = useShowUsageCount()
-                val embedKeyboard = useEmbedKeyboard()
-                
+                val autoFocus = settingState.autoFocus
+                val showUsageCount = settingState.showUsageCount
+                val embedKeyboard = settingState.embedKeyboard
+                val showSearchHistory = settingState.showSearchHistory
+
                 SettingsMenuLink(
                     icon = {
                         Icon(
@@ -117,9 +118,9 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.auto_focus)) },
-                    state = autoFocus.value,
+                    state = autoFocus,
                     onCheckedChange = { next ->
-                        autoFocus.value = next
+                        settingViewModel.setAutoFocus(next)
                     }
                 )
 
@@ -131,12 +132,28 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.embed_keyboard)) },
-                    state = embedKeyboard.value,
+                    state = embedKeyboard,
                     onCheckedChange = { next ->
-                        embedKeyboard.value = next
+                        settingViewModel.setEmbedKeyboard(next)
                         showReload = true
                     }
                 )
+
+                if (embedKeyboard) {
+                    SettingsCheckbox(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.HistoryToggleOff,
+                                contentDescription = stringResource(id = R.string.show_search_history)
+                            )
+                        },
+                        title = { Text(text = stringResource(id = R.string.show_search_history)) },
+                        state = showSearchHistory,
+                        onCheckedChange = { next ->
+                            settingViewModel.setShowSearchHistory(next)
+                        }
+                    )
+                }
 
                 SettingsCheckbox(
                     icon = {
@@ -146,9 +163,9 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel) {
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.show_usage_count)) },
-                    state = showUsageCount.value,
+                    state = showUsageCount,
                     onCheckedChange = { next ->
-                        showUsageCount.value = next
+                        settingViewModel.setShowUsageCount(next)
                     }
                 )
 

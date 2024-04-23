@@ -23,9 +23,10 @@ import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.AppItemShimmer
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.SettingViewModel
 
 @Composable
-fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
+fun AppEntry(mainViewModel: MainViewModel = viewModel(), settingViewModel: SettingViewModel = viewModel()) {
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
     val listState = rememberLazyStaggeredGridState()
@@ -104,6 +105,7 @@ fun AppEntry(mainViewModel: MainViewModel = viewModel()) {
         }
         BottomSearchBar(
             mainViewModel,
+            settingViewModel,
             openApp = {
                 openApp(it)
             },
