@@ -77,7 +77,7 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.SettingViewModel
+import com.kuss.krude.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -85,7 +85,7 @@ import timber.log.Timber
 @Composable
 fun BottomSearchBar(
     mainViewModel: MainViewModel,
-    settingViewModel: SettingViewModel,
+    settingsViewModel: SettingsViewModel,
     openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
 
@@ -95,7 +95,7 @@ fun BottomSearchBar(
     val coroutineScope = rememberCoroutineScope()
 
     val uiState by mainViewModel.state.collectAsState()
-    val settingState by settingViewModel.state.collectAsState()
+    val settingState by settingsViewModel.state.collectAsState()
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
     val filtering = uiState.filtering
@@ -268,7 +268,7 @@ fun BottomSearchBar(
                 )
             }
         }
-        CompositionLocalProvider(LocalTextInputService provides if (settingState.embedKeyboard) null else LocalTextInputService.current) {
+        CompositionLocalProvider(LocalTextInputService provides if (settingState.useEmbedKeyboard) null else LocalTextInputService.current) {
             TextField(
                 enabled = apps.isNotEmpty(),
                 modifier = Modifier
@@ -326,7 +326,7 @@ fun BottomSearchBar(
                     }
                 }
                 IconButton(onClick = {
-                    settingViewModel.setFuzzySearch(!settingState.fuzzySearch)
+                    settingsViewModel.setFuzzySearch(!settingState.fuzzySearch)
                     refresh()
                 }) {
                     Icon(
@@ -346,21 +346,21 @@ fun BottomSearchBar(
                 }
             }
 
-            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel, settingViewModel = settingViewModel)
+            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel, settingsViewModel = settingsViewModel)
 
             AppUsageModal(mainViewModel)
         }
 
     }
 
-    BackHandler(enabled = settingState.embedKeyboard && isFocused.value, onBack = {
+    BackHandler(enabled = settingState.useEmbedKeyboard && isFocused.value, onBack = {
         isFocused.value = false
         focusManager.clearFocus()
     })
 
     val keymaps = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm-")
     AnimatedVisibility(
-        visible = settingState.embedKeyboard && isFocused.value,
+        visible = settingState.useEmbedKeyboard && isFocused.value,
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
@@ -369,7 +369,7 @@ fun BottomSearchBar(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 36.dp),
+                .padding(bottom = 24.dp),
         ) {
             keymaps.forEach {
                 Row(

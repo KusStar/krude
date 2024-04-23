@@ -12,12 +12,10 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,18 +30,17 @@ import androidx.compose.ui.res.stringResource
 import com.alorma.compose.settings.ui.SettingsCheckbox
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
-import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.SettingViewModel
+import com.kuss.krude.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewModel: SettingViewModel) {
+fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val uiState by mainViewModel.state.collectAsState()
-    val settingState by settingViewModel.state.collectAsState()
+    val settingState by settingsViewModel.state.collectAsState()
     val showMoreModal = uiState.showMoreSheet
 
     fun dismiss() {
@@ -58,9 +55,9 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
         mutableStateOf(false)
     }
 
-    var showReload by remember {
-        mutableStateOf(false)
-    }
+//    var showReload by remember {
+//        mutableStateOf(false)
+//    }
 
     if (showMoreModal) {
         ModalBottomSheet(
@@ -77,7 +74,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
             ) {
                 val autoFocus = settingState.autoFocus
                 val showUsageCount = settingState.showUsageCount
-                val embedKeyboard = settingState.embedKeyboard
+                val embedKeyboard = settingState.useEmbedKeyboard
                 val showSearchHistory = settingState.showSearchHistory
 
                 SettingsMenuLink(
@@ -120,7 +117,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
                     title = { Text(text = stringResource(id = R.string.auto_focus)) },
                     state = autoFocus,
                     onCheckedChange = { next ->
-                        settingViewModel.setAutoFocus(next)
+                        settingsViewModel.setAutoFocus(next)
                     }
                 )
 
@@ -134,8 +131,8 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
                     title = { Text(text = stringResource(id = R.string.embed_keyboard)) },
                     state = embedKeyboard,
                     onCheckedChange = { next ->
-                        settingViewModel.setEmbedKeyboard(next)
-                        showReload = true
+                        settingsViewModel.setUseEmbedKeyboard(next)
+//                        showReload = true
                     }
                 )
 
@@ -150,7 +147,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
                         title = { Text(text = stringResource(id = R.string.show_search_history)) },
                         state = showSearchHistory,
                         onCheckedChange = { next ->
-                            settingViewModel.setShowSearchHistory(next)
+                            settingsViewModel.setShowSearchHistory(next)
                         }
                     )
                 }
@@ -165,7 +162,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
                     title = { Text(text = stringResource(id = R.string.show_usage_count)) },
                     state = showUsageCount,
                     onCheckedChange = { next ->
-                        settingViewModel.setShowUsageCount(next)
+                        settingsViewModel.setShowUsageCount(next)
                     }
                 )
 
@@ -221,35 +218,35 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingViewMode
         showStarTable = false
     }
 
-    if (showReload) {
-        AlertDialog(
-            title = {
-                Text(text = stringResource(id = R.string.edit_saved))
-            },
-            text = {
-                Text(text = stringResource(id = R.string.restart_to_apply))
-            },
-            onDismissRequest = {
-                showReload = false
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        ActivityHelper.reloadApp(context)
-                    }
-                ) {
-                    Text(stringResource(id = R.string.restart))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showReload = false
-                    }
-                ) {
-                    Text(stringResource(id = R.string.close))
-                }
-            }
-        )
-    }
+//    if (showReload) {
+//        AlertDialog(
+//            title = {
+//                Text(text = stringResource(id = R.string.edit_saved))
+//            },
+//            text = {
+//                Text(text = stringResource(id = R.string.restart_to_apply))
+//            },
+//            onDismissRequest = {
+//                showReload = false
+//            },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        ActivityHelper.reloadApp(context)
+//                    }
+//                ) {
+//                    Text(stringResource(id = R.string.restart))
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(
+//                    onClick = {
+//                        showReload = false
+//                    }
+//                ) {
+//                    Text(stringResource(id = R.string.close))
+//                }
+//            }
+//        )
+//    }
 }
