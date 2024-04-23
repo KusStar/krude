@@ -134,9 +134,6 @@ fun BottomSearchBar(
         mainViewModel.filterApps(apps, value.text, settingState.fuzzySearch)
         mainViewModel.filterKeywordStars(context = context, value.text)
         selection = value.selection
-        coroutineScope.launch {
-            searchResultList.animateScrollToItem(0)
-        }
     }
 
     LaunchedEffect(apps.isNotEmpty(), settingState.autoFocus) {
@@ -145,6 +142,12 @@ fun BottomSearchBar(
         } else if (!settingState.autoFocus) {
             focusRequester.freeFocus()
             focusManager.clearFocus()
+        }
+    }
+
+    LaunchedEffect(filteredApps) {
+        coroutineScope.launch {
+            searchResultList.animateScrollToItem(0)
         }
     }
 
