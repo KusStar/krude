@@ -1,6 +1,5 @@
 package com.kuss.krude.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -10,8 +9,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BlurOff
 import androidx.compose.material.icons.filled.BlurOn
@@ -55,15 +51,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.SettingsViewModel
@@ -92,14 +86,17 @@ fun BottomSearchBar(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val coroutineScope = rememberCoroutineScope()
 
     val uiState by mainViewModel.state.collectAsState()
     val settingState by settingsViewModel.state.collectAsState()
+
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
     val filtering = uiState.filtering
     val filteredApps = uiState.filteredApps
+
+    val coroutineScope = rememberCoroutineScope()
+
     val focusRequester = remember {
         FocusRequester()
     }
@@ -134,6 +131,13 @@ fun BottomSearchBar(
         mainViewModel.filterApps(apps, value.text, settingState.fuzzySearch)
         mainViewModel.filterKeywordStars(context = context, value.text)
         selection = value.selection
+    }
+
+    fun refresh(fuzzy: Boolean) {
+        mainViewModel.filterApps(apps, filtering, fuzzy)
+        if (filtering.isNotEmpty()) {
+            mainViewModel.filterKeywordStars(context = context, filtering)
+        }
     }
 
     LaunchedEffect(apps.isNotEmpty(), settingState.autoFocus) {
@@ -304,13 +308,6 @@ fun BottomSearchBar(
             )
         }
 
-        fun refresh() {
-            mainViewModel.filterApps(apps, filtering, settingState.fuzzySearch)
-            if (filtering.isNotEmpty()) {
-                mainViewModel.filterKeywordStars(context = context, filtering)
-            }
-        }
-
         Box(
             modifier = Modifier
                 .wrapContentSize(Alignment.TopStart)
@@ -329,8 +326,9 @@ fun BottomSearchBar(
                     }
                 }
                 IconButton(onClick = {
-                    settingsViewModel.setFuzzySearch(!settingState.fuzzySearch)
-                    refresh()
+                    val nextFuzzy = !settingState.fuzzySearch
+                    settingsViewModel.setFuzzySearch(nextFuzzy)
+                    refresh(nextFuzzy)
                 }) {
                     Icon(
                         imageVector = if (settingState.fuzzySearch) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
@@ -349,126 +347,70 @@ fun BottomSearchBar(
                 }
             }
 
-            MoreModal(refresh = { refresh() }, mainViewModel = mainViewModel, settingsViewModel = settingsViewModel)
+            MoreModal(refresh = { refresh(settingState.fuzzySearch) }, mainViewModel = mainViewModel, settingsViewModel = settingsViewModel)
 
             AppUsageModal(mainViewModel)
         }
 
     }
 
-    BackHandler(enabled = settingState.useEmbedKeyboard && isFocused.value, onBack = {
-        isFocused.value = false
-        focusManager.clearFocus()
-    })
-
-    val keymaps = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm-")
     AnimatedVisibility(
         visible = settingState.useEmbedKeyboard && isFocused.value,
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
-        val haptic = LocalHapticFeedback.current
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-        ) {
-            keymaps.forEach {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    it.toList().forEach {
-                        val isDeleting = it == '-'
-                        fun onClick() {
-                            val sb = StringBuilder(filtering)
-                            var range = selection
-                            if (isDeleting) {
-                                if (selection.end > 0) {
-                                    sb.deleteCharAt(selection.end - 1)
-                                    range = TextRange(selection.end - 1)
-                                }
-                            } else {
-                                if (selection.end < filtering.length)
-                                    sb.insert(selection.end, it)
-                                else
-                                    sb.append(it)
-                                range = TextRange(selection.end + 1)
-                            }
-                            onTextChange(TextFieldValue(sb.toString(), selection = range))
-                        }
-                        Column(
-                            modifier = Modifier
-                                .height(56.dp)
-                                .width(40.dp)
-                                .padding(horizontal = 3.dp, vertical = 3.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(
-                                    if (isDeleting)
-                                        MaterialTheme.colorScheme.secondaryContainer
-                                    else
-                                        MaterialTheme.colorScheme.secondary
-                                )
-                                .clickable() {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    onClick()
-                                },
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            if (isDeleting) {
-                                Icon(
-                                    Icons.Filled.Clear,
-                                    contentDescription = "Clear",
-                                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            } else {
-                                Text(
-                                    text = "$it",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    color = MaterialTheme.colorScheme.onSecondary
-                                )
-                            }
+        SoftKeyboardView(onBack = {
+            isFocused.value = false
+            focusManager.clearFocus()
+        }) { key, isDeleting ->
+            val sb = StringBuilder(filtering)
+            var range = selection
+            if (isDeleting) {
+                if (selection.end > 0) {
+                    sb.deleteCharAt(selection.end - 1)
+                    range = TextRange(selection.end - 1)
+                }
+            } else {
+                if (selection.end < filtering.length)
+                    sb.insert(selection.end, key)
+                else
+                    sb.append(key)
+                range = TextRange(selection.end + 1)
+            }
+            onTextChange(TextFieldValue(sb.toString(), selection = range))
+        }
+
+        AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                item {
+                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                searchKeywordHistory.clear()
+                            }) {
+                            Icon(
+                                Icons.TwoTone.Delete,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = "delete",
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
                         }
                     }
                 }
-            }
-
-            AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
-                LazyRow(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    item {
-                        AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
-                            IconButton(
-                                onClick = {
-                                    searchKeywordHistory.clear()
-                                }) {
-                                Icon(
-                                    Icons.TwoTone.Delete,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    contentDescription = "delete",
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                            }
-                        }
-                    }
-                    items(searchKeywordHistory) {
-                        TextButton(onClick = {
-                            onTextChange(TextFieldValue(it, TextRange(it.length)))
-                            insertSearchHistory(it)
-                        })
-                        {
-                            Text(
-                                text = it,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                            )
-                        }
+                items(searchKeywordHistory) {
+                    TextButton(onClick = {
+                        onTextChange(TextFieldValue(it, TextRange(it.length)))
+                        insertSearchHistory(it)
+                    })
+                    {
+                        Text(
+                            text = it,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                        )
                     }
                 }
             }
