@@ -29,9 +29,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SoftKeyboardView(onBack: () -> Unit, onClick: (key: Char, isDeleting: Boolean) -> Unit) {
-    val keymaps = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm-")
+fun SoftKeyboardView(
+    showLeftSideBackspace: Boolean,
+    onBack: () -> Unit,
+    onClick: (key: Char, isDeleting: Boolean) -> Unit,
+    bottomContent: @Composable () -> Unit,
+) {
     val haptic = LocalHapticFeedback.current
+
+    val bottomKeys = if (showLeftSideBackspace) "-zxcvbnm-" else "zxcvbnm-"
+    val keymaps = listOf("qwertyuiop", "asdfghjkl", bottomKeys)
 
     BackHandler(enabled = true, onBack = onBack)
 
@@ -47,12 +54,12 @@ fun SoftKeyboardView(onBack: () -> Unit, onClick: (key: Char, isDeleting: Boolea
                 horizontalArrangement = Arrangement.Center
             ) {
                 it.toList().forEach {
-                    val isDeleting = it == '_'
+                    val isDeleting = it == '-'
                     Column(
                         modifier = Modifier
                             .height(56.dp)
-                            .width(40.dp)
-                            .padding(horizontal = 3.dp, vertical = 3.dp)
+                            .width(if (isDeleting && showLeftSideBackspace) 48.dp else 40.dp)
+                            .padding(horizontal = if (isDeleting && showLeftSideBackspace) 6.dp else 3.dp, vertical = 6.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(
                                 if (isDeleting)
@@ -70,7 +77,7 @@ fun SoftKeyboardView(onBack: () -> Unit, onClick: (key: Char, isDeleting: Boolea
                         if (isDeleting) {
                             Icon(
                                 Icons.Filled.Clear,
-                                contentDescription = "Clear",
+                                contentDescription = "Delete",
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.onSecondaryContainer
                             )
@@ -86,5 +93,7 @@ fun SoftKeyboardView(onBack: () -> Unit, onClick: (key: Char, isDeleting: Boolea
                 }
             }
         }
+
+        bottomContent()
     }
 }

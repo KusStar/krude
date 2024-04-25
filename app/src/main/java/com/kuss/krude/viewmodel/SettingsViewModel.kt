@@ -15,7 +15,8 @@ data class SettingsState(
     val fuzzySearch: Boolean = true,
     val showUsageCount: Boolean = false,
     val useEmbedKeyboard: Boolean = true,
-    val showSearchHistory: Boolean = true
+    val showSearchHistory: Boolean = true,
+    val showLeftSideBackSpace: Boolean = true
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -90,6 +91,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setShowSearchHistory(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.saveSetting(SettingsRepository.SHOW_SEARCH_HISTORY_KEY, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setShowLeftSideBackspace(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveSetting(SettingsRepository.SHOW_LEFT_SIDE_BACKSPACE, enabled)
             loadSettings()
         }
     }

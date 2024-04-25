@@ -1,8 +1,11 @@
 package com.kuss.krude.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardBackspace
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
@@ -27,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.ui.SettingsCheckbox
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
@@ -36,7 +40,11 @@ import com.kuss.krude.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewModel: SettingsViewModel) {
+fun MoreModal(
+    refresh: () -> Unit,
+    mainViewModel: MainViewModel,
+    settingsViewModel: SettingsViewModel
+) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val uiState by mainViewModel.state.collectAsState()
@@ -72,11 +80,6 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewMod
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                val autoFocus = settingState.autoFocus
-                val showUsageCount = settingState.showUsageCount
-                val embedKeyboard = settingState.useEmbedKeyboard
-                val showSearchHistory = settingState.showSearchHistory
-
                 SettingsMenuLink(
                     icon = {
                         Icon(
@@ -115,7 +118,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewMod
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.auto_focus)) },
-                    state = autoFocus,
+                    state = settingState.autoFocus,
                     onCheckedChange = { next ->
                         settingsViewModel.setAutoFocus(next)
                     }
@@ -129,27 +132,42 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewMod
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.embed_keyboard)) },
-                    state = embedKeyboard,
+                    state = settingState.useEmbedKeyboard,
                     onCheckedChange = { next ->
                         settingsViewModel.setUseEmbedKeyboard(next)
 //                        showReload = true
                     }
                 )
 
-                if (embedKeyboard) {
-                    SettingsCheckbox(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.HistoryToggleOff,
-                                contentDescription = stringResource(id = R.string.show_search_history)
-                            )
-                        },
-                        title = { Text(text = stringResource(id = R.string.show_search_history)) },
-                        state = showSearchHistory,
-                        onCheckedChange = { next ->
-                            settingsViewModel.setShowSearchHistory(next)
-                        }
-                    )
+                AnimatedVisibility(visible = settingState.useEmbedKeyboard) {
+                    Column(modifier = Modifier.padding(start = 16.dp)) {
+                        SettingsCheckbox(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardBackspace,
+                                    contentDescription = stringResource(id = R.string.show_left_side_backspace)
+                                )
+                            },
+                            title = { Text(text = stringResource(id = R.string.show_left_side_backspace)) },
+                            state = settingState.showLeftSideBackSpace,
+                            onCheckedChange = { next ->
+                                settingsViewModel.setShowLeftSideBackspace(next)
+                            }
+                        )
+                        SettingsCheckbox(
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.HistoryToggleOff,
+                                    contentDescription = stringResource(id = R.string.show_search_history)
+                                )
+                            },
+                            title = { Text(text = stringResource(id = R.string.show_search_history)) },
+                            state = settingState.showSearchHistory,
+                            onCheckedChange = { next ->
+                                settingsViewModel.setShowSearchHistory(next)
+                            }
+                        )
+                    }
                 }
 
                 SettingsCheckbox(
@@ -160,7 +178,7 @@ fun MoreModal(refresh: () -> Unit, mainViewModel: MainViewModel, settingsViewMod
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.show_usage_count)) },
-                    state = showUsageCount,
+                    state = settingState.showUsageCount,
                     onCheckedChange = { next ->
                         settingsViewModel.setShowUsageCount(next)
                     }

@@ -348,11 +348,14 @@ fun BottomSearchBar(
                 }
             }
 
-            MoreModal(refresh = { refresh(settingState.fuzzySearch) }, mainViewModel = mainViewModel, settingsViewModel = settingsViewModel)
+            MoreModal(
+                refresh = { refresh(settingState.fuzzySearch) },
+                mainViewModel = mainViewModel,
+                settingsViewModel = settingsViewModel
+            )
 
             AppUsageModal(mainViewModel)
         }
-
     }
 
     AnimatedVisibility(
@@ -360,58 +363,60 @@ fun BottomSearchBar(
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
-        SoftKeyboardView(onBack = {
-            isFocused.value = false
-            focusManager.clearFocus()
-        }) { key, isDeleting ->
-            val sb = StringBuilder(filtering)
-            var range = selection
-            if (isDeleting) {
-                if (selection.end > 0) {
-                    sb.deleteCharAt(selection.end - 1)
-                    range = TextRange(selection.end - 1)
+        SoftKeyboardView(
+            showLeftSideBackspace = settingState.showLeftSideBackSpace,
+            onBack = {
+                isFocused.value = false
+                focusManager.clearFocus()
+            }, onClick = { key, isDeleting ->
+                val sb = StringBuilder(filtering)
+                var range = selection
+                if (isDeleting) {
+                    if (selection.end > 0) {
+                        sb.deleteCharAt(selection.end - 1)
+                        range = TextRange(selection.end - 1)
+                    }
+                } else {
+                    if (selection.end < filtering.length)
+                        sb.insert(selection.end, key)
+                    else
+                        sb.append(key)
+                    range = TextRange(selection.end + 1)
                 }
-            } else {
-                if (selection.end < filtering.length)
-                    sb.insert(selection.end, key)
-                else
-                    sb.append(key)
-                range = TextRange(selection.end + 1)
-            }
-            onTextChange(TextFieldValue(sb.toString(), selection = range))
-        }
-
-        AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
-            LazyRow(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(16.dp)
-            ) {
-                item {
-                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                searchKeywordHistory.clear()
-                            }) {
-                            Icon(
-                                Icons.TwoTone.Delete,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "delete",
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
+                onTextChange(TextFieldValue(sb.toString(), selection = range))
+            }) {
+            AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    item {
+                        AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    searchKeywordHistory.clear()
+                                }) {
+                                Icon(
+                                    Icons.TwoTone.Delete,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = "delete",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            }
                         }
                     }
-                }
-                items(searchKeywordHistory) {
-                    TextButton(onClick = {
-                        onTextChange(TextFieldValue(it, TextRange(it.length)))
-                        insertSearchHistory(it)
-                    })
-                    {
-                        Text(
-                            text = it,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                        )
+                    items(searchKeywordHistory) {
+                        TextButton(onClick = {
+                            onTextChange(TextFieldValue(it, TextRange(it.length)))
+                            insertSearchHistory(it)
+                        })
+                        {
+                            Text(
+                                text = it,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                            )
+                        }
                     }
                 }
             }
