@@ -224,6 +224,7 @@ fun BottomSearchBar(
                                     } else {
                                         openApp(item)
                                         insertSearchHistory(filtering)
+                                        selection = TextRange(0)
                                     }
                                 },
                                 onLongClick = {
