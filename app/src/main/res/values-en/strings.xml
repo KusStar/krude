@@ -29,5 +29,6 @@
     <string name="restart_to_apply">Restart to apply, right now?</string>
     <string name="restart">Restart</string>
     <string name="close">Close</string>
-    <string name="show_search_history">Search keyword history</string>
+    <string name="show_search_history">Show search history</string>
+    <string name="show_left_side_backspace">Show keyboard left side backspace</string>
 </resources>

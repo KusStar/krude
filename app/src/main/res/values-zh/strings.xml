@@ -29,5 +29,6 @@
     <string name="restart_to_apply">重启后生效，立刻重启？</string>
     <string name="restart">重启</string>
     <string name="close">关闭</string>
-    <string name="show_search_history">底部搜索记录</string>
+    <string name="show_search_history">显示搜索记录</string>
+    <string name="show_left_side_backspace">显示键盘左侧删除按钮</string>
 </resources>
