@@ -1,6 +1,6 @@
 package com.kuss.krude.ui.components
 
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,6 +45,7 @@ import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.appiconloader.AppIconLoader
+import timber.log.Timber
 
 @Composable
 fun AsyncAppIcon(packageName: String, modifier: Modifier) {
@@ -111,7 +112,7 @@ fun AppItem(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
-                        Log.d("AppItem", "onLongPress")
+                        Timber.d("AppItem", "onLongPress")
                     }
                 )
             },
@@ -147,8 +148,7 @@ fun AppItem(
                 )
             }
 
-
-            if (showTimes) {
+            AnimatedVisibility(visible = showTimes) {
                 Spacing(1, 4)
                 Text(
                     text = "${item.priority}${stringResource(id = R.string.open_times)}",
@@ -158,7 +158,7 @@ fun AppItem(
                 )
             }
 
-            if (showSubtitle) {
+            AnimatedVisibility(visible = showSubtitle) {
                 Spacing(1, 4)
                 Text(
                     text = item.packageName,
