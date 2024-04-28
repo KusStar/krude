@@ -92,8 +92,8 @@ fun BottomSearchBar(
 
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
-    val filtering = uiState.filtering
-    val filteredApps = uiState.filteredApps
+    val search = uiState.search
+    val searchResult = uiState.searchResult
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -112,7 +112,7 @@ fun BottomSearchBar(
     }
 
     var selection by remember {
-        mutableStateOf(TextRange(filtering.length))
+        mutableStateOf(TextRange(search.length))
     }
 
     val searchKeywordHistory = remember {
@@ -128,15 +128,15 @@ fun BottomSearchBar(
 
     fun onTextChange(value: TextFieldValue) {
         starMode = false
-        mainViewModel.filterApps(apps, value.text, settingState.fuzzySearch)
+        mainViewModel.onSearch(apps, value.text, settingState.fuzzySearch)
         mainViewModel.filterKeywordStars(context = context, value.text)
         selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
-        mainViewModel.filterApps(apps, filtering, fuzzy)
-        if (filtering.isNotEmpty()) {
-            mainViewModel.filterKeywordStars(context = context, filtering)
+        mainViewModel.onSearch(apps, search, fuzzy)
+        if (search.isNotEmpty()) {
+            mainViewModel.filterKeywordStars(context = context, search)
         }
     }
 
@@ -149,19 +149,19 @@ fun BottomSearchBar(
         }
     }
 
-    LaunchedEffect(filteredApps) {
+    LaunchedEffect(searchResult) {
         coroutineScope.launch {
             searchResultList.animateScrollToItem(0)
         }
     }
 
     AnimatedVisibility(
-        visible = filtering.isNotEmpty(),
+        visible = search.isNotEmpty(),
     ) {
         HorizontalDivider()
 
         Column {
-            val hasMatch = filteredApps.isNotEmpty();
+            val hasMatch = searchResult.isNotEmpty();
             AnimatedVisibility(visible = starMode && hasMatch) {
                 Column(
                     modifier = Modifier
@@ -179,7 +179,7 @@ fun BottomSearchBar(
                         )
                         Spacing(x = 1)
                         Text(
-                            text = filtering,
+                            text = search,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
@@ -201,7 +201,7 @@ fun BottomSearchBar(
 
                         ) {
                         itemsIndexed(
-                            filteredApps,
+                            searchResult,
                             key = { _, item -> item.packageName }) { _, item ->
                             val isStar = currentStarPackageNameSet.contains(item.packageName)
                             AppItem(
@@ -218,12 +218,12 @@ fun BottomSearchBar(
                                         mainViewModel.starApp(
                                             context,
                                             item.packageName,
-                                            keyword = filtering,
+                                            keyword = search,
                                             isStar
                                         )
                                     } else {
                                         openApp(item)
-                                        insertSearchHistory(filtering)
+                                        insertSearchHistory(search)
                                         selection = TextRange(0)
                                     }
                                 },
@@ -263,9 +263,9 @@ fun BottomSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        AnimatedVisibility(visible = filtering.isNotEmpty()) {
+        AnimatedVisibility(visible = search.isNotEmpty()) {
             IconButton(onClick = {
-                mainViewModel.setFiltering("")
+                mainViewModel.setSearch("")
                 selection = TextRange(0)
             }) {
                 Icon(
@@ -286,7 +286,7 @@ fun BottomSearchBar(
                     .onFocusChanged {
                         isFocused.value = it.isFocused
                     },
-                value = TextFieldValue(filtering, selection),
+                value = TextFieldValue(search, selection),
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.secondary,
@@ -314,7 +314,7 @@ fun BottomSearchBar(
                 .wrapContentSize(Alignment.TopStart)
         ) {
             Row {
-                AnimatedVisibility(visible = filtering.isNotEmpty() && filteredApps.isNotEmpty()) {
+                AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
                     IconButton(onClick = {
                         starMode = !starMode
                     }) {
@@ -369,7 +369,7 @@ fun BottomSearchBar(
                 isFocused.value = false
                 focusManager.clearFocus()
             }, onClick = { key, isDeleting ->
-                val sb = StringBuilder(filtering)
+                val sb = StringBuilder(search)
                 var range = selection
                 if (isDeleting) {
                     if (selection.end > 0) {
@@ -377,7 +377,7 @@ fun BottomSearchBar(
                         range = TextRange(selection.end - 1)
                     }
                 } else {
-                    if (selection.end < filtering.length)
+                    if (selection.end < search.length)
                         sb.insert(selection.end, key)
                     else
                         sb.append(key)

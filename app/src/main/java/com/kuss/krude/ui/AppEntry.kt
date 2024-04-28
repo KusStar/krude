@@ -52,7 +52,7 @@ fun AppEntry(
     fun openApp(appInfo: AppInfo) {
         ActivityHelper.startPackageActivity(context, appInfo.packageName, activity.window.decorView)
 
-        mainViewModel.setFiltering("")
+        mainViewModel.setSearch("")
 
         mainViewModel.recordOpenApp(context, appInfo)
     }
