@@ -25,13 +25,12 @@ import kotlinx.coroutines.withContext
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import timber.log.Timber
 
-
 data class MainState(
     val apps: List<AppInfo> = listOf(),
-    val filteredApps: List<AppInfo> = listOf(),
+    val searchResult: List<AppInfo> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
-    val filtering: String = "",
+    val search: String = "",
     val showAppDetailSheet: Boolean = false,
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
@@ -123,7 +122,7 @@ class MainViewModel : ViewModel() {
 
         FilterHelper.getSorted(apps).let { sorted ->
             _state.update { mainState ->
-                mainState.copy(apps = sorted, showAppDetailSheet = false, filtering = "")
+                mainState.copy(apps = sorted, showAppDetailSheet = false, search = "")
             }
         }
     }
@@ -140,7 +139,7 @@ class MainViewModel : ViewModel() {
             apps.removeAt(removedIndex)
 
             _state.update { mainState ->
-                mainState.copy(apps = apps, showAppDetailSheet = false, filtering = "")
+                mainState.copy(apps = apps, showAppDetailSheet = false, search = "")
             }
         }
     }
@@ -285,9 +284,9 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun setFiltering(filtering: String) {
+    fun setSearch(search: String) {
         _state.update { mainState ->
-            mainState.copy(filtering = filtering)
+            mainState.copy(search = search)
         }
     }
 
@@ -331,15 +330,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun filterApps(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
+    fun onSearch(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
         viewModelScope.launch {
             val search = text.lowercase()
-            var match = apps.filter {
-                it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
-                    .contains(search)
-            }.sortedByDescending { it.priority }
-            if (fuzzy) {
-                match =
+            val match = if (fuzzy) {
                     apps
                         .asSequence()
                         .map {
@@ -359,10 +353,15 @@ class MainViewModel : ViewModel() {
                             it.app
                         }
                         .toList()
+            } else {
+                apps.filter {
+                    it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
+                        .contains(search)
+                }.sortedByDescending { it.priority }
             }
 
             _state.update { mainState ->
-                mainState.copy(filteredApps = match, filtering = text)
+                mainState.copy(searchResult = match, search = text)
             }
         }
     }
@@ -384,10 +383,10 @@ class MainViewModel : ViewModel() {
 
                 val starApps = apps.filter { starSet.contains(it.packageName) }
 
-                val restApps = _state.value.filteredApps.filter { !starSet.contains(it.packageName) }
+                val restApps = _state.value.searchResult.filter { !starSet.contains(it.packageName) }
 
                 _state.update { mainState ->
-                    mainState.copy(currentStarPackageNameSet = starSet, filteredApps = starApps.sortedByDescending { it.priority }.plus(restApps))
+                    mainState.copy(currentStarPackageNameSet = starSet, searchResult = starApps.sortedByDescending { it.priority }.plus(restApps))
                 }
             }
         }
