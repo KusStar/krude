@@ -3,8 +3,11 @@ package com.kuss.krude.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.AlignHorizontalLeft
+import androidx.compose.material.icons.automirrored.filled.AlignHorizontalRight
 import androidx.compose.material.icons.automirrored.filled.KeyboardBackspace
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
@@ -36,7 +39,10 @@ import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ProvidePreferenceTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,10 +69,6 @@ fun MoreModal(
         mutableStateOf(false)
     }
 
-//    var showReload by remember {
-//        mutableStateOf(false)
-//    }
-
     if (showMoreModal) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -80,6 +82,28 @@ fun MoreModal(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
+
+                ProvidePreferenceTheme {
+                    val icon = Icons.AutoMirrored.Default.let {
+                        return@let  if (settingState.holdingHand == HoldingHandDefaults.LEFT) {
+                            it.AlignHorizontalLeft
+                        } else {
+                            it.AlignHorizontalRight
+                        }
+                    }
+                    ListPreference(
+                        value = settingState.holdingHand,
+                        onValueChange = {
+                            settingsViewModel.setHoldingHand(it)
+                        },
+                        values = listOf(HoldingHandDefaults.LEFT, HoldingHandDefaults.RIGHT),
+                        title = { Text(text = "List preference") },
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = { Icon(imageVector = icon, contentDescription = null) },
+                        summary = { Text(text = settingState.holdingHand) }
+                    )
+                }
+
                 SettingsMenuLink(
                     icon = {
                         Icon(
@@ -135,7 +159,6 @@ fun MoreModal(
                     state = settingState.useEmbedKeyboard,
                     onCheckedChange = { next ->
                         settingsViewModel.setUseEmbedKeyboard(next)
-//                        showReload = true
                     }
                 )
 
@@ -236,35 +259,4 @@ fun MoreModal(
         showStarTable = false
     }
 
-//    if (showReload) {
-//        AlertDialog(
-//            title = {
-//                Text(text = stringResource(id = R.string.edit_saved))
-//            },
-//            text = {
-//                Text(text = stringResource(id = R.string.restart_to_apply))
-//            },
-//            onDismissRequest = {
-//                showReload = false
-//            },
-//            confirmButton = {
-//                TextButton(
-//                    onClick = {
-//                        ActivityHelper.reloadApp(context)
-//                    }
-//                ) {
-//                    Text(stringResource(id = R.string.restart))
-//                }
-//            },
-//            dismissButton = {
-//                TextButton(
-//                    onClick = {
-//                        showReload = false
-//                    }
-//                ) {
-//                    Text(stringResource(id = R.string.close))
-//                }
-//            }
-//        )
-//    }
 }
