@@ -202,36 +202,39 @@ fun BottomSearchBar(
                         ) {
                         itemsIndexed(
                             searchResult,
-                            key = { _, item -> item.packageName }) { _, item ->
-                            val isStar = currentStarPackageNameSet.contains(item.packageName)
-                            AppItem(
-                                modifier = Modifier
-                                    .width(96.dp),
-                                item = item,
-                                titleFontSize = 14.sp,
-                                showStar = isStar,
-                                titleSingleLine = true,
-                                showSubtitle = false,
-                                onClick = {
-                                    if (starMode) {
-                                        Timber.d("star $item")
-                                        mainViewModel.starApp(
-                                            context,
-                                            item.packageName,
-                                            keyword = search,
-                                            isStar
-                                        )
-                                    } else {
-                                        openApp(item)
-                                        insertSearchHistory(search)
-                                        selection = TextRange(0)
-                                    }
-                                },
-                                onLongClick = {
-                                    toAppDetail(item)
-                                },
-                                showTimes = settingState.showUsageCount,
-                            )
+                            key = { _, item -> item.key() }) { _, item ->
+                            if (item.isApp()) {
+                                val app = item.asApp()!!
+                                val isStar = currentStarPackageNameSet.contains(app.packageName)
+                                AppItem(
+                                    modifier = Modifier
+                                        .width(96.dp),
+                                    item = app,
+                                    titleFontSize = 14.sp,
+                                    showStar = isStar,
+                                    titleSingleLine = true,
+                                    showSubtitle = false,
+                                    onClick = {
+                                        if (starMode) {
+                                            Timber.d("star $item")
+                                            mainViewModel.starApp(
+                                                context,
+                                                app.packageName,
+                                                keyword = search,
+                                                isStar
+                                            )
+                                        } else {
+                                            openApp(app)
+                                            insertSearchHistory(search)
+                                            selection = TextRange(0)
+                                        }
+                                    },
+                                    onLongClick = {
+                                        toAppDetail(app)
+                                    },
+                                    showTimes = settingState.showUsageCount,
+                                )
+                            }
                         }
                     }
                 } else {

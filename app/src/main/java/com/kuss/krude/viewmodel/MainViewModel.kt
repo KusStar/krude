@@ -12,6 +12,8 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
+import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.FilterHelper
@@ -27,7 +29,7 @@ import timber.log.Timber
 
 data class MainState(
     val apps: List<AppInfo> = listOf(),
-    val searchResult: List<AppInfo> = listOf(),
+    val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
     val search: String = "",
@@ -205,7 +207,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             withContext(IO) {
                 if (dbApps?.size!! > apps.size) {
-                    val appsSet = apps.map{it.packageName}.toSet()
+                    val appsSet = apps.map { it.packageName }.toSet()
                     val db = getDatabase(context)
 
                     dbApps.forEach {
@@ -333,26 +335,26 @@ class MainViewModel : ViewModel() {
     fun onSearch(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
         viewModelScope.launch {
             val search = text.lowercase()
-            val match = if (fuzzy) {
-                    apps
-                        .asSequence()
-                        .map {
-                            val ratio = FuzzySearch.partialRatio(
-                                it.abbr.lowercase() + " " + it.filterTarget.lowercase(),
-                                search
-                            )
-                            Fuzzy(it, ratio)
-                        }
-                        .filter {
-                            (it.ratio >= 50)
-                        }
-                        .sortedByDescending {
-                            it.ratio * (it.app.priority + 1)
-                        }
-                        .map {
-                            it.app
-                        }
-                        .toList()
+            val matchApps = if (fuzzy) {
+                apps
+                    .asSequence()
+                    .map {
+                        val ratio = FuzzySearch.partialRatio(
+                            it.abbr.lowercase() + " " + it.filterTarget.lowercase(),
+                            search
+                        )
+                        Fuzzy(it, ratio)
+                    }
+                    .filter {
+                        (it.ratio >= 50)
+                    }
+                    .sortedByDescending {
+                        it.ratio * (it.app.priority + 1)
+                    }
+                    .map {
+                        it.app
+                    }
+                    .toList()
             } else {
                 apps.filter {
                     it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
@@ -361,7 +363,12 @@ class MainViewModel : ViewModel() {
             }
 
             _state.update { mainState ->
-                mainState.copy(searchResult = match, search = text)
+                mainState.copy(searchResult = matchApps.map {
+                    SearchResultItem(
+                        type = SearchResultType.APP,
+                        app = it
+                    )
+                }, search = text)
             }
         }
     }
@@ -381,12 +388,23 @@ class MainViewModel : ViewModel() {
 
                 val apps = _state.value.apps
 
-                val starApps = apps.filter { starSet.contains(it.packageName) }
+                val starList = apps.filter { starSet.contains(it.packageName) }
+                    .sortedByDescending { it.priority }.map {
+                        SearchResultItem(type = SearchResultType.APP, app = it)
+                    }
 
-                val restApps = _state.value.searchResult.filter { !starSet.contains(it.packageName) }
+                val restList = _state.value.searchResult.filter {
+                    if (it.isApp()) {
+                        return@filter !starSet.contains(it.asApp()!!.packageName)
+                    }
+                    return@filter true
+                }
 
                 _state.update { mainState ->
-                    mainState.copy(currentStarPackageNameSet = starSet, searchResult = starApps.sortedByDescending { it.priority }.plus(restApps))
+                    mainState.copy(
+                        currentStarPackageNameSet = starSet,
+                        searchResult = starList.plus(restList)
+                    )
                 }
             }
         }
