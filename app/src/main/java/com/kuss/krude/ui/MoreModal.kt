@@ -36,7 +36,7 @@ import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.SettingsViewModel
+import com.kuss.krude.viewmodel.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

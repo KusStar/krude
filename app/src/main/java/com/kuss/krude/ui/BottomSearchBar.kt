@@ -71,7 +71,7 @@ import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.SettingsViewModel
+import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 

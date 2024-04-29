@@ -28,6 +28,7 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import timber.log.Timber
 
 data class MainState(
+    val missingPermission: Boolean = false,
     val apps: List<AppInfo> = listOf(),
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
@@ -187,8 +188,17 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val apps = AppHelper.getInstalled(context)
 
+                if (apps.size <= 1) {
+                    Timber.d("missing permission")
+
+                    return@withContext _state.update {
+                        it.copy(missingPermission = true)
+                    }
+                }
+
                 _state.update { mainState ->
                     mainState.copy(
+                        missingPermission = false,
                         apps = apps,
                         scrollbarItems = getScrollbarItemsFromApps(apps)
                     )
