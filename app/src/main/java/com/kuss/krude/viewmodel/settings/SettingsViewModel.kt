@@ -9,13 +9,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+object HoldingHandDefaults {
+    const val LEFT = "left"
+    const val RIGHT = "right"
+}
+
 data class SettingsState(
     val autoFocus: Boolean = true,
     val fuzzySearch: Boolean = true,
     val showUsageCount: Boolean = false,
     val useEmbedKeyboard: Boolean = true,
     val showSearchHistory: Boolean = true,
-    val showLeftSideBackSpace: Boolean = true
+    val showLeftSideBackSpace: Boolean = true,
+    val holdingHand: String = HoldingHandDefaults.LEFT
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -61,42 +67,49 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     // Functions to update each setting, calling the repository to save the new value
     fun setAutoFocus(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.AUTO_FOCUS_KEY, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.AUTO_FOCUS_KEY, enabled)
             loadSettings() // Reload settings to update UI
         }
     }
 
     fun setFuzzySearch(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.FUZZY_SEARCH_KEY, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.FUZZY_SEARCH_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setShowUsageCount(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.SHOW_USAGE_COUNT_KEY, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.SHOW_USAGE_COUNT_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setUseEmbedKeyboard(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.USE_EMBED_KEYBOARD_KEY, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.USE_EMBED_KEYBOARD_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setShowSearchHistory(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.SHOW_SEARCH_HISTORY_KEY, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.SHOW_SEARCH_HISTORY_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setShowLeftSideBackspace(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveSetting(SettingsRepository.SHOW_LEFT_SIDE_BACKSPACE, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.SHOW_LEFT_SIDE_BACKSPACE, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setHoldingHand(hand: String) {
+        viewModelScope.launch {
+            settingsRepository.saveStringSetting(SettingsRepository.HOLDING_HAND, hand)
             loadSettings()
         }
     }

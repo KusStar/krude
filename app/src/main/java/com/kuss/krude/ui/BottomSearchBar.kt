@@ -71,6 +71,7 @@ import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -266,19 +267,76 @@ fun BottomSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        AnimatedVisibility(visible = search.isNotEmpty()) {
-            IconButton(onClick = {
-                mainViewModel.setSearch("")
-                selection = TextRange(0)
-            }) {
-                Icon(
-                    Icons.Filled.Clear,
-                    contentDescription = "Clear",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                    tint = MaterialTheme.colorScheme.secondary
-                )
+        val renderCloseBtn = @Composable {
+            AnimatedVisibility(visible = search.isNotEmpty()) {
+                IconButton(onClick = {
+                    mainViewModel.setSearch("")
+                    selection = TextRange(0)
+                }) {
+                    Icon(
+                        Icons.Filled.Clear,
+                        contentDescription = "Clear",
+                        modifier = Modifier.size(ButtonDefaults.IconSize),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
         }
+        val renderMoreBtns = @Composable {
+            Box(
+                modifier = Modifier
+                    .wrapContentSize(Alignment.TopStart)
+            ) {
+                Row {
+                    AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
+                        IconButton(onClick = {
+                            starMode = !starMode
+                        }) {
+                            Icon(
+                                Icons.TwoTone.Star,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = "Star",
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                        }
+                    }
+                    IconButton(onClick = {
+                        val nextFuzzy = !settingState.fuzzySearch
+                        settingsViewModel.setFuzzySearch(nextFuzzy)
+                        refresh(nextFuzzy)
+                    }) {
+                        Icon(
+                            imageVector = if (settingState.fuzzySearch) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "fuzzysearch",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
+                    IconButton(onClick = { mainViewModel.setShowMoreSheet(true) }) {
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "MoreVert",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
+                }
+
+                MoreModal(
+                    refresh = { refresh(settingState.fuzzySearch) },
+                    mainViewModel = mainViewModel,
+                    settingsViewModel = settingsViewModel
+                )
+
+                AppUsageModal(mainViewModel)
+            }
+        }
+        if (settingState.holdingHand == HoldingHandDefaults.LEFT) {
+            renderCloseBtn()
+        } else {
+            renderMoreBtns()
+        }
+
         CompositionLocalProvider(LocalTextInputService provides if (settingState.useEmbedKeyboard) null else LocalTextInputService.current) {
             TextField(
                 enabled = apps.isNotEmpty(),
@@ -312,52 +370,10 @@ fun BottomSearchBar(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .wrapContentSize(Alignment.TopStart)
-        ) {
-            Row {
-                AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
-                    IconButton(onClick = {
-                        starMode = !starMode
-                    }) {
-                        Icon(
-                            Icons.TwoTone.Star,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "Star",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                }
-                IconButton(onClick = {
-                    val nextFuzzy = !settingState.fuzzySearch
-                    settingsViewModel.setFuzzySearch(nextFuzzy)
-                    refresh(nextFuzzy)
-                }) {
-                    Icon(
-                        imageVector = if (settingState.fuzzySearch) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "fuzzysearch",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                }
-                IconButton(onClick = { mainViewModel.setShowMoreSheet(true) }) {
-                    Icon(
-                        Icons.Filled.MoreVert,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "MoreVert",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                }
-            }
-
-            MoreModal(
-                refresh = { refresh(settingState.fuzzySearch) },
-                mainViewModel = mainViewModel,
-                settingsViewModel = settingsViewModel
-            )
-
-            AppUsageModal(mainViewModel)
+        if (settingState.holdingHand == HoldingHandDefaults.RIGHT) {
+            renderCloseBtn()
+        } else {
+            renderMoreBtns()
         }
     }
 
