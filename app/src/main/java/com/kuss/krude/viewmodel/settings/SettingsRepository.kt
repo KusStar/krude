@@ -1,4 +1,4 @@
-package com.kuss.krude.db
+package com.kuss.krude.viewmodel.settings
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
@@ -6,8 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.kuss.krude.BuildConfig
-import com.kuss.krude.viewmodel.DEFAULT_SETTINGS_STATE
-import com.kuss.krude.viewmodel.SettingsState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
