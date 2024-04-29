@@ -31,4 +31,7 @@
     <string name="close">关闭</string>
     <string name="show_search_history">显示搜索记录</string>
     <string name="show_left_side_backspace">显示键盘左侧删除按钮</string>
+    <string name="missing_permission">未授予权限</string>
+    <string name="request_permission">请授予获取应用列表权限</string>
+    <string name="confirm">确认</string>
 </resources>
