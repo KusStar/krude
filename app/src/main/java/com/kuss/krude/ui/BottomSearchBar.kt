@@ -1,5 +1,6 @@
 package com.kuss.krude.ui
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -273,6 +274,11 @@ fun BottomSearchBar(
                                                 } else {
                                                     uriHandler.openUri(extension.uri)
                                                 }
+                                                clear()
+                                            } else if (extension.type == ExtensionType.ACTION) {
+                                                val intent = Intent(extension.uri)
+                                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                context.startActivity(intent)
                                                 clear()
                                             }
                                         }
