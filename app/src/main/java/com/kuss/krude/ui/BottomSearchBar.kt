@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -67,9 +68,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.ExtensionItem
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.utils.DeeplinkHelper
+import com.kuss.krude.utils.Extensions
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
@@ -87,6 +92,7 @@ fun BottomSearchBar(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val uriHandler = LocalUriHandler.current
 
     val uiState by mainViewModel.state.collectAsState()
     val settingState by settingsViewModel.state.collectAsState()
@@ -129,16 +135,21 @@ fun BottomSearchBar(
 
     fun onTextChange(value: TextFieldValue) {
         starMode = false
-        mainViewModel.onSearch(apps, value.text, settingState.fuzzySearch)
+        mainViewModel.onSearch(value.text, settingState.fuzzySearch)
         mainViewModel.filterKeywordStars(context = context, value.text)
         selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
-        mainViewModel.onSearch(apps, search, fuzzy)
+        mainViewModel.onSearch(search, fuzzy)
         if (search.isNotEmpty()) {
             mainViewModel.filterKeywordStars(context = context, search)
         }
+    }
+
+    fun clear() {
+        mainViewModel.setSearch("")
+        selection = TextRange(0)
     }
 
     LaunchedEffect(apps.isNotEmpty(), settingState.autoFocus) {
@@ -199,8 +210,7 @@ fun BottomSearchBar(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         state = searchResultList,
-
-                        ) {
+                    ) {
                         itemsIndexed(
                             searchResult,
                             key = { _, item -> item.key() }) { _, item ->
@@ -232,6 +242,42 @@ fun BottomSearchBar(
                                     },
                                     onLongClick = {
                                         toAppDetail(app)
+                                    },
+                                    showTimes = settingState.showUsageCount,
+                                )
+                            }
+                            if (item.isExtension()) {
+                                val extension = item.asExtension()!!
+                                val isStar = currentStarPackageNameSet.contains(extension.name)
+                                ExtensionItem(
+                                    modifier = Modifier
+                                        .width(96.dp),
+                                    item = extension,
+                                    titleFontSize = 14.sp,
+                                    showStar = isStar,
+                                    titleSingleLine = true,
+                                    showSubtitle = false,
+                                    onClick = {
+                                        if (starMode) {
+                                            Timber.d("star $item")
+                                            mainViewModel.starApp(
+                                                context,
+                                                extension.name,
+                                                keyword = search,
+                                                isStar
+                                            )
+                                        } else {
+                                            if (extension.type == ExtensionType.SCHEME) {
+                                                if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
+                                                    DeeplinkHelper.openWechatScan(context)
+                                                } else {
+                                                    uriHandler.openUri(extension.uri)
+                                                }
+                                                clear()
+                                            }
+                                        }
+                                    },
+                                    onLongClick = {
                                     },
                                     showTimes = settingState.showUsageCount,
                                 )
@@ -270,8 +316,7 @@ fun BottomSearchBar(
         val renderCloseBtn = @Composable {
             AnimatedVisibility(visible = search.isNotEmpty()) {
                 IconButton(onClick = {
-                    mainViewModel.setSearch("")
-                    selection = TextRange(0)
+                    clear()
                 }) {
                     Icon(
                         Icons.Filled.Clear,
