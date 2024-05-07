@@ -56,6 +56,7 @@ import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.BuildConfig
 import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.utils.DeeplinkHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.SponsorHelper
 import kotlinx.coroutines.Dispatchers.IO
@@ -306,7 +307,7 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                             confirmButton = {
                                 TextButton(
                                     onClick = {
-                                        SponsorHelper.openWechatScan(context)
+                                        DeeplinkHelper.openWechatScan(context)
                                     }
                                 ) {
                                     Text("跳转到微信")
