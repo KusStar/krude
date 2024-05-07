@@ -19,6 +19,10 @@ type Main = Extension | Extension[] | string
 {
     "name": "krude-extension-example",
     "version": "1.0.0",
+    "krudeVersion": {
+      "min": "1.0.0",
+      "max": "2.0.0"
+    },
     "description": "Krude extensions example",
     "main": [
       {
