@@ -12,10 +12,12 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
+import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
+import com.kuss.krude.utils.Extensions
 import com.kuss.krude.utils.FilterHelper
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
@@ -63,6 +65,8 @@ class MainViewModel : ViewModel() {
     private val _state = MutableStateFlow(MainState())
 
     private var filterKeywordJob: Job? = null
+
+    private var extensions: List<Extension>? = null
 
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
@@ -166,9 +170,17 @@ class MainViewModel : ViewModel() {
                 }
                 // load from packageManager
                 loadFromPackageManger(context, dbApps)
+                loadExtensions()
             }
         }
 
+    }
+
+    private fun loadExtensions() {
+        extensions = Extensions.EMBEDDED_EXTENSIONS.map {
+            it.filterTarget = FilterHelper.toTarget(it.name, it.description)
+            it
+        }
     }
 
     fun getUsageCountByDay(context: Context): List<UsageCountByDay> {
@@ -342,9 +354,11 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun onSearch(apps: List<AppInfo>, text: String, fuzzy: Boolean) {
+    fun onSearch(text: String, fuzzy: Boolean) {
         viewModelScope.launch {
             val search = text.lowercase()
+            val apps = _state.value.apps
+
             val matchApps = if (fuzzy) {
                 apps
                     .asSequence()
@@ -372,13 +386,30 @@ class MainViewModel : ViewModel() {
                 }.sortedByDescending { it.priority }
             }
 
+            val searchResult = matchApps.map {
+                SearchResultItem(
+                    type = SearchResultType.APP,
+                    app = it
+                )
+            }.toMutableList()
+
+            if (extensions != null) {
+                val filterExtensions = extensions!!.filter {
+                    it.filterTarget!!.lowercase()
+                        .contains(search)
+                }.sortedByDescending { it.priority }
+                searchResult.addAll(
+                    0,
+                    filterExtensions.map {
+                        SearchResultItem(
+                            type = SearchResultType.EXTENSION,
+                            extension = it
+                        )
+                    })
+            }
+
             _state.update { mainState ->
-                mainState.copy(searchResult = matchApps.map {
-                    SearchResultItem(
-                        type = SearchResultType.APP,
-                        app = it
-                    )
-                }, search = text)
+                mainState.copy(searchResult = searchResult, search = text)
             }
         }
     }
@@ -398,22 +429,29 @@ class MainViewModel : ViewModel() {
 
                 val apps = _state.value.apps
 
-                val starList = apps.filter { starSet.contains(it.packageName) }
+                val starAppList = apps.filter { starSet.contains(it.packageName) }
                     .sortedByDescending { it.priority }.map {
                         SearchResultItem(type = SearchResultType.APP, app = it)
                     }
+
+                val starExtensionList = if (extensions != null)
+                    extensions!!.filter { starSet.contains(it.name) }
+                        .sortedByDescending { it.priority }.map {
+                            SearchResultItem(type = SearchResultType.EXTENSION, extension = it)
+                        }
+                else listOf()
 
                 val restList = _state.value.searchResult.filter {
                     if (it.isApp()) {
                         return@filter !starSet.contains(it.asApp()!!.packageName)
                     }
-                    return@filter true
+                    return@filter !starSet.contains(it.asExtension()!!.name)
                 }
 
                 _state.update { mainState ->
                     mainState.copy(
                         currentStarPackageNameSet = starSet,
-                        searchResult = starList.plus(restList)
+                        searchResult = starExtensionList.plus(starAppList.plus(restList))
                     )
                 }
             }
