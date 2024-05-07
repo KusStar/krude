@@ -89,7 +89,6 @@ fun BottomSearchBar(
     settingsViewModel: SettingsViewModel,
     openApp: (AppInfo) -> Unit,
     toAppDetail: (AppInfo) -> Unit
-
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -136,15 +135,15 @@ fun BottomSearchBar(
 
     fun onTextChange(value: TextFieldValue) {
         starMode = false
-        mainViewModel.onSearch(value.text, settingState.fuzzySearch)
-        mainViewModel.filterKeywordStars(context = context, value.text)
+        mainViewModel.onSearch(value.text, settingState.enableExtension, settingState.fuzzySearch)
+        mainViewModel.filterKeywordStars(context = context, settingState.enableExtension, value.text)
         selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
-        mainViewModel.onSearch(search, fuzzy)
+        mainViewModel.onSearch(search, settingState.enableExtension, fuzzy)
         if (search.isNotEmpty()) {
-            mainViewModel.filterKeywordStars(context = context, search)
+            mainViewModel.filterKeywordStars(context = context, settingState.enableExtension, search)
         }
     }
 
@@ -165,6 +164,12 @@ fun BottomSearchBar(
     LaunchedEffect(searchResult) {
         coroutineScope.launch {
             searchResultList.animateScrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(settingState.enableExtension) {
+        coroutineScope.launch {
+            refresh(settingState.fuzzySearch)
         }
     }
 
@@ -231,6 +236,7 @@ fun BottomSearchBar(
                                             Timber.d("star $item")
                                             mainViewModel.starApp(
                                                 context,
+                                                settingState.enableExtension,
                                                 app.packageName,
                                                 keyword = search,
                                                 isStar
@@ -263,6 +269,7 @@ fun BottomSearchBar(
                                             Timber.d("star $item")
                                             mainViewModel.starApp(
                                                 context,
+                                                settingState.enableExtension,
                                                 extension.name,
                                                 keyword = search,
                                                 isStar

@@ -34,4 +34,6 @@
     <string name="missing_permission">未授予权限</string>
     <string name="request_permission">请授予获取应用列表权限</string>
     <string name="confirm">确认</string>
+    <string name="enable_extension">启用扩展</string>
+    <string name="extension_list">扩展列表</string>
 </resources>

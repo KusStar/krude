@@ -18,6 +18,7 @@ data class SettingsState(
     val autoFocus: Boolean = true,
     val fuzzySearch: Boolean = true,
     val showUsageCount: Boolean = false,
+    val enableExtension: Boolean = true,
     val useEmbedKeyboard: Boolean = true,
     val showSearchHistory: Boolean = true,
     val showLeftSideBackSpace: Boolean = true,
@@ -110,6 +111,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setHoldingHand(hand: String) {
         viewModelScope.launch {
             settingsRepository.saveStringSetting(SettingsRepository.HOLDING_HAND, hand)
+            loadSettings()
+        }
+    }
+
+    fun setEnableExtension(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveBoolSetting(SettingsRepository.ENABLE_EXTENSION, enabled)
             loadSettings()
         }
     }
