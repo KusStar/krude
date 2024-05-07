@@ -353,14 +353,14 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun onSearch(text: String, fuzzy: Boolean) {
+    fun onSearch(text: String, enableExtension: Boolean, fuzzy: Boolean) {
         viewModelScope.launch {
             val search = text.lowercase()
             val apps = _state.value.apps
 
             val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
 
-            if (extensions != null) {
+            if (enableExtension && extensions != null) {
                 searchResult.addAll(
                     extensions!!.map {
                         SearchResultItem(it)
@@ -422,7 +422,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun filterKeywordStars(context: Context, keyword: String) {
+    fun filterKeywordStars(context: Context, enableExtension: Boolean, keyword: String) {
         filterKeywordJob?.cancel()
         filterKeywordJob = viewModelScope.launch {
             withContext(IO) {
@@ -442,7 +442,7 @@ class MainViewModel : ViewModel() {
                         SearchResultItem(it)
                     }
 
-                val starExtensionList = if (extensions != null)
+                val starExtensionList = if (enableExtension && extensions != null)
                     extensions!!.filter { starSet.contains(it.name) }
                         .sortedByDescending { it.priority }.map {
                             SearchResultItem(it)
@@ -466,7 +466,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun starApp(context: Context, packageName: String, keyword: String, isStar: Boolean) {
+    fun starApp(context: Context, enableExtension: Boolean, packageName: String, keyword: String, isStar: Boolean) {
         viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)
@@ -475,7 +475,7 @@ class MainViewModel : ViewModel() {
                 } else {
                     db.starDao().deleteStarPackage(packageName, keyword)
                 }
-                filterKeywordStars(context, keyword = keyword)
+                filterKeywordStars(context, enableExtension, keyword = keyword)
             }
         }
     }

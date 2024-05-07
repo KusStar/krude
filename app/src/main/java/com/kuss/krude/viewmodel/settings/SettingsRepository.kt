@@ -21,6 +21,7 @@ class SettingsRepository(private val context: Context) {
         val SHOW_SEARCH_HISTORY_KEY = booleanPreferencesKey("show_search_history")
         val SHOW_LEFT_SIDE_BACKSPACE = booleanPreferencesKey("show_left_side_backspace")
         val HOLDING_HAND = stringPreferencesKey("holding_hand")
+        val ENABLE_EXTENSION = booleanPreferencesKey("enable_extension")
     }
 
     suspend fun saveBoolSetting(key: Preferences.Key<Boolean>, value: Boolean) {
@@ -45,7 +46,8 @@ class SettingsRepository(private val context: Context) {
                 useEmbedKeyboard = preferences[USE_EMBED_KEYBOARD_KEY] ?: DEFAULT_SETTINGS_STATE.useEmbedKeyboard,
                 showSearchHistory = preferences[SHOW_SEARCH_HISTORY_KEY] ?: DEFAULT_SETTINGS_STATE.showSearchHistory,
                 showLeftSideBackSpace = preferences[SHOW_LEFT_SIDE_BACKSPACE] ?: DEFAULT_SETTINGS_STATE.showLeftSideBackSpace,
-                holdingHand = preferences[HOLDING_HAND] ?: DEFAULT_SETTINGS_STATE.holdingHand
+                holdingHand = preferences[HOLDING_HAND] ?: DEFAULT_SETTINGS_STATE.holdingHand,
+                enableExtension = preferences[ENABLE_EXTENSION] ?: DEFAULT_SETTINGS_STATE.enableExtension
             )
         }
 }

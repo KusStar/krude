@@ -34,4 +34,6 @@
     <string name="missing_permission">Missing Permission</string>
     <string name="request_permission">Please allow grant request apps permission</string>
     <string name="confirm">Confirm</string>
+    <string name="enable_extension">Enable Extension</string>
+    <string name="extension_list">Extension List</string>
 </resources>
