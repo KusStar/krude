@@ -14,7 +14,6 @@ import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
-import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.Extensions
@@ -359,57 +358,66 @@ class MainViewModel : ViewModel() {
             val search = text.lowercase()
             val apps = _state.value.apps
 
-            val matchApps = if (fuzzy) {
-                apps
-                    .asSequence()
+            val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
+
+            if (extensions != null) {
+                searchResult.addAll(
+                    extensions!!.map {
+                        SearchResultItem(it)
+                    }
+                )
+            }
+
+            val filterResult = if (fuzzy) {
+                searchResult
                     .map {
-                        val ratio = FuzzySearch.partialRatio(
-                            it.abbr.lowercase() + " " + it.filterTarget.lowercase(),
-                            search
-                        )
+                        val ratio = if (it.isApp()) {
+                            val app = it.asApp()!!
+                            FuzzySearch.partialRatio(
+                                app.abbr.lowercase() + " " + app.filterTarget.lowercase(),
+                                search
+                            )
+                        } else if (it.isExtension()) {
+                            val extension = it.asExtension()!!
+                            FuzzySearch.partialRatio(
+                                extension.name.lowercase() + " " + extension.filterTarget!!.lowercase(),
+                                search
+                            )
+                        } else 0
+
                         Fuzzy(it, ratio)
                     }
                     .filter {
                         (it.ratio >= 50)
                     }
                     .sortedByDescending {
-                        it.ratio * (it.app.priority + 1)
+                        val priority = it.resultItem.getPriority()
+                        it.ratio * (priority + 1)
                     }
                     .map {
-                        it.app
+                        it.resultItem
                     }
-                    .toList()
             } else {
-                apps.filter {
-                    it.abbr.lowercase().contains(search) || it.filterTarget.lowercase()
-                        .contains(search)
-                }.sortedByDescending { it.priority }
-            }
-
-            val searchResult = matchApps.map {
-                SearchResultItem(
-                    type = SearchResultType.APP,
-                    app = it
-                )
-            }.toMutableList()
-
-            if (extensions != null) {
-                val filterExtensions = extensions!!.filter {
-                    it.filterTarget!!.lowercase()
-                        .contains(search)
-                }.sortedByDescending { it.priority }
-                searchResult.addAll(
-                    0,
-                    filterExtensions.map {
-                        SearchResultItem(
-                            type = SearchResultType.EXTENSION,
-                            extension = it
-                        )
-                    })
+                searchResult.filter {
+                    if (it.isApp()) {
+                        val app = it.asApp()!!
+                        return@filter app.abbr.lowercase()
+                            .contains(search) || app.filterTarget.lowercase()
+                            .contains(search)
+                    } else if (it.isExtension()) {
+                        val extension = it.asExtension()!!
+                        return@filter extension.name.lowercase()
+                            .contains(search) || extension.filterTarget!!.lowercase()
+                            .contains(search)
+                    }
+                    return@filter true
+                }.sortedByDescending {
+                    it.getPriority()
+                }
             }
 
             _state.update { mainState ->
-                mainState.copy(searchResult = searchResult, search = text)
+                mainState.copy(searchResult = filterResult, search = text)
             }
         }
     }
@@ -431,13 +439,13 @@ class MainViewModel : ViewModel() {
 
                 val starAppList = apps.filter { starSet.contains(it.packageName) }
                     .sortedByDescending { it.priority }.map {
-                        SearchResultItem(type = SearchResultType.APP, app = it)
+                        SearchResultItem(it)
                     }
 
                 val starExtensionList = if (extensions != null)
                     extensions!!.filter { starSet.contains(it.name) }
                         .sortedByDescending { it.priority }.map {
-                            SearchResultItem(type = SearchResultType.EXTENSION, extension = it)
+                            SearchResultItem(it)
                         }
                 else listOf()
 
@@ -494,10 +502,26 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateExtensionPriority(extension: Extension) {
+        viewModelScope.launch {
+            withContext(IO) {
+                if (extensions != null) {
+                    val newList = extensions!!.toMutableList()
+                    val idx = extensions!!.indexOfFirst { it.name == extension.name }
+                    if (idx >= 0) {
+                        extension.priority += 1
+                        newList[idx] = extension
+                        extensions = newList
+                    }
+                }
+            }
+        }
+    }
+
     private fun getScrollbarItemsFromApps(apps: List<AppInfo>): List<String> {
         return apps.map { it.abbr.first().uppercase() }
             .toSet().toList().sorted()
     }
 }
 
-data class Fuzzy(val app: AppInfo, val ratio: Int)
+data class Fuzzy(val resultItem: SearchResultItem, val ratio: Int)
