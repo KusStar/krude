@@ -4,6 +4,7 @@ import com.kuss.krude.db.AppInfo
 
 enum class ExtensionType(val value: String) {
     ACTIVITY("activity"),
+    ACTION("action"),
     SCHEME("scheme");
 
     override fun toString(): String {
