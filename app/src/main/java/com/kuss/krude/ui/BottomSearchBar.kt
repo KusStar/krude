@@ -274,13 +274,13 @@ fun BottomSearchBar(
                                                 } else {
                                                     uriHandler.openUri(extension.uri)
                                                 }
-                                                clear()
                                             } else if (extension.type == ExtensionType.ACTION) {
                                                 val intent = Intent(extension.uri)
                                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                                 context.startActivity(intent)
-                                                clear()
                                             }
+                                            mainViewModel.updateExtensionPriority(extension)
+                                            clear()
                                         }
                                     },
                                     onLongClick = {

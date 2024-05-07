@@ -17,7 +17,7 @@ data class Extension(
     val description: String,
     val type: ExtensionType,
     val uri: String,
-    val priority: Int = 0,
+    var priority: Int = 0,
     var filterTarget: String? = null
 )
 
@@ -30,11 +30,22 @@ enum class SearchResultType(val value: String) {
     }
 }
 
-data class SearchResultItem(
+class SearchResultItem(
     val type: SearchResultType,
     val app: AppInfo? = null,
     val extension: Extension? = null
 ) {
+    constructor(app: AppInfo) : this(SearchResultType.APP, app = app)
+    constructor(extension: Extension) : this(SearchResultType.EXTENSION, extension = extension)
+
+    fun getPriority(): Int {
+        return if (isApp()) {
+            asApp()!!.priority
+        } else {
+            extension!!.priority
+        }
+    }
+
     fun isApp(): Boolean {
         return type == SearchResultType.APP
     }
