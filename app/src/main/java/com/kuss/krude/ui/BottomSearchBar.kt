@@ -79,7 +79,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
-import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
+import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -282,12 +282,12 @@ fun BottomSearchBar(
                 HorizontalDivider()
             }
 
-            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.TOP_OF_APP_LIST) {
+            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
                 renderExtensionsStandalone()
             }
 
             val mainData =
-                if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST)
+                if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE)
                     searchResult else
                     searchResult.filter { it.isApp() }
             Crossfade(
@@ -296,7 +296,7 @@ fun BottomSearchBar(
             ) { show ->
                 val height = 128.dp
                 if (show) {
-                    if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST) {
+                    if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
                         LazyRow(
                             modifier = Modifier
                                 .height(height)
@@ -426,7 +426,7 @@ fun BottomSearchBar(
                 }
             }
 
-            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.BOTTOM_OF_APP_LIST) {
+            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
                 renderExtensionsStandalone()
             }
         }
@@ -501,7 +501,7 @@ fun BottomSearchBar(
                 AppUsageModal(mainViewModel)
             }
         }
-        if (settingState.holdingHand == HoldingHandDefaults.LEFT) {
+        if (settingState.dominantHand == DominantHandDefaults.LEFT) {
             renderCloseBtn()
         } else {
             renderMoreBtns()
@@ -540,7 +540,7 @@ fun BottomSearchBar(
             )
         }
 
-        if (settingState.holdingHand == HoldingHandDefaults.RIGHT) {
+        if (settingState.dominantHand == DominantHandDefaults.RIGHT) {
             renderCloseBtn()
         } else {
             renderMoreBtns()
