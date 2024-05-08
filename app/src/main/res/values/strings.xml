@@ -36,4 +36,5 @@
     <string name="confirm">Confirm</string>
     <string name="enable_extension">Enable Extension</string>
     <string name="extension_list">Extension List</string>
+    <string name="extension_display_mode">Extension Display Mode</string>
 </resources>

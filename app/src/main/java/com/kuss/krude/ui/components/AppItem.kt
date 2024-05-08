@@ -181,12 +181,12 @@ fun ExtensionItem(
     item: Extension,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
-    titleSingleLine: Boolean = false,
     enabled: Boolean = true,
-    iconSize: Dp = 48.dp,
+    iconSize: Dp = 32.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
-    showTimes: Boolean = false
+    showTimes: Boolean = false,
+    horizontal: Boolean = false
 ) {
     CustomButton(
         onClick = onClick,
@@ -203,52 +203,68 @@ fun ExtensionItem(
         shape = RoundedCornerShape(8.dp),
         enabled = enabled
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
+        val renderIcon = @Composable {
             Icon(
                 Icons.Filled.Extension,
                 tint = MaterialTheme.colorScheme.primary,
                 contentDescription = "Star",
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(iconSize)
             )
-            Spacing(1)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showStar) {
-                    Icon(
-                        Icons.Filled.Star,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "Star",
-                        modifier = Modifier.size(12.dp)
+        }
+        val renderTexts = @Composable {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (showStar) {
+                        Icon(
+                            Icons.Filled.Star,
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = "Star",
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                    Text(
+                        text = item.name,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = titleFontSize,
                     )
                 }
-                Text(
-                    text = item.name,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = titleFontSize,
-                )
-            }
 
-            AnimatedVisibility(visible = showTimes) {
-                Spacing(1, 4)
-                Text(
-                    text = "${item.priority}${stringResource(id = R.string.open_times)}",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = subtitleFontSize,
-                )
-            }
+                AnimatedVisibility(visible = showTimes) {
+                    Spacing(1, 4)
+                    Text(
+                        text = "${item.priority}${stringResource(id = R.string.open_times)}",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = subtitleFontSize,
+                    )
+                }
 
-            AnimatedVisibility(visible = showSubtitle) {
-                Spacing(1, 4)
-                Text(
-                    text = item.description,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = subtitleFontSize,
-                )
+                AnimatedVisibility(visible = showSubtitle) {
+                    Spacing(1, 4)
+                    Text(
+                        text = item.description,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = subtitleFontSize,
+                    )
+                }
+            }
+        }
+        if (horizontal) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                renderIcon()
+                Spacing(x = 1)
+                renderTexts()
+            }
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                renderIcon()
+                Spacing(x = 1)
+                renderTexts()
             }
         }
     }

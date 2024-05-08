@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.AlignHorizontalLeft
 import androidx.compose.material.icons.automirrored.filled.AlignHorizontalRight
 import androidx.compose.material.icons.automirrored.filled.KeyboardBackspace
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Segment
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Extension
@@ -46,6 +47,7 @@ import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import me.zhanghai.compose.preference.ListPreference
@@ -179,6 +181,19 @@ fun MoreModal(
 
                     AnimatedVisibility(visible = settingState.enableExtension) {
                         Column {
+                            ProvidePreferenceTheme {
+                                ListPreference(
+                                    value = settingState.extensionDisplayMode,
+                                    onValueChange = {
+                                        settingsViewModel.setExtensionDisplayMode(it)
+                                    },
+                                    values = listOf(ExtensionDisplayModeDefaults.TOP_OF_APP_LIST, ExtensionDisplayModeDefaults.IN_APP_LIST, ExtensionDisplayModeDefaults.BOTTOM_OF_APP_LIST),
+                                    title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    icon = { Icon(imageVector = Icons.AutoMirrored.Default.Segment, contentDescription = null) },
+                                    summary = { Text(text = settingState.extensionDisplayMode) }
+                                )
+                            }
                             SettingsMenuLink(
                                 icon = {
                                     Icon(

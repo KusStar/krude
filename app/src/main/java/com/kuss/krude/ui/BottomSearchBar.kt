@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -77,6 +78,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.DeeplinkHelper
 import com.kuss.krude.utils.Extensions
 import com.kuss.krude.viewmodel.MainViewModel
+import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -207,20 +209,170 @@ fun BottomSearchBar(
                 }
             }
 
+            val renderExtensionsStandalone = @Composable {
+                val extensions = searchResult.filter { it.isExtension() }
+                AnimatedVisibility(visible = extensions.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        itemsIndexed(
+                            extensions,
+                            key = { _, item -> item.key() }) { index, item ->
+                            val extension = item.asExtension()!!
+                            val isStar = currentStarPackageNameSet.contains(extension.name)
+                            ExtensionItem(
+                                modifier = Modifier,
+                                item = extension,
+                                titleFontSize = 14.sp,
+                                showStar = isStar,
+                                showSubtitle = false,
+                                horizontal = true,
+                                onClick = {
+                                    if (starMode) {
+                                        Timber.d("star $item")
+                                        mainViewModel.starApp(
+                                            context,
+                                            settingState.enableExtension,
+                                            extension.name,
+                                            keyword = search,
+                                            isStar
+                                        )
+                                    } else {
+                                        if (extension.type == ExtensionType.SCHEME) {
+                                            if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
+                                                DeeplinkHelper.openWechatScan(context)
+                                            } else {
+                                                uriHandler.openUri(extension.uri)
+                                            }
+                                        } else if (extension.type == ExtensionType.ACTION) {
+                                            val intent = Intent(extension.uri)
+                                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                            context.startActivity(intent)
+                                        }
+                                        mainViewModel.updateExtensionPriority(extension)
+                                        clear()
+                                    }
+                                },
+                                onLongClick = {
+                                },
+                                showTimes = settingState.showUsageCount,
+                            )
+                            if (index < extensions.size - 1) {
+                                VerticalDivider(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider()
+            }
+
+            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.TOP_OF_APP_LIST) {
+                renderExtensionsStandalone()
+            }
+
             Crossfade(targetState = hasMatch, label = "filteredItems") {
                 val height = 128.dp
                 if (it) {
-                    LazyRow(
-                        modifier = Modifier
-                            .height(height)
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        state = searchResultList,
-                    ) {
-                        itemsIndexed(
-                            searchResult,
-                            key = { _, item -> item.key() }) { _, item ->
-                            if (item.isApp()) {
+                    if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST) {
+                        LazyRow(
+                            modifier = Modifier
+                                .height(height)
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            state = searchResultList,
+                        ) {
+                            itemsIndexed(
+                                searchResult,
+                                key = { _, item -> item.key() }) { _, item ->
+                                if (item.isApp()) {
+                                    val app = item.asApp()!!
+                                    val isStar = currentStarPackageNameSet.contains(app.packageName)
+                                    AppItem(
+                                        modifier = Modifier
+                                            .width(96.dp),
+                                        item = app,
+                                        titleFontSize = 14.sp,
+                                        showStar = isStar,
+                                        titleSingleLine = true,
+                                        showSubtitle = false,
+                                        onClick = {
+                                            if (starMode) {
+                                                Timber.d("star $item")
+                                                mainViewModel.starApp(
+                                                    context,
+                                                    settingState.enableExtension,
+                                                    app.packageName,
+                                                    keyword = search,
+                                                    isStar
+                                                )
+                                            } else {
+                                                openApp(app)
+                                                insertSearchHistory(search)
+                                                selection = TextRange(0)
+                                            }
+                                        },
+                                        onLongClick = {
+                                            toAppDetail(app)
+                                        },
+                                        showTimes = settingState.showUsageCount,
+                                    )
+                                }
+                                if (item.isExtension()) {
+                                    val extension = item.asExtension()!!
+                                    val isStar = currentStarPackageNameSet.contains(extension.name)
+                                    ExtensionItem(
+                                        modifier = Modifier
+                                            .width(96.dp),
+                                        item = extension,
+                                        titleFontSize = 14.sp,
+                                        showStar = isStar,
+                                        showSubtitle = false,
+                                        onClick = {
+                                            if (starMode) {
+                                                Timber.d("star $item")
+                                                mainViewModel.starApp(
+                                                    context,
+                                                    settingState.enableExtension,
+                                                    extension.name,
+                                                    keyword = search,
+                                                    isStar
+                                                )
+                                            } else {
+                                                if (extension.type == ExtensionType.SCHEME) {
+                                                    if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
+                                                        DeeplinkHelper.openWechatScan(context)
+                                                    } else {
+                                                        uriHandler.openUri(extension.uri)
+                                                    }
+                                                } else if (extension.type == ExtensionType.ACTION) {
+                                                    val intent = Intent(extension.uri)
+                                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                    context.startActivity(intent)
+                                                }
+                                                mainViewModel.updateExtensionPriority(extension)
+                                                clear()
+                                            }
+                                        },
+                                        onLongClick = {
+                                        },
+                                        showTimes = settingState.showUsageCount,
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyRow(
+                            modifier = Modifier
+                                .height(height)
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            state = searchResultList,
+                        ) {
+                            itemsIndexed(
+                                searchResult.filter { it.isApp() },
+                                key = { _, item -> item.key() }) { _, item ->
                                 val app = item.asApp()!!
                                 val isStar = currentStarPackageNameSet.contains(app.packageName)
                                 AppItem(
@@ -253,48 +405,6 @@ fun BottomSearchBar(
                                     showTimes = settingState.showUsageCount,
                                 )
                             }
-                            if (item.isExtension()) {
-                                val extension = item.asExtension()!!
-                                val isStar = currentStarPackageNameSet.contains(extension.name)
-                                ExtensionItem(
-                                    modifier = Modifier
-                                        .width(96.dp),
-                                    item = extension,
-                                    titleFontSize = 14.sp,
-                                    showStar = isStar,
-                                    titleSingleLine = true,
-                                    showSubtitle = false,
-                                    onClick = {
-                                        if (starMode) {
-                                            Timber.d("star $item")
-                                            mainViewModel.starApp(
-                                                context,
-                                                settingState.enableExtension,
-                                                extension.name,
-                                                keyword = search,
-                                                isStar
-                                            )
-                                        } else {
-                                            if (extension.type == ExtensionType.SCHEME) {
-                                                if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
-                                                    DeeplinkHelper.openWechatScan(context)
-                                                } else {
-                                                    uriHandler.openUri(extension.uri)
-                                                }
-                                            } else if (extension.type == ExtensionType.ACTION) {
-                                                val intent = Intent(extension.uri)
-                                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                                context.startActivity(intent)
-                                            }
-                                            mainViewModel.updateExtensionPriority(extension)
-                                            clear()
-                                        }
-                                    },
-                                    onLongClick = {
-                                    },
-                                    showTimes = settingState.showUsageCount,
-                                )
-                            }
                         }
                     }
                 } else {
@@ -316,6 +426,10 @@ fun BottomSearchBar(
                         )
                     }
                 }
+            }
+
+            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.BOTTOM_OF_APP_LIST) {
+                renderExtensionsStandalone()
             }
         }
     }

@@ -31,6 +31,7 @@ import timber.log.Timber
 data class MainState(
     val missingPermission: Boolean = false,
     val apps: List<AppInfo> = listOf(),
+    val extensions: List<Extension> = listOf(),
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
@@ -64,8 +65,6 @@ class MainViewModel : ViewModel() {
     private val _state = MutableStateFlow(MainState())
 
     private var filterKeywordJob: Job? = null
-
-    private var extensions: List<Extension>? = null
 
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
@@ -176,9 +175,11 @@ class MainViewModel : ViewModel() {
     }
 
     private fun loadExtensions() {
-        extensions = Extensions.EMBEDDED_EXTENSIONS.map {
-            it.filterTarget = FilterHelper.toTarget(it.name, it.description)
-            it
+        _state.update { mainState ->
+            mainState.copy(extensions = Extensions.EMBEDDED_EXTENSIONS.map {
+                it.filterTarget = FilterHelper.toTarget(it.name, it.description)
+                it
+            })
         }
     }
 
@@ -357,12 +358,13 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val search = text.lowercase()
             val apps = _state.value.apps
+            val extensions = _state.value.extensions
 
             val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
 
-            if (enableExtension && extensions != null) {
+            if (enableExtension && extensions.isNotEmpty()) {
                 searchResult.addAll(
-                    extensions!!.map {
+                    extensions.map {
                         SearchResultItem(it)
                     }
                 )
@@ -436,14 +438,15 @@ class MainViewModel : ViewModel() {
                 }
 
                 val apps = _state.value.apps
+                val extensions = _state.value.extensions
 
                 val starAppList = apps.filter { starSet.contains(it.packageName) }
                     .sortedByDescending { it.priority }.map {
                         SearchResultItem(it)
                     }
 
-                val starExtensionList = if (enableExtension && extensions != null)
-                    extensions!!.filter { starSet.contains(it.name) }
+                val starExtensionList = if (enableExtension && extensions.isNotEmpty())
+                    extensions.filter { starSet.contains(it.name) }
                         .sortedByDescending { it.priority }.map {
                             SearchResultItem(it)
                         }
@@ -505,13 +508,16 @@ class MainViewModel : ViewModel() {
     fun updateExtensionPriority(extension: Extension) {
         viewModelScope.launch {
             withContext(IO) {
-                if (extensions != null) {
-                    val newList = extensions!!.toMutableList()
-                    val idx = extensions!!.indexOfFirst { it.name == extension.name }
+                val extensions = _state.value.extensions
+                if (extensions.isNotEmpty()) {
+                    val newList = extensions.toMutableList()
+                    val idx = extensions.indexOfFirst { it.name == extension.name }
                     if (idx >= 0) {
                         extension.priority += 1
                         newList[idx] = extension
-                        extensions = newList
+                        _state.update {
+                            it.copy(extensions = newList)
+                        }
                     }
                 }
             }
