@@ -14,6 +14,12 @@ object HoldingHandDefaults {
     const val RIGHT = "right"
 }
 
+object ExtensionDisplayModeDefaults {
+    const val IN_APP_LIST = "in_app"
+    const val TOP_OF_APP_LIST = "top_of_app_list"
+    const val BOTTOM_OF_APP_LIST = "bottom_of_app_list"
+}
+
 data class SettingsState(
     val autoFocus: Boolean = true,
     val fuzzySearch: Boolean = true,
@@ -22,7 +28,8 @@ data class SettingsState(
     val useEmbedKeyboard: Boolean = true,
     val showSearchHistory: Boolean = true,
     val showLeftSideBackSpace: Boolean = true,
-    val holdingHand: String = HoldingHandDefaults.LEFT
+    val holdingHand: String = HoldingHandDefaults.LEFT,
+    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.TOP_OF_APP_LIST
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -118,6 +125,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setEnableExtension(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.saveBoolSetting(SettingsRepository.ENABLE_EXTENSION, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setExtensionDisplayMode(mode: String) {
+        viewModelScope.launch {
+            settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE, mode)
             loadSettings()
         }
     }
