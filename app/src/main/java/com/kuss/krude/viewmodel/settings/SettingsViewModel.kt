@@ -9,15 +9,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-object HoldingHandDefaults {
+object DominantHandDefaults {
     const val LEFT = "left"
     const val RIGHT = "right"
 }
 
 object ExtensionDisplayModeDefaults {
-    const val IN_APP_LIST = "in_app"
-    const val TOP_OF_APP_LIST = "top_of_app_list"
-    const val BOTTOM_OF_APP_LIST = "bottom_of_app_list"
+    const val IN_LINE = "in_line"
+    const val ON_TOP = "on_top"
+    const val ON_BOTTOM = "on_bottom"
 }
 
 data class SettingsState(
@@ -28,8 +28,8 @@ data class SettingsState(
     val useEmbedKeyboard: Boolean = true,
     val showSearchHistory: Boolean = true,
     val showLeftSideBackSpace: Boolean = true,
-    val holdingHand: String = HoldingHandDefaults.LEFT,
-    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.TOP_OF_APP_LIST
+    val dominantHand: String = DominantHandDefaults.LEFT,
+    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -115,9 +115,9 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
     }
 
-    fun setHoldingHand(hand: String) {
+    fun setDominantHand(hand: String) {
         viewModelScope.launch {
-            settingsRepository.saveStringSetting(SettingsRepository.HOLDING_HAND, hand)
+            settingsRepository.saveStringSetting(SettingsRepository.DOMINANT_HAND, hand)
             loadSettings()
         }
     }

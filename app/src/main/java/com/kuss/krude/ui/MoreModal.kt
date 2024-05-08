@@ -48,7 +48,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
-import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
+import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ProvidePreferenceTheme
@@ -95,22 +95,22 @@ fun MoreModal(
 
                 ProvidePreferenceTheme {
                     val icon = Icons.AutoMirrored.Default.let {
-                        return@let if (settingState.holdingHand == HoldingHandDefaults.LEFT) {
+                        return@let if (settingState.dominantHand == DominantHandDefaults.LEFT) {
                             it.AlignHorizontalLeft
                         } else {
                             it.AlignHorizontalRight
                         }
                     }
                     ListPreference(
-                        value = settingState.holdingHand,
+                        value = settingState.dominantHand,
                         onValueChange = {
-                            settingsViewModel.setHoldingHand(it)
+                            settingsViewModel.setDominantHand(it)
                         },
-                        values = listOf(HoldingHandDefaults.LEFT, HoldingHandDefaults.RIGHT),
-                        title = { Text(text = "List preference") },
+                        values = listOf(DominantHandDefaults.LEFT, DominantHandDefaults.RIGHT),
+                        title = { Text(text = stringResource(id = R.string.dominant_hand)) },
                         modifier = Modifier.fillMaxWidth(),
                         icon = { Icon(imageVector = icon, contentDescription = null) },
-                        summary = { Text(text = settingState.holdingHand) }
+                        summary = { Text(text = settingState.dominantHand) }
                     )
                 }
 
@@ -187,7 +187,7 @@ fun MoreModal(
                                     onValueChange = {
                                         settingsViewModel.setExtensionDisplayMode(it)
                                     },
-                                    values = listOf(ExtensionDisplayModeDefaults.TOP_OF_APP_LIST, ExtensionDisplayModeDefaults.IN_APP_LIST, ExtensionDisplayModeDefaults.BOTTOM_OF_APP_LIST),
+                                    values = listOf(ExtensionDisplayModeDefaults.ON_TOP, ExtensionDisplayModeDefaults.IN_LINE, ExtensionDisplayModeDefaults.ON_BOTTOM),
                                     title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
                                     modifier = Modifier.fillMaxWidth(),
                                     icon = { Icon(imageVector = Icons.AutoMirrored.Default.Segment, contentDescription = null) },

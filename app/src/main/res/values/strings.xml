@@ -37,4 +37,5 @@
     <string name="enable_extension">Enable Extension</string>
     <string name="extension_list">Extension List</string>
     <string name="extension_display_mode">Extension Display Mode</string>
+    <string name="dominant_hand">Dominant hand</string>
 </resources>
