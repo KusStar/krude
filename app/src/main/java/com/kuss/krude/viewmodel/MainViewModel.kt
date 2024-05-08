@@ -168,17 +168,17 @@ class MainViewModel : ViewModel() {
                 }
                 // load from packageManager
                 loadFromPackageManger(context, dbApps)
-                loadExtensions()
+                loadExtensions(context)
             }
         }
 
     }
 
-    private fun loadExtensions() {
+    private fun loadExtensions(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
                 ExtensionHelper.DEFAULT_EXTENSIONS_RULES.forEach { url ->
-                    ExtensionHelper.fetchExtension(url) { appExtensionGroup ->
+                    ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
                         if (appExtensionGroup != null) {
                             Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.version}")
                         } else {

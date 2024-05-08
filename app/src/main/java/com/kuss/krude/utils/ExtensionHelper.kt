@@ -7,16 +7,30 @@ import com.google.gson.Gson
 import com.kuss.krude.interfaces.AppExtensionGroup
 import com.kuss.krude.interfaces.AppExtensionSingle
 import com.kuss.krude.interfaces.Extension
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.IOException
 import timber.log.Timber
+import java.io.File
 
 object ExtensionHelper {
     val DEFAULT_EXTENSIONS_RULES = listOf(
         "https://gist.githubusercontent.com/KusStar/7eacbec872b85ed12d5a72bc1113ddbe/raw/d41fca7aa3af5c29bdf5548306ceaa541905aa2f/krude-apps-extensions.json",
         "https://gist.githubusercontent.com/KusStar/7eacbec872b85ed12d5a72bc1113ddbe/raw/d41fca7aa3af5c29bdf5548306ceaa541905aa2f/krude-setting-extensions.json"
     )
+
+    private var client: OkHttpClient? = null
+
+    private fun initClient(context: Context) {
+        client = OkHttpClient.Builder()
+            .followRedirects(true)
+            .cache(Cache(
+                directory = File(context.cacheDir, "http_cache"),
+                maxSize = 50L * 1024L * 1024L // 50 MiB
+            ))
+            .build()
+    }
 
     fun launchExtensionIntent(context: Context, extension: Extension) {
         try {
@@ -43,13 +57,16 @@ object ExtensionHelper {
         }
     }
 
-    fun fetchExtension(url: String, onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit) {
-        val client = OkHttpClient()
+    fun fetchExtension(context: Context, url: String, onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit) {
+        if (client == null) {
+            initClient(context)
+        }
+
         val request = Request.Builder()
             .url(url)
             .build()
 
-        client.newCall(request).enqueue(object : okhttp3.Callback {
+        client!!.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 e.printStackTrace()
             }
