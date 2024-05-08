@@ -16,7 +16,7 @@ import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
-import com.kuss.krude.utils.Extensions
+import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.FilterHelper
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
@@ -175,11 +175,29 @@ class MainViewModel : ViewModel() {
     }
 
     private fun loadExtensions() {
-        _state.update { mainState ->
-            mainState.copy(extensions = Extensions.EMBEDDED_EXTENSIONS.map {
-                it.filterTarget = FilterHelper.toTarget(it.name, it.description)
-                it
-            })
+        viewModelScope.launch {
+            withContext(IO) {
+                ExtensionHelper.DEFAULT_EXTENSIONS_RULES.forEach { url ->
+                    ExtensionHelper.fetchExtension(url) { appExtensionGroup ->
+                        if (appExtensionGroup != null) {
+                            Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.version}")
+                        } else {
+                            Timber.d("loadExtensions: null for $url")
+                        }
+                        if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
+                            _state.update {mainState ->
+                                mainState.copy(
+                                    extensions = _state.value.extensions.plus(appExtensionGroup.main.map {
+                                        it.filterTarget = FilterHelper.toTarget(it.name, it.description)
+                                        it
+                                    })
+                                )
+                            }
+                        }
+                    }
+                }
+
+            }
         }
     }
 
