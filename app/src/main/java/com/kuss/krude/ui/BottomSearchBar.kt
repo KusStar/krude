@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.ExtensionItem
@@ -109,7 +110,8 @@ fun BottomSearchBar(
         FocusRequester()
     }
 
-    val searchResultListState = rememberLazyListState()
+    val searchMainListState = rememberLazyListState()
+    val searchExtensionListState = rememberLazyListState()
 
     var starMode by remember {
         mutableStateOf(false)
@@ -172,13 +174,42 @@ fun BottomSearchBar(
 
     LaunchedEffect(searchResult) {
         coroutineScope.launch {
-            searchResultListState.animateScrollToItem(0)
+            searchMainListState.animateScrollToItem(0)
+            searchExtensionListState.animateScrollToItem(0)
         }
     }
 
     LaunchedEffect(settingState.enableExtension) {
         coroutineScope.launch {
             refresh(settingState.fuzzySearch)
+        }
+    }
+
+    fun onExtensionClick(extension: Extension, isStar: Boolean) {
+        if (starMode) {
+            Timber.d("star $extension")
+            mainViewModel.starApp(
+                context,
+                settingState.enableExtension,
+                extension.name,
+                keyword = search,
+                isStar
+            )
+        } else {
+            when (extension.type) {
+                ExtensionType.SCHEME -> uriHandler.openUri(extension.uri!!)
+                ExtensionType.ACTION -> {
+                    val intent = Intent(extension.uri)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    context.startActivity(intent)
+                }
+                ExtensionType.INTENT -> ExtensionHelper.launchExtensionIntent(
+                    context,
+                    extension
+                )
+            }
+            mainViewModel.updateExtensionPriority(extension)
+            clear()
         }
     }
 
@@ -223,10 +254,9 @@ fun BottomSearchBar(
                         modifier = Modifier
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        state = searchExtensionListState
                     ) {
-                        itemsIndexed(
-                            extensions,
-                            key = { _, item -> item.key() }) { index, item ->
+                        itemsIndexed(extensions) { index, item ->
                             val extension = item.asExtension()!!
                             val isStar = currentStarPackageNameSet.contains(extension.name)
                             ExtensionItem(
@@ -237,28 +267,7 @@ fun BottomSearchBar(
                                 showSubtitle = false,
                                 horizontal = true,
                                 onClick = {
-                                    if (starMode) {
-                                        Timber.d("star $item")
-                                        mainViewModel.starApp(
-                                            context,
-                                            settingState.enableExtension,
-                                            extension.name,
-                                            keyword = search,
-                                            isStar
-                                        )
-                                    } else {
-                                        if (extension.type == ExtensionType.SCHEME) {
-                                            uriHandler.openUri(extension.uri!!)
-                                        } else if (extension.type == ExtensionType.ACTION) {
-                                            val intent = Intent(extension.uri)
-                                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                            context.startActivity(intent)
-                                        } else if (extension.type == ExtensionType.INTENT) {
-                                            ExtensionHelper.launchExtensionIntent(context, extension)
-                                        }
-                                        mainViewModel.updateExtensionPriority(extension)
-                                        clear()
-                                    }
+                                    onExtensionClick(extension, isStar)
                                 },
                                 onLongClick = {
                                 },
@@ -277,12 +286,12 @@ fun BottomSearchBar(
                 renderExtensionsStandalone()
             }
 
-            val searchResultData =
+            val mainData =
                 if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST)
                     searchResult else
                     searchResult.filter { it.isApp() }
             Crossfade(
-                targetState = hasMatch && searchResultData.isNotEmpty(),
+                targetState = hasMatch && mainData.isNotEmpty(),
                 label = "filteredItems"
             ) { show ->
                 val height = 128.dp
@@ -293,10 +302,10 @@ fun BottomSearchBar(
                                 .height(height)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            state = searchResultListState,
+                            state = searchMainListState,
                         ) {
                             itemsIndexed(
-                                searchResultData,
+                                mainData,
                                 key = { _, item -> item.key() }) { _, item ->
                                 if (item.isApp()) {
                                     val app = item.asApp()!!
@@ -342,26 +351,7 @@ fun BottomSearchBar(
                                         showStar = isStar,
                                         showSubtitle = false,
                                         onClick = {
-                                            if (starMode) {
-                                                Timber.d("star $item")
-                                                mainViewModel.starApp(
-                                                    context,
-                                                    settingState.enableExtension,
-                                                    extension.name,
-                                                    keyword = search,
-                                                    isStar
-                                                )
-                                            } else {
-                                                if (extension.type == ExtensionType.SCHEME) {
-                                                    uriHandler.openUri(extension.uri!!)
-                                                } else if (extension.type == ExtensionType.ACTION) {
-                                                    val intent = Intent(extension.uri)
-                                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                                    context.startActivity(intent)
-                                                }
-                                                mainViewModel.updateExtensionPriority(extension)
-                                                clear()
-                                            }
+                                            onExtensionClick(extension, isStar)
                                         },
                                         onLongClick = {
                                         },
@@ -376,10 +366,10 @@ fun BottomSearchBar(
                                 .height(height)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            state = searchResultListState,
+                            state = searchMainListState,
                         ) {
                             itemsIndexed(
-                                searchResultData,
+                                mainData,
                                 key = { _, item -> item.key() }) { _, item ->
                                 val app = item.asApp()!!
                                 val isStar = currentStarPackageNameSet.contains(app.packageName)
