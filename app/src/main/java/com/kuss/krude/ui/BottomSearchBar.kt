@@ -110,7 +110,7 @@ fun BottomSearchBar(
         FocusRequester()
     }
 
-    val searchResultList = rememberLazyListState()
+    val searchResultListState = rememberLazyListState()
 
     var starMode by remember {
         mutableStateOf(false)
@@ -138,14 +138,22 @@ fun BottomSearchBar(
     fun onTextChange(value: TextFieldValue) {
         starMode = false
         mainViewModel.onSearch(value.text, settingState.enableExtension, settingState.fuzzySearch)
-        mainViewModel.filterKeywordStars(context = context, settingState.enableExtension, value.text)
+        mainViewModel.filterKeywordStars(
+            context = context,
+            settingState.enableExtension,
+            value.text
+        )
         selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
         mainViewModel.onSearch(search, settingState.enableExtension, fuzzy)
         if (search.isNotEmpty()) {
-            mainViewModel.filterKeywordStars(context = context, settingState.enableExtension, search)
+            mainViewModel.filterKeywordStars(
+                context = context,
+                settingState.enableExtension,
+                search
+            )
         }
     }
 
@@ -165,7 +173,7 @@ fun BottomSearchBar(
 
     LaunchedEffect(searchResult) {
         coroutineScope.launch {
-            searchResultList.animateScrollToItem(0)
+            searchResultListState.animateScrollToItem(0)
         }
     }
 
@@ -272,19 +280,26 @@ fun BottomSearchBar(
                 renderExtensionsStandalone()
             }
 
-            Crossfade(targetState = hasMatch, label = "filteredItems") {
+            val searchResultData =
+                if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST)
+                    searchResult else
+                    searchResult.filter { it.isApp() }
+            Crossfade(
+                targetState = hasMatch && searchResultData.isNotEmpty(),
+                label = "filteredItems"
+            ) { show ->
                 val height = 128.dp
-                if (it) {
+                if (show) {
                     if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_APP_LIST) {
                         LazyRow(
                             modifier = Modifier
                                 .height(height)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            state = searchResultList,
+                            state = searchResultListState,
                         ) {
                             itemsIndexed(
-                                searchResult,
+                                searchResultData,
                                 key = { _, item -> item.key() }) { _, item ->
                                 if (item.isApp()) {
                                     val app = item.asApp()!!
@@ -368,10 +383,10 @@ fun BottomSearchBar(
                                 .height(height)
                                 .padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            state = searchResultList,
+                            state = searchResultListState,
                         ) {
                             itemsIndexed(
-                                searchResult.filter { it.isApp() },
+                                searchResultData,
                                 key = { _, item -> item.key() }) { _, item ->
                                 val app = item.asApp()!!
                                 val isStar = currentStarPackageNameSet.contains(app.packageName)
