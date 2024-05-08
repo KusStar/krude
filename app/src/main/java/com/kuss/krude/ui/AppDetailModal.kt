@@ -127,6 +127,14 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding()
                     )
+                    Text(
+                        text = app.packageName,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 14.sp,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding()
+                    )
                     // extra info
                     Row {
                         Text(
