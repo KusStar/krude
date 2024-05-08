@@ -255,9 +255,7 @@ fun ExtensionItem(
             }
         }
         if (horizontal) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                renderIcon()
-                Spacing(x = 1)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.padding(4.dp)) {
                 renderTexts()
             }
         } else {

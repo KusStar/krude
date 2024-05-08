@@ -75,8 +75,7 @@ import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.ExtensionItem
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.utils.DeeplinkHelper
-import com.kuss.krude.utils.Extensions
+import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.HoldingHandDefaults
@@ -249,15 +248,13 @@ fun BottomSearchBar(
                                         )
                                     } else {
                                         if (extension.type == ExtensionType.SCHEME) {
-                                            if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
-                                                DeeplinkHelper.openWechatScan(context)
-                                            } else {
-                                                uriHandler.openUri(extension.uri)
-                                            }
+                                            uriHandler.openUri(extension.uri!!)
                                         } else if (extension.type == ExtensionType.ACTION) {
                                             val intent = Intent(extension.uri)
                                             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                             context.startActivity(intent)
+                                        } else if (extension.type == ExtensionType.INTENT) {
+                                            ExtensionHelper.launchExtensionIntent(context, extension)
                                         }
                                         mainViewModel.updateExtensionPriority(extension)
                                         clear()
@@ -356,11 +353,7 @@ fun BottomSearchBar(
                                                 )
                                             } else {
                                                 if (extension.type == ExtensionType.SCHEME) {
-                                                    if (extension.uri == Extensions.WECHAT_SCAN_SCHEME) {
-                                                        DeeplinkHelper.openWechatScan(context)
-                                                    } else {
-                                                        uriHandler.openUri(extension.uri)
-                                                    }
+                                                    uriHandler.openUri(extension.uri!!)
                                                 } else if (extension.type == ExtensionType.ACTION) {
                                                     val intent = Intent(extension.uri)
                                                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
