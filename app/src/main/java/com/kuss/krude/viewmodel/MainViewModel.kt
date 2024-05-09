@@ -31,7 +31,6 @@ import timber.log.Timber
 data class MainState(
     val missingPermission: Boolean = false,
     val apps: List<AppInfo> = listOf(),
-    val extensions: List<Extension> = listOf(),
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
@@ -67,6 +66,12 @@ class MainViewModel : ViewModel() {
     private var filterKeywordJob: Job? = null
 
     private var packageNameSet: MutableSet<String> = mutableSetOf()
+
+    private var extensionMap: MutableMap<String, Extension> = mutableMapOf()
+
+    private fun getExtensions(): List<Extension> {
+        return extensionMap.values.toList()
+    }
 
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
@@ -194,19 +199,22 @@ class MainViewModel : ViewModel() {
                             Timber.d("loadExtensions: null for $url")
                         }
                         if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
-                            _state.update { mainState ->
-                                mainState.copy(
-                                    extensions = _state.value.extensions.plus(appExtensionGroup.main.filter { extension ->
-                                        if (extension.required != null) {
-                                            return@filter extension.required.all { required -> packageNameSet.contains(required) }
-                                        }
-                                        true
-                                    }.map {
-                                        it.filterTarget =
-                                            FilterHelper.toTarget(it.name, it.description)
-                                        it
-                                    })
-                                )
+                            val nextExtensions = appExtensionGroup.main.filter { extension ->
+                                if (extension.required != null) {
+                                    return@filter extension.required.all { required ->
+                                        packageNameSet.contains(
+                                            required
+                                        )
+                                    }
+                                }
+                                true
+                            }.map {
+                                it.filterTarget =
+                                    FilterHelper.toTarget(it.name, it.description)
+                                it
+                            }
+                            nextExtensions.forEach {
+                                extensionMap[it.name] = it
                             }
                         }
                     }
@@ -277,7 +285,6 @@ class MainViewModel : ViewModel() {
 
         }
     }
-
 
     private fun updateDbAppsPriority(context: Context, apps: List<AppInfo>) {
         viewModelScope.launch {
@@ -393,7 +400,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val search = text.lowercase()
             val apps = _state.value.apps
-            val extensions = _state.value.extensions
+            val extensions = getExtensions()
 
             val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
 
@@ -473,7 +480,7 @@ class MainViewModel : ViewModel() {
                 }
 
                 val apps = _state.value.apps
-                val extensions = _state.value.extensions
+                val extensions = getExtensions()
 
                 val starAppList = apps.filter { starSet.contains(it.packageName) }
                     .sortedByDescending { it.priority }.map {
@@ -549,17 +556,9 @@ class MainViewModel : ViewModel() {
     fun updateExtensionPriority(extension: Extension) {
         viewModelScope.launch {
             withContext(IO) {
-                val extensions = _state.value.extensions
-                if (extensions.isNotEmpty()) {
-                    val newList = extensions.toMutableList()
-                    val idx = extensions.indexOfFirst { it.name == extension.name }
-                    if (idx >= 0) {
-                        extension.priority += 1
-                        newList[idx] = extension
-                        _state.update {
-                            it.copy(extensions = newList)
-                        }
-                    }
+                if (extensionMap.containsKey(extension.name)) {
+                    extension.priority += 1
+                    extensionMap[extension.name] = extension
                 }
             }
         }
