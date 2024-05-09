@@ -66,6 +66,8 @@ class MainViewModel : ViewModel() {
 
     private var filterKeywordJob: Job? = null
 
+    private var packageNameSet: MutableSet<String> = mutableSetOf()
+
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
             packageEventReceiver = object : BroadcastReceiver() {
@@ -164,6 +166,7 @@ class MainViewModel : ViewModel() {
                             scrollbarItems = getScrollbarItemsFromApps(dbApps)
                         )
                     }
+                    loadPackageNameSet(dbApps)
                     Timber.d("load from db, ${dbApps.size} apps")
                 }
                 // load from packageManager
@@ -171,7 +174,13 @@ class MainViewModel : ViewModel() {
                 loadExtensions(context)
             }
         }
+    }
 
+    private fun loadPackageNameSet(apps: List<AppInfo>) {
+        packageNameSet.clear()
+        apps.forEach {
+            packageNameSet.add(it.packageName)
+        }
     }
 
     private fun loadExtensions(context: Context) {
@@ -185,10 +194,16 @@ class MainViewModel : ViewModel() {
                             Timber.d("loadExtensions: null for $url")
                         }
                         if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
-                            _state.update {mainState ->
+                            _state.update { mainState ->
                                 mainState.copy(
-                                    extensions = _state.value.extensions.plus(appExtensionGroup.main.map {
-                                        it.filterTarget = FilterHelper.toTarget(it.name, it.description)
+                                    extensions = _state.value.extensions.plus(appExtensionGroup.main.filter { extension ->
+                                        if (extension.required != null) {
+                                            return@filter extension.required.all { required -> packageNameSet.contains(required) }
+                                        }
+                                        true
+                                    }.map {
+                                        it.filterTarget =
+                                            FilterHelper.toTarget(it.name, it.description)
                                         it
                                     })
                                 )
@@ -225,6 +240,8 @@ class MainViewModel : ViewModel() {
                         it.copy(missingPermission = true)
                     }
                 }
+
+                loadPackageNameSet(apps)
 
                 _state.update { mainState ->
                     mainState.copy(
@@ -487,7 +504,13 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun starApp(context: Context, enableExtension: Boolean, packageName: String, keyword: String, isStar: Boolean) {
+    fun starApp(
+        context: Context,
+        enableExtension: Boolean,
+        packageName: String,
+        keyword: String,
+        isStar: Boolean
+    ) {
         viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)

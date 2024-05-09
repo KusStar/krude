@@ -13,6 +13,7 @@ data class Extension(
     val name: String,
     val description: String,
     val type: String,
+    val required: List<String>? = null,
     val uri: String? = null,
     val data: IntentData? = null,
     var priority: Int = 0,
