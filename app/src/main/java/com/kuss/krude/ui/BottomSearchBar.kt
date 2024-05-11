@@ -11,7 +11,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,16 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BlurOff
-import androidx.compose.material.icons.filled.BlurOn
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ButtonDefaults
@@ -73,7 +67,9 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.CloseBtn
 import com.kuss.krude.ui.components.ExtensionItem
+import com.kuss.krude.ui.components.MoreBtns
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
@@ -439,73 +435,26 @@ fun BottomSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        val renderCloseBtn = @Composable {
-            AnimatedVisibility(visible = search.isNotEmpty()) {
-                IconButton(onClick = {
-                    clear()
-                }) {
-                    Icon(
-                        Icons.Filled.Clear,
-                        contentDescription = "Clear",
-                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-        }
-        val renderMoreBtns = @Composable {
-            Box(
-                modifier = Modifier
-                    .wrapContentSize(Alignment.TopStart)
-            ) {
-                Row {
-                    AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
-                        IconButton(onClick = {
-                            starMode = !starMode
-                        }) {
-                            Icon(
-                                Icons.TwoTone.Star,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "Star",
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                    }
-                    IconButton(onClick = {
-                        val nextFuzzy = !settingState.fuzzySearch
-                        settingsViewModel.setFuzzySearch(nextFuzzy)
-                        refresh(nextFuzzy)
-                    }) {
-                        Icon(
-                            imageVector = if (settingState.fuzzySearch) Icons.Filled.BlurOn else Icons.Filled.BlurOff,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "fuzzysearch",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                    IconButton(onClick = { mainViewModel.setShowMoreSheet(true) }) {
-                        Icon(
-                            Icons.Filled.MoreVert,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "MoreVert",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                }
-
-                MoreModal(
-                    refresh = { refresh(settingState.fuzzySearch) },
-                    mainViewModel = mainViewModel,
-                    settingsViewModel = settingsViewModel
-                )
-
-                AppUsageModal(mainViewModel)
-            }
-        }
         if (settingState.dominantHand == DominantHandDefaults.LEFT) {
-            renderCloseBtn()
+            CloseBtn(visible = search.isNotEmpty()) {
+                clear()
+            }
         } else {
-            renderMoreBtns()
+            MoreBtns(
+                search = search,
+                searchResult = searchResult,
+                fuzzySearch = settingState.fuzzySearch,
+                onStarIcon = {
+                    starMode = !starMode
+                },
+                onFuzzyIcon = {
+                    val nextFuzzy = !settingState.fuzzySearch
+                    settingsViewModel.setFuzzySearch(nextFuzzy)
+                    refresh(nextFuzzy)
+                },
+                onMoreIcon = {
+                    mainViewModel.setShowMoreSheet(true)
+                })
         }
 
         CompositionLocalProvider(LocalTextInputService provides if (settingState.useEmbedKeyboard) null else LocalTextInputService.current) {
@@ -542,9 +491,25 @@ fun BottomSearchBar(
         }
 
         if (settingState.dominantHand == DominantHandDefaults.RIGHT) {
-            renderCloseBtn()
+            CloseBtn(visible = search.isNotEmpty()) {
+                clear()
+            }
         } else {
-            renderMoreBtns()
+            MoreBtns(
+                search = search,
+                searchResult = searchResult,
+                fuzzySearch = settingState.fuzzySearch,
+                onStarIcon = {
+                    starMode = !starMode
+                },
+                onFuzzyIcon = {
+                    val nextFuzzy = !settingState.fuzzySearch
+                    settingsViewModel.setFuzzySearch(nextFuzzy)
+                    refresh(nextFuzzy)
+                },
+                onMoreIcon = {
+                    mainViewModel.setShowMoreSheet(true)
+                })
         }
     }
 
@@ -613,5 +578,12 @@ fun BottomSearchBar(
         }
     }
 
+    MoreModal(
+        refresh = { refresh(settingState.fuzzySearch) },
+        mainViewModel = mainViewModel,
+        settingsViewModel = settingsViewModel
+    )
+
+    AppUsageModal(mainViewModel)
 }
 
