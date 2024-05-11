@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -69,7 +70,7 @@ fun AppEntry(
 
         focusManager.clearFocus()
     }
-    
+
     if (!missingPermission) {
         Column {
             Row(modifier = Modifier.weight(1f, false)) {
@@ -94,9 +95,7 @@ fun AppEntry(
                     ),
                     content = {
                         if (apps.isNotEmpty()) {
-                            items(apps.size) { index ->
-                                val item = apps[index]
-
+                            items(apps, key = { item -> item.packageName }) { item ->
                                 AppItem(item = item,
                                     onClick = {
                                         openApp(item)
