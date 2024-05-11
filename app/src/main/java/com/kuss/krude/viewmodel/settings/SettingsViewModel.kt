@@ -36,10 +36,8 @@ val DEFAULT_SETTINGS_STATE = SettingsState()
 
 class SettingsViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
 
-    // Create an internal mutable state flow to hold the SettingState
     private val _state = MutableStateFlow(SettingsState())
 
-    // Expose an immutable state flow to the UI
     val state: StateFlow<SettingsState> = _state
 
     init {

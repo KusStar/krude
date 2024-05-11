@@ -93,7 +93,7 @@ fun BottomSearchBar(
     val uriHandler = LocalUriHandler.current
 
     val uiState by mainViewModel.state.collectAsState()
-    val settingState by settingsViewModel.state.collectAsState()
+    val settingsState by settingsViewModel.state.collectAsState()
 
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
@@ -134,21 +134,21 @@ fun BottomSearchBar(
 
     fun onTextChange(value: TextFieldValue) {
         starMode = false
-        mainViewModel.onSearch(value.text, settingState.enableExtension, settingState.fuzzySearch)
+        mainViewModel.onSearch(value.text, settingsState.enableExtension, settingsState.fuzzySearch)
         mainViewModel.filterKeywordStars(
             context = context,
-            settingState.enableExtension,
+            settingsState.enableExtension,
             value.text
         )
         selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
-        mainViewModel.onSearch(search, settingState.enableExtension, fuzzy)
+        mainViewModel.onSearch(search, settingsState.enableExtension, fuzzy)
         if (search.isNotEmpty()) {
             mainViewModel.filterKeywordStars(
                 context = context,
-                settingState.enableExtension,
+                settingsState.enableExtension,
                 search
             )
         }
@@ -159,10 +159,10 @@ fun BottomSearchBar(
         selection = TextRange(0)
     }
 
-    LaunchedEffect(apps.isNotEmpty(), settingState.autoFocus) {
-        if (apps.isNotEmpty() && settingState.autoFocus) {
+    LaunchedEffect(apps.isNotEmpty(), settingsState.autoFocus) {
+        if (apps.isNotEmpty() && settingsState.autoFocus) {
             focusRequester.requestFocus()
-        } else if (!settingState.autoFocus) {
+        } else if (!settingsState.autoFocus) {
             focusRequester.freeFocus()
             focusManager.clearFocus()
         }
@@ -175,9 +175,9 @@ fun BottomSearchBar(
         }
     }
 
-    LaunchedEffect(settingState.enableExtension) {
+    LaunchedEffect(settingsState.enableExtension) {
         coroutineScope.launch {
-            refresh(settingState.fuzzySearch)
+            refresh(settingsState.fuzzySearch)
         }
     }
 
@@ -186,7 +186,7 @@ fun BottomSearchBar(
             Timber.d("star $extension")
             mainViewModel.starApp(
                 context,
-                settingState.enableExtension,
+                settingsState.enableExtension,
                 extension.name,
                 keyword = search,
                 isStar
@@ -267,7 +267,7 @@ fun BottomSearchBar(
                                 },
                                 onLongClick = {
                                 },
-                                showTimes = settingState.showUsageCount,
+                                showTimes = settingsState.showUsageCount,
                             )
                             if (index < extensions.size - 1) {
                                 VerticalDivider(modifier = Modifier.height(16.dp))
@@ -277,13 +277,13 @@ fun BottomSearchBar(
                 }
             }
 
-            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+            if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
                 renderExtensionsStandalone()
                 HorizontalDivider()
             }
 
             val mainData =
-                if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE)
+                if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE)
                     searchResult else
                     searchResult.filter { it.isApp() }
             Crossfade(
@@ -292,7 +292,7 @@ fun BottomSearchBar(
             ) { show ->
                 val height = 128.dp
                 if (show) {
-                    if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
+                    if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
                         LazyRow(
                             modifier = Modifier
                                 .height(height)
@@ -319,7 +319,7 @@ fun BottomSearchBar(
                                                 Timber.d("star $item")
                                                 mainViewModel.starApp(
                                                     context,
-                                                    settingState.enableExtension,
+                                                    settingsState.enableExtension,
                                                     app.packageName,
                                                     keyword = search,
                                                     isStar
@@ -333,7 +333,7 @@ fun BottomSearchBar(
                                         onLongClick = {
                                             toAppDetail(app)
                                         },
-                                        showTimes = settingState.showUsageCount,
+                                        showTimes = settingsState.showUsageCount,
                                     )
                                 }
                                 if (item.isExtension()) {
@@ -351,7 +351,7 @@ fun BottomSearchBar(
                                         },
                                         onLongClick = {
                                         },
-                                        showTimes = settingState.showUsageCount,
+                                        showTimes = settingsState.showUsageCount,
                                     )
                                 }
                             }
@@ -382,7 +382,7 @@ fun BottomSearchBar(
                                             Timber.d("star $item")
                                             mainViewModel.starApp(
                                                 context,
-                                                settingState.enableExtension,
+                                                settingsState.enableExtension,
                                                 app.packageName,
                                                 keyword = search,
                                                 isStar
@@ -396,7 +396,7 @@ fun BottomSearchBar(
                                     onLongClick = {
                                         toAppDetail(app)
                                     },
-                                    showTimes = settingState.showUsageCount,
+                                    showTimes = settingsState.showUsageCount,
                                 )
                             }
                         }
@@ -422,7 +422,7 @@ fun BottomSearchBar(
                 }
             }
 
-            if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+            if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
                 HorizontalDivider()
                 renderExtensionsStandalone()
             }
@@ -435,7 +435,7 @@ fun BottomSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        if (settingState.dominantHand == DominantHandDefaults.LEFT) {
+        if (settingsState.dominantHand == DominantHandDefaults.LEFT) {
             CloseBtn(visible = search.isNotEmpty()) {
                 clear()
             }
@@ -443,12 +443,12 @@ fun BottomSearchBar(
             MoreBtns(
                 search = search,
                 searchResult = searchResult,
-                fuzzySearch = settingState.fuzzySearch,
+                fuzzySearch = settingsState.fuzzySearch,
                 onStarIcon = {
                     starMode = !starMode
                 },
                 onFuzzyIcon = {
-                    val nextFuzzy = !settingState.fuzzySearch
+                    val nextFuzzy = !settingsState.fuzzySearch
                     settingsViewModel.setFuzzySearch(nextFuzzy)
                     refresh(nextFuzzy)
                 },
@@ -457,7 +457,7 @@ fun BottomSearchBar(
                 })
         }
 
-        CompositionLocalProvider(LocalTextInputService provides if (settingState.useEmbedKeyboard) null else LocalTextInputService.current) {
+        CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
             TextField(
                 enabled = apps.isNotEmpty(),
                 modifier = Modifier
@@ -490,7 +490,7 @@ fun BottomSearchBar(
             )
         }
 
-        if (settingState.dominantHand == DominantHandDefaults.RIGHT) {
+        if (settingsState.dominantHand == DominantHandDefaults.RIGHT) {
             CloseBtn(visible = search.isNotEmpty()) {
                 clear()
             }
@@ -498,12 +498,12 @@ fun BottomSearchBar(
             MoreBtns(
                 search = search,
                 searchResult = searchResult,
-                fuzzySearch = settingState.fuzzySearch,
+                fuzzySearch = settingsState.fuzzySearch,
                 onStarIcon = {
                     starMode = !starMode
                 },
                 onFuzzyIcon = {
-                    val nextFuzzy = !settingState.fuzzySearch
+                    val nextFuzzy = !settingsState.fuzzySearch
                     settingsViewModel.setFuzzySearch(nextFuzzy)
                     refresh(nextFuzzy)
                 },
@@ -514,12 +514,12 @@ fun BottomSearchBar(
     }
 
     AnimatedVisibility(
-        visible = settingState.useEmbedKeyboard && isFocused.value,
+        visible = settingsState.useEmbedKeyboard && isFocused.value,
         enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
         exit = slideOutVertically() + shrinkVertically() + fadeOut()
     ) {
         SoftKeyboardView(
-            showLeftSideBackspace = settingState.showLeftSideBackSpace,
+            showLeftSideBackspace = settingsState.showLeftSideBackSpace,
             onBack = {
                 isFocused.value = false
                 focusManager.clearFocus()
@@ -540,7 +540,7 @@ fun BottomSearchBar(
                 }
                 onTextChange(TextFieldValue(sb.toString(), selection = range))
             }) {
-            AnimatedVisibility(visible = settingState.showSearchHistory && searchKeywordHistory.size > 0) {
+            AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0) {
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(16.dp)
@@ -579,7 +579,7 @@ fun BottomSearchBar(
     }
 
     MoreModal(
-        refresh = { refresh(settingState.fuzzySearch) },
+        refresh = { refresh(settingsState.fuzzySearch) },
         mainViewModel = mainViewModel,
         settingsViewModel = settingsViewModel
     )
