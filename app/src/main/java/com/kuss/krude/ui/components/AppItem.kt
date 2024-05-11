@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.interfaces.Extension
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -168,101 +166,6 @@ fun AppItem(
                     color = MaterialTheme.colorScheme.secondary,
                     fontSize = subtitleFontSize,
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun ExtensionItem(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    item: Extension,
-    showStar: Boolean = false,
-    showSubtitle: Boolean = true,
-    enabled: Boolean = true,
-    iconSize: Dp = 32.dp,
-    titleFontSize: TextUnit = 16.sp,
-    subtitleFontSize: TextUnit = 12.sp,
-    showTimes: Boolean = false,
-    horizontal: Boolean = false
-) {
-    CustomButton(
-        onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        Timber.d("AppItem", "onLongPress")
-                    }
-                )
-            },
-        shape = RoundedCornerShape(8.dp),
-        enabled = enabled
-    ) {
-        val renderIcon = @Composable {
-            Icon(
-                Icons.Filled.Extension,
-                tint = MaterialTheme.colorScheme.primary,
-                contentDescription = "Star",
-                modifier = Modifier.size(iconSize)
-            )
-        }
-        val renderTexts = @Composable {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (showStar) {
-                        Icon(
-                            Icons.Filled.Star,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "Star",
-                            modifier = Modifier.size(12.dp)
-                        )
-                    }
-                    Text(
-                        text = item.name,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = titleFontSize,
-                    )
-                }
-
-                AnimatedVisibility(visible = showTimes) {
-                    Spacing(1, 4)
-                    Text(
-                        text = "${item.priority}${stringResource(id = R.string.open_times)}",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = subtitleFontSize,
-                    )
-                }
-
-                AnimatedVisibility(visible = showSubtitle) {
-                    Spacing(1, 4)
-                    Text(
-                        text = item.description,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = subtitleFontSize,
-                    )
-                }
-            }
-        }
-        if (horizontal) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.padding(4.dp)) {
-                renderTexts()
-            }
-        } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                renderIcon()
-                Spacing(x = 1)
-                renderTexts()
             }
         }
     }
