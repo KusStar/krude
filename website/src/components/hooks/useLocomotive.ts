@@ -11,7 +11,7 @@ export const useLocomotive = () => {
     import('locomotive-scroll').then(({ default: LocomotiveScroll }) => {
       const locomotiveScroll = new LocomotiveScroll({
         lenisOptions: {
-          smoothTouch: true
+          syncTouch: true
         }
       });
 
