@@ -78,8 +78,8 @@ import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
+import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -279,11 +279,11 @@ fun BottomSearchBar(
                         }
                     }
                 }
-                HorizontalDivider()
             }
 
             if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
                 renderExtensionsStandalone()
+                HorizontalDivider()
             }
 
             val mainData =
@@ -427,6 +427,7 @@ fun BottomSearchBar(
             }
 
             if (settingState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+                HorizontalDivider()
                 renderExtensionsStandalone()
             }
         }
