@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AlignHorizontalLeft
 import androidx.compose.material.icons.automirrored.filled.AlignHorizontalRight
@@ -47,8 +49,8 @@ import com.kuss.krude.R
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
-import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
+import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.ProvidePreferenceTheme
@@ -63,7 +65,7 @@ fun MoreModal(
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val uiState by mainViewModel.state.collectAsState()
-    val settingState by settingsViewModel.state.collectAsState()
+    val settingsState by settingsViewModel.state.collectAsState()
     val showMoreModal = uiState.showMoreSheet
 
     fun dismiss() {
@@ -91,18 +93,18 @@ fun MoreModal(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 8.dp)
+                    .verticalScroll(rememberScrollState()),
             ) {
-
                 ProvidePreferenceTheme {
                     val icon = Icons.AutoMirrored.Default.let {
-                        return@let if (settingState.dominantHand == DominantHandDefaults.LEFT) {
+                        return@let if (settingsState.dominantHand == DominantHandDefaults.LEFT) {
                             it.AlignHorizontalLeft
                         } else {
                             it.AlignHorizontalRight
                         }
                     }
                     ListPreference(
-                        value = settingState.dominantHand,
+                        value = settingsState.dominantHand,
                         onValueChange = {
                             settingsViewModel.setDominantHand(it)
                         },
@@ -110,7 +112,7 @@ fun MoreModal(
                         title = { Text(text = stringResource(id = R.string.dominant_hand)) },
                         modifier = Modifier.fillMaxWidth(),
                         icon = { Icon(imageVector = icon, contentDescription = null) },
-                        summary = { Text(text = settingState.dominantHand) }
+                        summary = { Text(text = settingsState.dominantHand) }
                     )
                 }
 
@@ -152,7 +154,7 @@ fun MoreModal(
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.auto_focus)) },
-                    state = settingState.autoFocus,
+                    state = settingsState.autoFocus,
                     onCheckedChange = { next ->
                         settingsViewModel.setAutoFocus(next)
                     }
@@ -160,7 +162,7 @@ fun MoreModal(
 
 //  extension settings
                 OutlinedCard(
-                    border = if (settingState.enableExtension) CardDefaults.outlinedCardBorder() else BorderStroke(
+                    border = if (settingsState.enableExtension) CardDefaults.outlinedCardBorder() else BorderStroke(
                         1.dp,
                         Color.Transparent
                     ),
@@ -173,17 +175,17 @@ fun MoreModal(
                             )
                         },
                         title = { Text(text = stringResource(id = R.string.enable_extension)) },
-                        state = settingState.enableExtension,
+                        state = settingsState.enableExtension,
                         onCheckedChange = { next ->
                             settingsViewModel.setEnableExtension(next)
                         }
                     )
 
-                    AnimatedVisibility(visible = settingState.enableExtension) {
+                    AnimatedVisibility(visible = settingsState.enableExtension) {
                         Column {
                             ProvidePreferenceTheme {
                                 ListPreference(
-                                    value = settingState.extensionDisplayMode,
+                                    value = settingsState.extensionDisplayMode,
                                     onValueChange = {
                                         settingsViewModel.setExtensionDisplayMode(it)
                                     },
@@ -191,7 +193,7 @@ fun MoreModal(
                                     title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
                                     modifier = Modifier.fillMaxWidth(),
                                     icon = { Icon(imageVector = Icons.AutoMirrored.Default.Segment, contentDescription = null) },
-                                    summary = { Text(text = settingState.extensionDisplayMode) }
+                                    summary = { Text(text = settingsState.extensionDisplayMode) }
                                 )
                             }
                             SettingsMenuLink(
@@ -210,12 +212,12 @@ fun MoreModal(
                     }
                 }
 //  extension settings
-                if (settingState.enableExtension || settingState.useEmbedKeyboard) {
+                if (settingsState.enableExtension || settingsState.useEmbedKeyboard) {
                     Spacing(x = 1)
                 }
 //  keyboard settings
                 OutlinedCard(
-                    border = if (settingState.useEmbedKeyboard) CardDefaults.outlinedCardBorder() else BorderStroke(
+                    border = if (settingsState.useEmbedKeyboard) CardDefaults.outlinedCardBorder() else BorderStroke(
                         1.dp,
                         Color.Transparent
                     )
@@ -228,13 +230,13 @@ fun MoreModal(
                             )
                         },
                         title = { Text(text = stringResource(id = R.string.embed_keyboard)) },
-                        state = settingState.useEmbedKeyboard,
+                        state = settingsState.useEmbedKeyboard,
                         onCheckedChange = { next ->
                             settingsViewModel.setUseEmbedKeyboard(next)
                         }
                     )
 
-                    AnimatedVisibility(visible = settingState.useEmbedKeyboard) {
+                    AnimatedVisibility(visible = settingsState.useEmbedKeyboard) {
                         Column {
                             SettingsCheckbox(
                                 icon = {
@@ -244,7 +246,7 @@ fun MoreModal(
                                     )
                                 },
                                 title = { Text(text = stringResource(id = R.string.show_left_side_backspace)) },
-                                state = settingState.showLeftSideBackSpace,
+                                state = settingsState.showLeftSideBackSpace,
                                 onCheckedChange = { next ->
                                     settingsViewModel.setShowLeftSideBackspace(next)
                                 },
@@ -257,7 +259,7 @@ fun MoreModal(
                                     )
                                 },
                                 title = { Text(text = stringResource(id = R.string.show_search_history)) },
-                                state = settingState.showSearchHistory,
+                                state = settingsState.showSearchHistory,
                                 onCheckedChange = { next ->
                                     settingsViewModel.setShowSearchHistory(next)
                                 }
@@ -274,7 +276,7 @@ fun MoreModal(
                         )
                     },
                     title = { Text(text = stringResource(id = R.string.show_usage_count)) },
-                    state = settingState.showUsageCount,
+                    state = settingsState.showUsageCount,
                     onCheckedChange = { next ->
                         settingsViewModel.setShowUsageCount(next)
                     }
