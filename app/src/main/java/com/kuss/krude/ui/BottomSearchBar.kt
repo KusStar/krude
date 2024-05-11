@@ -437,7 +437,7 @@ fun BottomSearchBar(
                             }
                         }
                     }
-                    items(searchKeywordHistory) {
+                    items(searchKeywordHistory, key = { it }) {
                         TextButton(onClick = {
                             onTextChange(TextFieldValue(it, TextRange(it.length)))
                             insertSearchHistory(it)
@@ -608,7 +608,7 @@ fun ExtensionList(
             verticalAlignment = Alignment.CenterVertically,
             state = listState
         ) {
-            itemsIndexed(extensions) { index, item ->
+            itemsIndexed(extensions, key = { _, item -> item.key() }) { index, item ->
                 val extension = item.asExtension()!!
                 val isStar = starSet.contains(extension.name)
                 ExtensionItem(
