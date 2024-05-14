@@ -3,27 +3,30 @@ package com.kuss.krude.ui
 import android.icu.text.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.kuss.krude.R
 import com.kuss.krude.db.Hidden
 import com.kuss.krude.ui.components.AsyncAppIcon
 import com.kuss.krude.ui.components.Spacing
@@ -46,9 +49,16 @@ fun HiddenTableModal(
         val hiddenList = remember {
             mutableStateListOf<Hidden>()
         }
+        val packageNameToNameMap = remember {
+            mutableMapOf<String, String>()
+        }
         LaunchedEffect(true) {
             withContext(Dispatchers.IO) {
                 hiddenList.addAll(mainViewModel.getHiddenList(context))
+                val apps = mainViewModel.state.value.apps
+                apps.forEach {
+                    packageNameToNameMap[it.packageName] = it.label
+                }
             }
         }
         ModalBottomSheet(
@@ -59,34 +69,53 @@ fun HiddenTableModal(
             modifier = ModalSheetModifier
         ) {
             LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Adaptive(128.dp),
+                columns = StaggeredGridCells.Fixed(3),
                 contentPadding = PaddingValues(12.dp)
             ) {
                 itemsIndexed(hiddenList) { index, hidden ->
-                    OutlinedCard {
-                        Column(Modifier.padding(12.dp)) {
-                            AsyncAppIcon(
-                                packageName = hidden.key, modifier = Modifier
-                                    .size(32.dp)
-                            )
-                            Text(
-                                text = hidden.key,
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Text(
-                                text = DateFormat.getInstance().format(hidden.createdAt),
-                                color = MaterialTheme.colorScheme.secondary,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                    Column(Modifier.padding(12.dp)) {
+                        val hasApp = remember {
+                            packageNameToNameMap.containsKey(hidden.key)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (hasApp) {
+                                AsyncAppIcon(
+                                    packageName = hidden.key, modifier = Modifier
+                                        .size(48.dp)
+                                )
+                            }
                             Spacing(x = 1)
-                            OutlinedButton(onClick = {
+                            IconButton(onClick = {
                                 mainViewModel.deleteHidden(context, hidden)
                                 hiddenList.remove(hidden)
                             }) {
-                                Text(text = stringResource(id = R.string.delete))
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Delete",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
                             }
                         }
+                        if (hasApp) {
+                            Text(
+                                text = packageNameToNameMap[hidden.key]!!,
+                                color = MaterialTheme.colorScheme.primary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        Text(
+                            text = hidden.key,
+                            color = MaterialTheme.colorScheme.let {
+                                if (hasApp) it.secondary else it.primary
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = DateFormat.getInstance().format(hidden.createdAt),
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
 
                     if (index < hiddenList.size - 1) {
