@@ -21,11 +21,18 @@ class Converters {
 }
 
 @TypeConverters(Converters::class)
-@Database(entities = [AppInfo::class, Usage::class,  Star::class], version = 2, exportSchema = true, autoMigrations = [AutoMigration(from = 1, to = 2)])
+@Database(
+    entities = [AppInfo::class, Usage::class, Star::class, Hidden::class],
+    version = 3,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)]
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
 
     abstract fun usageDao(): UsageDao
 
     abstract fun starDao(): StarDao
+
+    abstract fun hiddenDao(): HiddenDao
 }
