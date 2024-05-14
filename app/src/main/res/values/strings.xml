@@ -38,4 +38,6 @@
     <string name="extension_list">Extension List</string>
     <string name="extension_display_mode">Extension Display Mode</string>
     <string name="dominant_hand">Dominant hand</string>
+    <string name="hide">Hide</string>
+    <string name="hidden_list">Hidden list</string>
 </resources>

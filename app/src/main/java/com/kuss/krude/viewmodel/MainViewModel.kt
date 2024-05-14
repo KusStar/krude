@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.db.Hidden
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
@@ -39,7 +40,8 @@ data class MainState(
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
     val showMoreSheet: Boolean = false,
-    val currentStarPackageNameSet: Set<String> = setOf()
+    val currentStarPackageNameSet: Set<String> = setOf(),
+    val hidden: Set<String> = setOf(),
 )
 
 class MainViewModel : ViewModel() {
@@ -177,6 +179,7 @@ class MainViewModel : ViewModel() {
                 // load from packageManager
                 loadFromPackageManger(context, dbApps)
                 loadExtensions(context)
+                loadHiddenSet(context)
             }
         }
     }
@@ -559,6 +562,53 @@ class MainViewModel : ViewModel() {
                 if (extensionMap.containsKey(extension.name)) {
                     extension.priority += 1
                     extensionMap[extension.name] = extension
+                }
+            }
+        }
+    }
+
+    fun getHiddenList(context: Context): List<Hidden> {
+        return getDatabase(context).hiddenDao().getAll()
+    }
+
+    fun deleteHidden(context: Context, hidden: Hidden) {
+        viewModelScope.launch {
+            withContext(IO) {
+                getDatabase(context).hiddenDao().delete(hidden)
+                loadApps(context)
+            }
+        }
+    }
+
+    fun insertHidden(context: Context, name: String) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                val hiddenDao = db.hiddenDao()
+
+                hiddenDao.insert(Hidden(name))
+
+                loadHiddenSet(context)
+            }
+        }
+    }
+
+    private fun loadHiddenSet(context: Context) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                val hiddenDao = db.hiddenDao()
+
+                val data = mutableSetOf<String>()
+
+                hiddenDao.getAll().forEach {
+                    data.add(it.key)
+                }
+
+                val apps = _state.value.apps
+
+                _state.update { mainState ->
+                    mainState.copy(hidden = data, apps = apps.filter { !data.contains(it.packageName) })
                 }
             }
         }

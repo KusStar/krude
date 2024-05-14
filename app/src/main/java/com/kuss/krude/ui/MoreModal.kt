@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.Segment
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.HideSource
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.HistoryToggleOff
 import androidx.compose.material.icons.filled.Info
@@ -77,6 +78,10 @@ fun MoreModal(
     }
 
     var showStarTable by remember {
+        mutableStateOf(false)
+    }
+
+    var showHiddenTable by remember {
         mutableStateOf(false)
     }
 
@@ -313,6 +318,20 @@ fun MoreModal(
                 SettingsMenuLink(
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.HideSource,
+                            contentDescription = stringResource(id = R.string.hidden_list)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.hidden_list)) },
+                    onClick = {
+                        showHiddenTable = true
+                        dismiss()
+                    },
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = stringResource(id = R.string.about)
                         )
@@ -327,11 +346,13 @@ fun MoreModal(
         AboutModal(visible = showAbout) {
             showAbout = false
         }
-
     }
 
     StarTableModal(mainViewModel, visible = showStarTable) {
         showStarTable = false
     }
 
+    HiddenTableModal(mainViewModel, visible = showHiddenTable) {
+        showHiddenTable = false
+    }
 }

@@ -76,3 +76,18 @@ interface StarDao {
     @Query("DELETE FROM star where packageName = :packageName and keyword = :keyword")
     fun deleteStarPackage(packageName: String, keyword: String)
 }
+
+@Dao
+interface HiddenDao {
+    @Query("SELECT * FROM hidden ORDER BY createdAt DESC")
+    fun getAll(): List<Hidden>
+
+    @Insert
+    fun insert(hidden: Hidden)
+
+    @Query("DELETE FROM hidden")
+    fun deleteAll()
+
+    @Delete
+    fun delete(hidden: Hidden)
+}

@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.HideSource
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,6 +71,12 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
     fun uninstallApp(item: AppInfo) {
         ActivityHelper.toUninstall(context, item.packageName)
     }
+
+    fun hideApp(app: AppInfo) {
+        mainViewModel.insertHidden(context, app.packageName)
+        mainViewModel.setShowAppDetailSheet(false)
+    }
+
 
     if (showAppDetailSheet) {
         ModalBottomSheet(
@@ -155,6 +162,19 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                     Spacing(3)
                     // btns
                     Row {
+                        Button(onClick = {
+                            hideApp(app)
+                        }) {
+                            val text = stringResource(id = R.string.hide)
+                            Icon(
+                                Icons.Default.HideSource,
+                                contentDescription = text,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacing(1)
+                            Text(text = text)
+                        }
+                        Spacing(2)
                         Button(onClick = {
                             openAppInfo(app)
                         }) {
