@@ -66,6 +66,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.krude
         }
+        prerelease {
+            shrinkResources false
+            minifyEnabled false
+            signingConfig signingConfigs.krude
+        }
         debug {
             signingConfig signingConfigs.debug
             applicationIdSuffix ".debug"
