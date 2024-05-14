@@ -209,6 +209,10 @@ fun BottomSearchBar(
         }
     }
 
+    LaunchedEffect(apps) {
+        refresh(settingsState.fuzzySearch)
+    }
+
     LaunchedEffect(apps.isNotEmpty(), settingsState.autoFocus) {
         if (apps.isNotEmpty() && settingsState.autoFocus) {
             focusRequester.requestFocus()
