@@ -1,6 +1,7 @@
 package com.kuss.krude.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -19,6 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.utils.Reverse
+import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 
 
 @Composable
@@ -44,13 +47,17 @@ fun MoreBtns(
     fuzzySearch: Boolean,
     onStarIcon: () -> Unit,
     onFuzzyIcon: () -> Unit,
-    onMoreIcon: () -> Unit
+    onMoreIcon: () -> Unit,
+    dominantHand: String
 ) {
     Box(
         modifier = Modifier
             .wrapContentSize(Alignment.TopStart)
     ) {
-        Row {
+        Row(
+            horizontalArrangement =
+            if (dominantHand == DominantHandDefaults.LEFT) Arrangement.Start else Arrangement.Reverse,
+        ) {
             AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
                 IconButton(onClick = {
                     onStarIcon()
