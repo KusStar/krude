@@ -64,7 +64,9 @@ fun MoreModal(
     settingsViewModel: SettingsViewModel
 ) {
     val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     val uiState by mainViewModel.state.collectAsState()
     val settingsState by settingsViewModel.state.collectAsState()
     val showMoreModal = uiState.showMoreSheet
@@ -101,13 +103,6 @@ fun MoreModal(
                     .verticalScroll(rememberScrollState()),
             ) {
                 ProvidePreferenceTheme {
-                    val icon = Icons.AutoMirrored.Default.let {
-                        return@let if (settingsState.dominantHand == DominantHandDefaults.LEFT) {
-                            it.AlignHorizontalLeft
-                        } else {
-                            it.AlignHorizontalRight
-                        }
-                    }
                     ListPreference(
                         value = settingsState.dominantHand,
                         onValueChange = {
@@ -116,40 +111,18 @@ fun MoreModal(
                         values = listOf(DominantHandDefaults.LEFT, DominantHandDefaults.RIGHT),
                         title = { Text(text = stringResource(id = R.string.dominant_hand)) },
                         modifier = Modifier.fillMaxWidth(),
-                        icon = { Icon(imageVector = icon, contentDescription = null) },
+                        icon = {
+                            Icon(imageVector = Icons.AutoMirrored.Default.let {
+                                return@let if (settingsState.dominantHand == DominantHandDefaults.LEFT) {
+                                    it.AlignHorizontalLeft
+                                } else {
+                                    it.AlignHorizontalRight
+                                }
+                            }, contentDescription = null)
+                        },
                         summary = { Text(text = settingsState.dominantHand) }
                     )
                 }
-
-                SettingsMenuLink(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(id = R.string.reset_app_priority)
-                        )
-                    },
-                    title = { Text(text = stringResource(id = R.string.reset_app_priority)) },
-                    onClick = {
-                        mainViewModel.resetDbAppsPriority(context)
-                        dismiss()
-                        refresh()
-                    },
-                )
-
-                SettingsMenuLink(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(id = R.string.reload_apps)
-                        )
-                    },
-                    title = { Text(text = stringResource(id = R.string.reload_apps)) },
-                    onClick = {
-                        mainViewModel.loadFromPackageManger(context = context)
-                        dismiss()
-                        refresh()
-                    },
-                )
 
                 SettingsCheckbox(
                     icon = {
@@ -163,6 +136,20 @@ fun MoreModal(
                     onCheckedChange = { next ->
                         settingsViewModel.setAutoFocus(next)
                     }
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(id = R.string.reset_app_priority)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.reset_app_priority)) },
+                    onClick = {
+                        mainViewModel.resetDbAppsPriority(context)
+                        dismiss()
+                    },
                 )
 
 //  extension settings
@@ -194,10 +181,19 @@ fun MoreModal(
                                     onValueChange = {
                                         settingsViewModel.setExtensionDisplayMode(it)
                                     },
-                                    values = listOf(ExtensionDisplayModeDefaults.ON_TOP, ExtensionDisplayModeDefaults.IN_LINE, ExtensionDisplayModeDefaults.ON_BOTTOM),
+                                    values = listOf(
+                                        ExtensionDisplayModeDefaults.ON_TOP,
+                                        ExtensionDisplayModeDefaults.IN_LINE,
+                                        ExtensionDisplayModeDefaults.ON_BOTTOM
+                                    ),
                                     title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
                                     modifier = Modifier.fillMaxWidth(),
-                                    icon = { Icon(imageVector = Icons.AutoMirrored.Default.Segment, contentDescription = null) },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Default.Segment,
+                                            contentDescription = null
+                                        )
+                                    },
                                     summary = { Text(text = settingsState.extensionDisplayMode) }
                                 )
                             }
@@ -290,6 +286,21 @@ fun MoreModal(
                 SettingsMenuLink(
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = stringResource(id = R.string.reload_apps)
+                        )
+                    },
+                    title = { Text(text = stringResource(id = R.string.reload_apps)) },
+                    onClick = {
+                        mainViewModel.loadFromPackageManger(context = context)
+                        dismiss()
+                        refresh()
+                    },
+                )
+
+                SettingsMenuLink(
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.History,
                             contentDescription = stringResource(id = R.string.app_usage)
                         )
@@ -330,6 +341,7 @@ fun MoreModal(
                 )
 
                 SettingsMenuLink(
+                    modifier = Modifier.padding(bottom = 24.dp),
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Info,
