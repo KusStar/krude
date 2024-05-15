@@ -7,6 +7,7 @@ JSON/JS based extension protocol for krude.
 ```ts
 type Extension = {
   required?: string[]
+  keywords?: string[]
   name: string
   description?: string
   type: "scheme"
