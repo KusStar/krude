@@ -2,6 +2,7 @@ package com.kuss.krude.utils
 
 import com.github.promeg.pinyinhelper.Pinyin
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.Extension
 import java.text.Collator
 import java.util.Locale
 
@@ -42,6 +43,17 @@ object FilterHelper {
     @JvmStatic
     fun toTarget(label: String, packageName: String): String {
         return "$label, $packageName, ${toPinyinWithAbbr(label)}"
+    }
+
+    @JvmStatic
+    fun toTarget(extension: Extension): String {
+        val keywordString =
+            if (extension.keywords != null) {
+                ",${extension.keywords.joinToString(", ")}"
+            } else {
+                ""
+            }
+        return "${extension.name},${extension.description},${toPinyinWithAbbr(extension.name)}$keywordString"
     }
 
     @JvmStatic

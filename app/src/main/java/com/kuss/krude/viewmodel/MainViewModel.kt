@@ -213,7 +213,7 @@ class MainViewModel : ViewModel() {
                                     true
                                 }.map {
                                     it.filterTarget =
-                                        FilterHelper.toTarget(it.name, it.description)
+                                        FilterHelper.toTarget(it)
                                     it
                                 }
                                 Timber.d("loadExtensions extensions size = ${extensionMap.size}")
