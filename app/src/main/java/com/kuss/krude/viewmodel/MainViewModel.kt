@@ -203,7 +203,7 @@ class MainViewModel : ViewModel() {
                         if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
                             val nextExtensions = appExtensionGroup.main.filter { extension ->
                                 if (extension.required != null) {
-                                    return@filter extension.required.all { required ->
+                                    return@filter extension.required.any { required ->
                                         packageNameSet.contains(
                                             required
                                         )
