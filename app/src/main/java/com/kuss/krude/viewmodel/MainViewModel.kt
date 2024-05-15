@@ -215,6 +215,7 @@ class MainViewModel : ViewModel() {
                                     FilterHelper.toTarget(it.name, it.description)
                                 it
                             }
+                            Timber.d("loadExtensions extensions size = ${extensionMap.size}")
                             nextExtensions.forEach {
                                 extensionMap[it.name] = it
                             }
@@ -273,18 +274,19 @@ class MainViewModel : ViewModel() {
     private fun checkAndCleanDbApps(context: Context, apps: List<AppInfo>, dbApps: List<AppInfo>?) {
         viewModelScope.launch {
             withContext(IO) {
-                if (dbApps?.size!! > apps.size) {
-                    val appsSet = apps.map { it.packageName }.toSet()
-                    val db = getDatabase(context)
+                if (dbApps != null) {
+                    if (dbApps.size > apps.size) {
+                        val appsSet = apps.map { it.packageName }.toSet()
+                        val db = getDatabase(context)
 
-                    dbApps.forEach {
-                        if (!appsSet.contains(it.packageName)) {
-                            db.appDao().deleteApp(it)
+                        dbApps.forEach {
+                            if (!appsSet.contains(it.packageName)) {
+                                db.appDao().deleteApp(it)
+                            }
                         }
                     }
                 }
             }
-
         }
     }
 
