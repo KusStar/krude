@@ -75,6 +75,7 @@ import com.kuss.krude.ui.components.MoreBtns
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
+import com.kuss.krude.utils.Reverse
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
@@ -276,7 +277,9 @@ fun BottomSearchBar(
                     showUsageCount = settingsState.showUsageCount,
                     onExtensionClick = { extension, isStar ->
                         onExtensionClick(extension, isStar)
-                    })
+                    },
+                    settingsState.dominantHand == DominantHandDefaults.RIGHT
+                )
                 HorizontalDivider()
             }
 
@@ -293,7 +296,8 @@ fun BottomSearchBar(
                 },
                 toAppDetail = { app ->
                     toAppDetail(app)
-                }
+                },
+                reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT
             )
 
             if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
@@ -305,7 +309,9 @@ fun BottomSearchBar(
                     showUsageCount = settingsState.showUsageCount,
                     onExtensionClick = { extension, isStar ->
                         onExtensionClick(extension, isStar)
-                    })
+                    },
+                    settingsState.dominantHand == DominantHandDefaults.RIGHT
+                )
             }
         }
     }
@@ -314,28 +320,10 @@ fun BottomSearchBar(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = if (settingsState.dominantHand == DominantHandDefaults.LEFT) Arrangement.Center else Arrangement.Reverse
     ) {
-        if (settingsState.dominantHand == DominantHandDefaults.LEFT) {
-            CloseBtn(visible = search.isNotEmpty()) {
-                clear()
-            }
-        } else {
-            MoreBtns(
-                search = search,
-                searchResult = searchResult,
-                fuzzySearch = settingsState.fuzzySearch,
-                onStarIcon = {
-                    starMode = !starMode
-                },
-                onFuzzyIcon = {
-                    val nextFuzzy = !settingsState.fuzzySearch
-                    settingsViewModel.setFuzzySearch(nextFuzzy)
-                    refresh(nextFuzzy)
-                },
-                onMoreIcon = {
-                    mainViewModel.setShowMoreSheet(true)
-                })
+        CloseBtn(visible = search.isNotEmpty()) {
+            clear()
         }
 
         CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
@@ -371,27 +359,23 @@ fun BottomSearchBar(
             )
         }
 
-        if (settingsState.dominantHand == DominantHandDefaults.RIGHT) {
-            CloseBtn(visible = search.isNotEmpty()) {
-                clear()
-            }
-        } else {
-            MoreBtns(
-                search = search,
-                searchResult = searchResult,
-                fuzzySearch = settingsState.fuzzySearch,
-                onStarIcon = {
-                    starMode = !starMode
-                },
-                onFuzzyIcon = {
-                    val nextFuzzy = !settingsState.fuzzySearch
-                    settingsViewModel.setFuzzySearch(nextFuzzy)
-                    refresh(nextFuzzy)
-                },
-                onMoreIcon = {
-                    mainViewModel.setShowMoreSheet(true)
-                })
-        }
+        MoreBtns(
+            search = search,
+            searchResult = searchResult,
+            fuzzySearch = settingsState.fuzzySearch,
+            onStarIcon = {
+                starMode = !starMode
+            },
+            onFuzzyIcon = {
+                val nextFuzzy = !settingsState.fuzzySearch
+                settingsViewModel.setFuzzySearch(nextFuzzy)
+                refresh(nextFuzzy)
+            },
+            onMoreIcon = {
+                mainViewModel.setShowMoreSheet(true)
+            },
+            dominantHand = settingsState.dominantHand
+        )
     }
 
     AnimatedVisibility(
@@ -477,6 +461,7 @@ fun MainList(
     onAppClick: (app: AppInfo, isStar: Boolean) -> Unit,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     toAppDetail: (AppInfo) -> Unit,
+    reverseLayout: Boolean
 ) {
     val mainData = remember(settingsState, searchResult) {
         if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE)
@@ -496,6 +481,7 @@ fun MainList(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     state = listState,
+                    reverseLayout = reverseLayout
                 ) {
                     itemsIndexed(
                         mainData,
@@ -547,6 +533,7 @@ fun MainList(
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     state = listState,
+                    reverseLayout = reverseLayout
                 ) {
                     itemsIndexed(
                         mainData,
@@ -600,7 +587,8 @@ fun ExtensionList(
     listState: LazyListState,
     starSet: Set<String>,
     showUsageCount: Boolean,
-    onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit
+    onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
+    reverseLayout: Boolean
 ) {
     val extensions = remember(searchResult) {
         searchResult.filter { it.isExtension() }
@@ -610,7 +598,8 @@ fun ExtensionList(
             modifier = Modifier
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            state = listState
+            state = listState,
+            reverseLayout = reverseLayout
         ) {
             itemsIndexed(extensions, key = { _, item -> item.key() }) { index, item ->
                 val extension = item.asExtension()!!
