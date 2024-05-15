@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ButtonDefaults
@@ -26,9 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kuss.krude.R
 import com.kuss.krude.db.Hidden
 import com.kuss.krude.ui.components.AsyncAppIcon
+import com.kuss.krude.ui.components.ExtensionIcon
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
@@ -42,7 +45,6 @@ fun HiddenTableModal(
     visible: Boolean,
     onDismiss: () -> Unit
 ) {
-
     if (visible) {
         val context = LocalContext.current
         val sheetState = rememberModalBottomSheetState()
@@ -68,58 +70,63 @@ fun HiddenTableModal(
             sheetState = sheetState,
             modifier = ModalSheetModifier
         ) {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(3),
-                contentPadding = PaddingValues(12.dp)
-            ) {
-                itemsIndexed(hiddenList) { index, hidden ->
-                    Column(Modifier.padding(12.dp)) {
-                        val hasApp = remember {
-                            packageNameToNameMap.containsKey(hidden.key)
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "${stringResource(id = R.string.hidden_list)} ${hiddenList.size}",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacing(x = 1)
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(3),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    items(hiddenList) { hidden ->
+                        Column(Modifier.padding(vertical = 6.dp)) {
+                            val hasApp = remember {
+                                packageNameToNameMap.containsKey(hidden.key)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (hasApp) {
+                                    AsyncAppIcon(
+                                        packageName = hidden.key, modifier = Modifier
+                                            .size(48.dp)
+                                    )
+                                } else {
+                                    ExtensionIcon(iconSize = 48.dp)
+                                }
+                                Spacing(x = 1)
+                                IconButton(onClick = {
+                                    mainViewModel.deleteHidden(context, hidden)
+                                    hiddenList.remove(hidden)
+                                }) {
+                                    Icon(
+                                        Icons.Filled.Delete,
+                                        contentDescription = "Delete",
+                                        modifier = Modifier.size(ButtonDefaults.IconSize),
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
                             if (hasApp) {
-                                AsyncAppIcon(
-                                    packageName = hidden.key, modifier = Modifier
-                                        .size(48.dp)
+                                Text(
+                                    text = packageNameToNameMap[hidden.key]!!,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
-                            Spacing(x = 1)
-                            IconButton(onClick = {
-                                mainViewModel.deleteHidden(context, hidden)
-                                hiddenList.remove(hidden)
-                            }) {
-                                Icon(
-                                    Icons.Filled.Delete,
-                                    contentDescription = "Delete",
-                                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                        if (hasApp) {
                             Text(
-                                text = packageNameToNameMap[hidden.key]!!,
-                                color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = hidden.key,
+                                color = MaterialTheme.colorScheme.let {
+                                    if (hasApp) it.secondary else it.primary
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Text(
+                                text = DateFormat.getInstance().format(hidden.createdAt),
+                                color = MaterialTheme.colorScheme.secondary,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
-                        Text(
-                            text = hidden.key,
-                            color = MaterialTheme.colorScheme.let {
-                                if (hasApp) it.secondary else it.primary
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Text(
-                            text = DateFormat.getInstance().format(hidden.createdAt),
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-
-                    if (index < hiddenList.size - 1) {
-                        Spacing(x = 1)
                     }
                 }
             }

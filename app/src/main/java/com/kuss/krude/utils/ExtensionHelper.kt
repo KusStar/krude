@@ -16,8 +16,8 @@ import java.io.File
 
 object ExtensionHelper {
     val DEFAULT_EXTENSIONS_RULES = listOf(
-        "https://gist.githubusercontent.com/KusStar/7eacbec872b85ed12d5a72bc1113ddbe/raw/11026021d965385214876a0670236cbcec0661ab/krude-apps-extensions.json",
-        "https://gist.githubusercontent.com/KusStar/7eacbec872b85ed12d5a72bc1113ddbe/raw/11026021d965385214876a0670236cbcec0661ab/krude-setting-extensions.json"
+        "https://gh.idayer.com/https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/china-apps-shortcuts.json",
+        "https://gh.idayer.com/https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/settings-shortcuts.json"
     )
 
     private var client: OkHttpClient? = null
