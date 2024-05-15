@@ -539,14 +539,6 @@ class MainViewModel : ViewModel() {
         return db.starDao().getAllStars()
     }
 
-    fun getPackageNameMap(): Map<String, String> {
-        val nameMap = mutableMapOf<String, String>()
-        _state.value.apps.forEach {
-            nameMap[it.packageName] = it.label
-        }
-        return nameMap.toMap()
-    }
-
     fun deleteStar(context: Context, star: Star) {
         viewModelScope.launch {
             withContext(IO) {
