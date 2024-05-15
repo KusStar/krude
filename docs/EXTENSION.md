@@ -28,6 +28,17 @@ type Extension = {
 }
 
 type Main = Extension | Extension[] | string
+
+type KrudeExtension = {
+  name: string
+  version: string
+  krudeVersion: {
+    min: string
+    max: string
+  }
+  description?: string
+  main: Main
+}
 ```
 
 Example:
