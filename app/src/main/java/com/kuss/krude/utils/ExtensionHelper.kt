@@ -16,8 +16,8 @@ import java.io.File
 
 object ExtensionHelper {
     val DEFAULT_EXTENSIONS_RULES = listOf(
-        "https://gh.idayer.com/https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/china-apps-shortcuts.json",
-        "https://gh.idayer.com/https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/settings-shortcuts.json"
+        "https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/china-apps-shortcuts.json",
+        "https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/settings-shortcuts.json"
     )
 
     private var client: OkHttpClient? = null
@@ -58,6 +58,7 @@ object ExtensionHelper {
     }
 
     fun fetchExtension(context: Context, url: String, onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit) {
+        Timber.d("fetchExtension url = $url")
         if (client == null) {
             initClient(context)
         }
