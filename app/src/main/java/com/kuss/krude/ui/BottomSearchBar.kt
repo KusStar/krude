@@ -101,8 +101,8 @@ fun BottomSearchBar(
 
     val currentStarPackageNameSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
-    val search = uiState.search
     val searchResult = uiState.searchResult
+
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -121,13 +121,10 @@ fun BottomSearchBar(
         mutableStateOf(false)
     }
 
-    var selection by remember {
-        mutableStateOf(TextRange(search.length))
-    }
-
     val searchKeywordHistory = remember {
         mutableStateListOf<String>()
     }
+    var searchState by remember { mutableStateOf(TextFieldValue("")) }
 
     fun insertSearchHistory(text: String) {
         searchKeywordHistory.removeIf {
@@ -137,6 +134,7 @@ fun BottomSearchBar(
     }
 
     fun onTextChange(value: TextFieldValue) {
+        searchState = value
         starMode = false
         mainViewModel.onSearch(value.text, settingsState.enableExtension, settingsState.fuzzySearch)
         mainViewModel.filterKeywordStars(
@@ -144,25 +142,22 @@ fun BottomSearchBar(
             settingsState.enableExtension,
             value.text
         )
-        selection = value.selection
     }
 
     fun refresh(fuzzy: Boolean) {
-        mainViewModel.onSearch(search, settingsState.enableExtension, fuzzy)
-        if (search.isNotEmpty()) {
+        mainViewModel.onSearch(searchState.text, settingsState.enableExtension, fuzzy)
+        if (searchState.text.isNotEmpty()) {
             mainViewModel.filterKeywordStars(
                 context = context,
                 settingsState.enableExtension,
-                search
+                searchState.text
             )
         }
     }
 
     fun clear() {
-        mainViewModel.setSearch("")
-        selection = TextRange(0)
+        searchState = TextFieldValue("")
     }
-
 
     fun onExtensionClick(extension: Extension, isStar: Boolean) {
         if (starMode) {
@@ -171,7 +166,7 @@ fun BottomSearchBar(
                 context,
                 settingsState.enableExtension,
                 extension.name,
-                keyword = search,
+                keyword = searchState.text,
                 isStar
             )
         } else {
@@ -200,13 +195,13 @@ fun BottomSearchBar(
                 context,
                 settingsState.enableExtension,
                 app.packageName,
-                keyword = search,
+                keyword = searchState.text,
                 isStar
             )
         } else {
             openApp(app)
-            insertSearchHistory(search)
-            selection = TextRange(0)
+            insertSearchHistory(searchState.text)
+            searchState = TextFieldValue("")
         }
     }
 
@@ -237,7 +232,7 @@ fun BottomSearchBar(
     }
 
     AnimatedVisibility(
-        visible = search.isNotEmpty(),
+        visible = searchState.text.isNotEmpty(),
     ) {
         HorizontalDivider()
 
@@ -259,7 +254,7 @@ fun BottomSearchBar(
                         )
                         Spacing(x = 1)
                         Text(
-                            text = search,
+                            text = searchState.text,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
@@ -322,7 +317,7 @@ fun BottomSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (settingsState.dominantHand == DominantHandDefaults.LEFT) Arrangement.Center else Arrangement.Reverse
     ) {
-        CloseBtn(visible = search.isNotEmpty()) {
+        CloseBtn(visible = searchState.text.isNotEmpty()) {
             clear()
         }
 
@@ -336,7 +331,7 @@ fun BottomSearchBar(
                     .onFocusChanged {
                         isFocused.value = it.isFocused
                     },
-                value = TextFieldValue(search, selection),
+                value = searchState,
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.secondary,
@@ -360,7 +355,7 @@ fun BottomSearchBar(
         }
 
         MoreBtns(
-            search = search,
+            search = searchState.text,
             searchResult = searchResult,
             fuzzySearch = settingsState.fuzzySearch,
             onStarIcon = {
@@ -389,19 +384,19 @@ fun BottomSearchBar(
                 isFocused.value = false
                 focusManager.clearFocus()
             }, onClick = { key, isDeleting ->
-                val sb = StringBuilder(search)
-                var range = selection
+                val sb = StringBuilder(searchState.text)
+                var range = searchState.selection
                 if (isDeleting) {
-                    if (selection.end > 0) {
-                        sb.deleteCharAt(selection.end - 1)
-                        range = TextRange(selection.end - 1)
+                    if (range.end > 0) {
+                        sb.deleteCharAt(range.end - 1)
+                        range = TextRange(range.end - 1)
                     }
                 } else {
-                    if (selection.end < search.length)
-                        sb.insert(selection.end, key)
+                    if (range.end < searchState.text.length)
+                        sb.insert(range.end, key)
                     else
                         sb.append(key)
-                    range = TextRange(selection.end + 1)
+                    range = TextRange(range.end + 1)
                 }
                 onTextChange(TextFieldValue(sb.toString(), selection = range))
             }) {

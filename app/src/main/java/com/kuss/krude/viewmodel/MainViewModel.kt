@@ -35,7 +35,6 @@ data class MainState(
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
-    val search: String = "",
     val showAppDetailSheet: Boolean = false,
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
@@ -136,7 +135,7 @@ class MainViewModel : ViewModel() {
 
         FilterHelper.getSorted(apps).let { sorted ->
             _state.update { mainState ->
-                mainState.copy(apps = sorted, showAppDetailSheet = false, search = "")
+                mainState.copy(apps = sorted, showAppDetailSheet = false)
             }
         }
     }
@@ -153,7 +152,7 @@ class MainViewModel : ViewModel() {
             apps.removeAt(removedIndex)
 
             _state.update { mainState ->
-                mainState.copy(apps = apps, showAppDetailSheet = false, search = "")
+                mainState.copy(apps = apps, showAppDetailSheet = false)
             }
         }
     }
@@ -352,13 +351,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-
-    fun setSearch(search: String) {
-        _state.update { mainState ->
-            mainState.copy(search = search)
-        }
-    }
-
     fun setShowAppDetailSheet(visible: Boolean) {
         _state.update { mainState ->
             mainState.copy(
@@ -464,7 +456,7 @@ class MainViewModel : ViewModel() {
             }
 
             _state.update { mainState ->
-                mainState.copy(searchResult = filterResult, search = text)
+                mainState.copy(searchResult = filterResult)
             }
         }
     }
