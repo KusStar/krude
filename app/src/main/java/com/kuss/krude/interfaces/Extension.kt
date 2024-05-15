@@ -14,6 +14,7 @@ data class Extension(
     val description: String,
     val type: String,
     val required: List<String>? = null,
+    val keywords: List<String>? = null,
     val uri: String? = null,
     val data: IntentData? = null,
     var priority: Int = 0,
