@@ -4,10 +4,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import com.kuss.krude.interfaces.AppExtensionGroup
 import com.kuss.krude.interfaces.AppExtensionSingle
 import com.kuss.krude.interfaces.Extension
 import okhttp3.Cache
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.IOException
@@ -15,10 +17,7 @@ import timber.log.Timber
 import java.io.File
 
 object ExtensionHelper {
-    val DEFAULT_EXTENSIONS_RULES = listOf(
-        "https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/china-apps-shortcuts.json",
-        "https://raw.githubusercontent.com/KusStar/krude-extensions/main/extensions/settings-shortcuts.json"
-    )
+    private const val EXTENSIONS_REPO = "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
 
     private var client: OkHttpClient? = null
 
@@ -34,6 +33,7 @@ object ExtensionHelper {
 
     fun launchExtensionIntent(context: Context, extension: Extension) {
         try {
+            Timber.d("launchExtensionIntent: extension = $extension")
             val intent = Intent()
             val data = extension.data!!
             intent.setComponent(ComponentName(data.packageField, data.classField))
@@ -55,6 +55,44 @@ object ExtensionHelper {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun fetchExtensionsFromRepo(context: Context, onResult: (extensionUrls: List<String>?) -> Unit) {
+        if (client == null) {
+            initClient(context)
+        }
+
+        val request = Request.Builder()
+            .url(EXTENSIONS_REPO)
+            .cacheControl(CacheControl.FORCE_NETWORK)
+            .build()
+
+        client!!.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!it.isSuccessful) throw IOException("Unexpected code $response")
+                    val body = it.body?.string()
+                    val gson = Gson()
+                    val extensionUrls: MutableList<String> = mutableListOf()
+                    try {
+                        gson.fromJson(body, JsonArray::class.java)?.forEach { data ->
+                            val name = data.asJsonObject.get("name").asString
+                            Timber.d("fetchExtensionsFromRepo: extension = $name")
+                            val url = data.asJsonObject.get("download_url").asString
+                            extensionUrls.add(url)
+                        }
+                        Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionUrls")
+                        onResult(extensionUrls)
+                    } catch (e: Exception) {
+                        Timber.e(e)
+                    }
+                }
+            }
+        })
     }
 
     fun fetchExtension(context: Context, url: String, onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit) {

@@ -193,36 +193,38 @@ class MainViewModel : ViewModel() {
     private fun loadExtensions(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
-                ExtensionHelper.DEFAULT_EXTENSIONS_RULES.forEach { url ->
-                    ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
-                        if (appExtensionGroup != null) {
-                            Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.version}")
-                        } else {
-                            Timber.d("loadExtensions: null for $url")
-                        }
-                        if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
-                            val nextExtensions = appExtensionGroup.main.filter { extension ->
-                                if (extension.required != null) {
-                                    return@filter extension.required.any { required ->
-                                        packageNameSet.contains(
-                                            required
-                                        )
-                                    }
-                                }
-                                true
-                            }.map {
-                                it.filterTarget =
-                                    FilterHelper.toTarget(it.name, it.description)
-                                it
+                ExtensionHelper.fetchExtensionsFromRepo(context) { extensionUrls ->
+                    extensionUrls?.forEach { url ->
+                        ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
+                            if (appExtensionGroup != null) {
+                                Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.version}")
+                            } else {
+                                Timber.d("loadExtensions: null for $url")
                             }
-                            Timber.d("loadExtensions extensions size = ${extensionMap.size}")
-                            nextExtensions.forEach {
-                                extensionMap[it.name] = it
+                            if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
+                                val nextExtensions = appExtensionGroup.main.filter { extension ->
+                                    if (extension.required != null) {
+                                        return@filter extension.required.any { required ->
+                                            packageNameSet.contains(
+                                                required
+                                            )
+                                        }
+                                    }
+                                    true
+                                }.map {
+                                    it.filterTarget =
+                                        FilterHelper.toTarget(it.name, it.description)
+                                    it
+                                }
+                                Timber.d("loadExtensions extensions size = ${extensionMap.size}")
+                                nextExtensions.forEach {
+                                    extensionMap[it.name] = it
+                                }
                             }
                         }
                     }
-                }
 
+                }
             }
         }
     }
@@ -594,7 +596,9 @@ class MainViewModel : ViewModel() {
                 val apps = _state.value.apps
 
                 _state.update { mainState ->
-                    mainState.copy(hidden = data, apps = apps.filter { !data.contains(it.packageName) })
+                    mainState.copy(
+                        hidden = data,
+                        apps = apps.filter { !data.contains(it.packageName) })
                 }
             }
         }
