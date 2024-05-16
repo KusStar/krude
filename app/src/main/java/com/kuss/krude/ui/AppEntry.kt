@@ -45,15 +45,24 @@ fun AppEntry(
     val missingPermission = uiState.missingPermission
     val apps = uiState.apps
     val scrollbarItems = uiState.scrollbarItems
+    val settingsState by settingsViewModel.state.collectAsState()
 
     val firstVisibleItemIndex by remember {
         derivedStateOf { listState.firstVisibleItemIndex }
     }
 
     LaunchedEffect(Unit) {
+        mainViewModel.initSettingsViewModel(settingsViewModel)
+
         mainViewModel.initPackageEventReceiver(context)
 
         mainViewModel.loadApps(context)
+    }
+
+    LaunchedEffect(settingsState.enableExtension, settingsState.devExtension, settingsState.devExtensionRepo) {
+        if (settingsState.enableExtension) {
+            mainViewModel.loadExtensions(context)
+        }
     }
 
     fun openApp(appInfo: AppInfo) {

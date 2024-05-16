@@ -31,7 +31,8 @@ data class SettingsState(
     val dominantHand: String = DominantHandDefaults.LEFT,
     val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP,
     val devMode: Boolean = false,
-    val devExtensionRepo: String = "http://localhost:12345"
+    val devExtension: Boolean = false,
+    val devExtensionRepo: String = "http://localhost:12345",
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -139,6 +140,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setDevMode(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.saveBoolSetting(SettingsRepository.DEV_MODE, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setDevExtension(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveBoolSetting(SettingsRepository.DEV_EXTENSION, enabled)
             loadSettings()
         }
     }

@@ -24,6 +24,7 @@ class SettingsRepository(private val context: Context) {
         val ENABLE_EXTENSION = booleanPreferencesKey("enable_extension")
         val EXTENSION_DISPLAY_MODE = stringPreferencesKey("extension_display_mode")
         val DEV_MODE = booleanPreferencesKey("dev_mode")
+        val DEV_EXTENSION = booleanPreferencesKey("dev_extension")
         val DEV_EXTENSION_REPO = stringPreferencesKey("dev_extension_repo")
     }
 
@@ -52,7 +53,9 @@ class SettingsRepository(private val context: Context) {
                 dominantHand = preferences[DOMINANT_HAND] ?: DEFAULT_SETTINGS_STATE.dominantHand,
                 enableExtension = preferences[ENABLE_EXTENSION] ?: DEFAULT_SETTINGS_STATE.enableExtension,
                 extensionDisplayMode = preferences[EXTENSION_DISPLAY_MODE] ?: DEFAULT_SETTINGS_STATE.extensionDisplayMode,
+                // dev mode
                 devMode = preferences[DEV_MODE] ?: DEFAULT_SETTINGS_STATE.devMode,
+                devExtension = preferences[DEV_EXTENSION] ?: DEFAULT_SETTINGS_STATE.devExtension,
                 devExtensionRepo =  preferences[DEV_EXTENSION_REPO] ?: DEFAULT_SETTINGS_STATE.devExtensionRepo,
             )
         }

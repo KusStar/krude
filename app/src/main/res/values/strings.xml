@@ -40,4 +40,5 @@
     <string name="dominant_hand">Dominant hand</string>
     <string name="hide">Hide</string>
     <string name="hidden_list">Hidden list</string>
+    <string name="refetch_extensions">Refetch extensions</string>
 </resources>
