@@ -17,17 +17,23 @@ import timber.log.Timber
 import java.io.File
 
 object ExtensionHelper {
-    private const val EXTENSIONS_REPO = "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
+    const val EXTENSIONS_REPO =
+        "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
+    val FALLBACK_REPO = EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
+
+    val GH_RAW_PROXY = "https://mirror.ghproxy.com"
 
     private var client: OkHttpClient? = null
 
     private fun initClient(context: Context) {
         client = OkHttpClient.Builder()
             .followRedirects(true)
-            .cache(Cache(
-                directory = File(context.cacheDir, "http_cache"),
-                maxSize = 50L * 1024L * 1024L // 50 MiB
-            ))
+            .cache(
+                Cache(
+                    directory = File(context.cacheDir, "http_cache"),
+                    maxSize = 50L * 1024L * 1024L // 50 MiB
+                )
+            )
             .build()
     }
 
@@ -57,19 +63,29 @@ object ExtensionHelper {
         }
     }
 
-    fun fetchExtensionsFromRepo(context: Context, onResult: (extensionUrls: List<String>?) -> Unit) {
+    fun fetchExtensionsFromRepo(
+        context: Context,
+        repoUrl: String,
+        onResult: (exception: Exception?, extensionUrls: List<String>?) -> Unit
+    ) {
         if (client == null) {
             initClient(context)
         }
 
         val request = Request.Builder()
-            .url(EXTENSIONS_REPO)
+            .url(repoUrl)
             .cacheControl(CacheControl.FORCE_NETWORK)
             .build()
 
         client!!.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 e.printStackTrace()
+                if (repoUrl.startsWith("https://api.github.com")) {
+                    Timber.d("fetchExtensionsFromRepo: fallback to FALLBACK_REPO")
+                    fetchExtensionsFromRepo(context, FALLBACK_REPO, onResult)
+                } else {
+                    onResult(e, null)
+                }
             }
 
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
@@ -86,16 +102,21 @@ object ExtensionHelper {
                             extensionUrls.add(url)
                         }
                         Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionUrls")
-                        onResult(extensionUrls)
+                        onResult(null, extensionUrls)
                     } catch (e: Exception) {
-                        Timber.e(e)
+                        e.printStackTrace()
+                        onResult(e, null)
                     }
                 }
             }
         })
     }
 
-    fun fetchExtension(context: Context, url: String, onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit) {
+    fun fetchExtension(
+        context: Context,
+        url: String,
+        onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit
+    ) {
         Timber.d("fetchExtension url = $url")
         if (client == null) {
             initClient(context)
@@ -108,6 +129,10 @@ object ExtensionHelper {
         client!!.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 e.printStackTrace()
+                if (url.startsWith("https://raw.githubusercontent.com")) {
+                    Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
+                    fetchExtension(context, "$GH_RAW_PROXY/$url", onResult)
+                }
             }
 
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
@@ -120,10 +145,11 @@ object ExtensionHelper {
                         val appExtensionGroup = gson.fromJson(body, AppExtensionGroup::class.java)
                         Timber.d("fetchExtension: group = ${appExtensionGroup.main}")
                         appExtensionGroup
-                    } catch(e: Exception) {
+                    } catch (e: Exception) {
                         e.printStackTrace()
                         try {
-                            val appExtensionSingle = gson.fromJson(body, AppExtensionSingle::class.java)
+                            val appExtensionSingle =
+                                gson.fromJson(body, AppExtensionSingle::class.java)
                             Timber.d("fetchExtension: single = ${appExtensionSingle.main}")
                             AppExtensionGroup(appExtensionSingle)
                         } catch (e: Exception) {
