@@ -40,4 +40,5 @@
     <string name="dominant_hand">惯用手</string>
     <string name="hide">隐藏</string>
     <string name="hidden_list">已隐藏列表</string>
+    <string name="refetch_extensions">重新拉取扩展</string>
 </resources>

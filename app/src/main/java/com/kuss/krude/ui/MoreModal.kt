@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.HideSource
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.HistoryToggleOff
+import androidx.compose.material.icons.filled.ImportantDevices
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Numbers
@@ -200,6 +201,18 @@ fun MoreModal(
                             SettingsMenuLink(
                                 icon = {
                                     Icon(
+                                        imageVector = Icons.Default.Refresh,
+                                        contentDescription = stringResource(id = R.string.refetch_extensions)
+                                    )
+                                },
+                                title = { Text(text = stringResource(id = R.string.refetch_extensions)) },
+                                onClick = {
+                                    mainViewModel.loadExtensions(context)
+                                }
+                            )
+                            SettingsMenuLink(
+                                icon = {
+                                    Icon(
                                         imageVector = Icons.AutoMirrored.Filled.List,
                                         contentDescription = stringResource(id = R.string.extension_list)
                                     )
@@ -209,6 +222,22 @@ fun MoreModal(
 
                                 }
                             )
+                            if (settingsState.devMode) {
+                                SettingsCheckbox(
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.ImportantDevices,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    title = { Text(text = "Use dev extension repo") },
+                                    subtitle = { Text(settingsState.devExtensionRepo) },
+                                    state = settingsState.devExtension,
+                                    onCheckedChange = { next ->
+                                        settingsViewModel.setDevExtension(next)
+                                    }
+                                )
+                            }
                         }
                     }
                 }

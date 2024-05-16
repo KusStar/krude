@@ -19,6 +19,9 @@ import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.FilterHelper
+import com.kuss.krude.utils.ToastUtils
+import com.kuss.krude.viewmodel.settings.SettingsState
+import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,8 +73,20 @@ class MainViewModel : ViewModel() {
 
     private var extensionMap: MutableMap<String, Extension> = mutableMapOf()
 
+    private lateinit var settingsViewModel: SettingsViewModel
+
+    private var loadExtensionsJob: Job? = null
+
     private fun getExtensions(): List<Extension> {
         return extensionMap.values.toList()
+    }
+
+    private fun getSettingsState(): SettingsState {
+        return settingsViewModel.state.value
+    }
+
+    fun initSettingsViewModel(settingsViewModel: SettingsViewModel) {
+        this.settingsViewModel = settingsViewModel
     }
 
     fun initPackageEventReceiver(context: Context) {
@@ -190,10 +205,26 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun loadExtensions(context: Context) {
-        viewModelScope.launch {
+    fun loadExtensions(context: Context) {
+        loadExtensionsJob?.cancel()
+        loadExtensionsJob = viewModelScope.launch {
             withContext(IO) {
-                ExtensionHelper.fetchExtensionsFromRepo(context) { extensionUrls ->
+                val settingsState = getSettingsState()
+                val repoUrl = if (settingsState.devExtension) {
+                    settingsState.devExtensionRepo
+                } else {
+                    ExtensionHelper.EXTENSIONS_REPO
+                }
+                Timber.i("loadExtensions: $repoUrl")
+                ExtensionHelper.fetchExtensionsFromRepo(
+                    context,
+                    repoUrl
+                ) { exception, extensionUrls ->
+                    if (exception != null) {
+                        Timber.e("loadExtensions: error, $exception")
+                        ToastUtils.show(context, "Load extensions error, please check the repo url.")
+                        return@fetchExtensionsFromRepo
+                    }
                     extensionUrls?.forEach { url ->
                         ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
                             if (appExtensionGroup != null) {
