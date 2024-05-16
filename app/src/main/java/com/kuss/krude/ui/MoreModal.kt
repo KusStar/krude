@@ -355,7 +355,7 @@ fun MoreModal(
                 )
             }
         }
-        AboutModal(visible = showAbout) {
+        AboutModal(visible = showAbout, settingsViewModel = settingsViewModel) {
             showAbout = false
         }
     }

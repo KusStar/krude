@@ -29,7 +29,9 @@ data class SettingsState(
     val showSearchHistory: Boolean = true,
     val showLeftSideBackSpace: Boolean = true,
     val dominantHand: String = DominantHandDefaults.LEFT,
-    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP
+    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP,
+    val devMode: Boolean = false,
+    val devExtensionRepo: String = "http://localhost:12345"
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -130,6 +132,20 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setExtensionDisplayMode(mode: String) {
         viewModelScope.launch {
             settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE, mode)
+            loadSettings()
+        }
+    }
+
+    fun setDevMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveBoolSetting(SettingsRepository.DEV_MODE, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setDevExtensionRepo(url: String) {
+        viewModelScope.launch {
+            settingsRepository.saveStringSetting(SettingsRepository.DEV_EXTENSION_REPO, url)
             loadSettings()
         }
     }
