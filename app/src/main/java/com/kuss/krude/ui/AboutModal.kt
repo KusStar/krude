@@ -70,6 +70,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.DeeplinkHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.SponsorHelper
+import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
@@ -118,13 +119,9 @@ fun AboutModal(visible: Boolean, settingsViewModel: SettingsViewModel, onDismiss
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (devClick >= 7) {
                                     if (devMode) {
-                                        Toast
-                                            .makeText(context, "已退出开发者模式", Toast.LENGTH_SHORT)
-                                            .show()
+                                        ToastUtils.show(context, "已退出开发者模式")
                                     } else {
-                                        Toast
-                                            .makeText(context, "已加入开发者模式", Toast.LENGTH_SHORT)
-                                            .show()
+                                        ToastUtils.show(context, "已加入开发者模式")
                                     }
                                     settingsViewModel.setDevMode(!devMode)
                                     devClick = 0
@@ -132,7 +129,10 @@ fun AboutModal(visible: Boolean, settingsViewModel: SettingsViewModel, onDismiss
                                     devClick += 1
                                 }
                             }),
-                    colorFilter = if (devMode) ColorFilter.tint(Color.Yellow, blendMode = BlendMode.Darken) else null
+                    colorFilter = if (devMode) ColorFilter.tint(
+                        Color.Yellow,
+                        blendMode = BlendMode.Darken
+                    ) else null
                 )
                 Text(
                     text = stringResource(id = R.string.app_name),
@@ -269,7 +269,7 @@ fun AboutModal(visible: Boolean, settingsViewModel: SettingsViewModel, onDismiss
                         showLicenseModal = true
                     },
                 )
-                
+
                 if (showSponsorModal) {
                     var toWechatDialog by remember {
                         mutableStateOf(false)
