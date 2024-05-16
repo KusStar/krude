@@ -23,6 +23,8 @@ class SettingsRepository(private val context: Context) {
         val DOMINANT_HAND = stringPreferencesKey("dominant_hand")
         val ENABLE_EXTENSION = booleanPreferencesKey("enable_extension")
         val EXTENSION_DISPLAY_MODE = stringPreferencesKey("extension_display_mode")
+        val DEV_MODE = booleanPreferencesKey("dev_mode")
+        val DEV_EXTENSION_REPO = stringPreferencesKey("dev_extension_repo")
     }
 
     suspend fun saveBoolSetting(key: Preferences.Key<Boolean>, value: Boolean) {
@@ -50,6 +52,8 @@ class SettingsRepository(private val context: Context) {
                 dominantHand = preferences[DOMINANT_HAND] ?: DEFAULT_SETTINGS_STATE.dominantHand,
                 enableExtension = preferences[ENABLE_EXTENSION] ?: DEFAULT_SETTINGS_STATE.enableExtension,
                 extensionDisplayMode = preferences[EXTENSION_DISPLAY_MODE] ?: DEFAULT_SETTINGS_STATE.extensionDisplayMode,
+                devMode = preferences[DEV_MODE] ?: DEFAULT_SETTINGS_STATE.devMode,
+                devExtensionRepo =  preferences[DEV_EXTENSION_REPO] ?: DEFAULT_SETTINGS_STATE.devExtensionRepo,
             )
         }
 }

@@ -5,12 +5,15 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +24,7 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,7 +45,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,6 +70,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.DeeplinkHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.utils.SponsorHelper
+import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
@@ -67,10 +79,18 @@ import kotlinx.coroutines.withContext
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
+fun AboutModal(visible: Boolean, settingsViewModel: SettingsViewModel, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val hapticFeedback = LocalHapticFeedback.current
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
+    val settingsState by settingsViewModel.state.collectAsState()
+    val devMode = settingsState.devMode
+
+    var devClick by remember {
+        mutableIntStateOf(0)
+    }
 
     if (visible) {
         ModalBottomSheet(
@@ -88,7 +108,31 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                 Image(
                     painter = painterResource(id = R.mipmap.ic_launcher_foreground),
                     contentDescription = "icon",
-                    modifier = Modifier.size(128.dp)
+                    modifier = Modifier
+                        .size(128.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = rememberRipple(bounded = true),
+                            onClick = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                if (devClick >= 7) {
+                                    if (devMode) {
+                                        Toast
+                                            .makeText(context, "已退出开发者模式", Toast.LENGTH_SHORT)
+                                            .show()
+                                    } else {
+                                        Toast
+                                            .makeText(context, "已加入开发者模式", Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                    settingsViewModel.setDevMode(!devMode)
+                                    devClick = 0
+                                } else {
+                                    devClick += 1
+                                }
+                            }),
+                    colorFilter = if (devMode) ColorFilter.tint(Color.Yellow, blendMode = BlendMode.Darken) else null
                 )
                 Text(
                     text = stringResource(id = R.string.app_name),
@@ -230,7 +274,6 @@ fun AboutModal(visible: Boolean, onDismiss: () -> Unit) {
                     var toWechatDialog by remember {
                         mutableStateOf(false)
                     }
-                    val context = LocalContext.current
                     val sponsorSheetState = rememberModalBottomSheetState(
                         skipPartiallyExpanded = true
                     )
