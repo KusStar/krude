@@ -209,6 +209,8 @@ class MainViewModel : ViewModel() {
         loadExtensionsJob?.cancel()
         loadExtensionsJob = viewModelScope.launch {
             withContext(IO) {
+                extensionMap.clear()
+
                 val settingsState = getSettingsState()
                 val repoUrl = if (settingsState.devExtension) {
                     settingsState.devExtensionRepo
