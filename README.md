@@ -6,25 +6,12 @@
 
 # Krude
 
-> A tiny but elegant app launcher / 一个简陋但可爱的桌面 / 应用启动器。Built with Jetpack Compose.
+> All in one app and workflow launcher / 小而美的应用启动器。Built with Jetpack Compose.
 
 ## Features
 
 - 使用拼音/首字母搜索打开应用
-
-## TODO
-
-- [x] 模糊搜索
-
-- [x] 样式优化
-
-- [x] 支持拼音首字母搜索
-
-- [ ] 自定义应用别名，屏蔽应用
-
-- [ ] 常用的应用列表，按使用频率排序
-
-- [ ] 常见的系统 Activity
+- 支持自定义扩展，快捷启动各种应用的页面，减少繁琐的操作。扩展商店: [Krude Extension Store](https://github.com/KusStar/krude-extensions?tab=readme-ov-file)
 
 ## Thanks
 
