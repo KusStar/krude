@@ -42,8 +42,8 @@ data class IntentData(
     val packageField: String,
     @SerializedName("class")
     val classField: String,
-    val extra: JsonObject,
-    val flags: Long,
-    val action: String,
+    val extra: JsonObject? = null,
+    val flags: Long? = null,
+    val action: String? = null,
 )
 
