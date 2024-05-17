@@ -10,8 +10,9 @@ object ExtensionType {
 }
 
 data class Extension(
+    val id: String,
     val name: String,
-    val description: String,
+    val description: String? = null,
     val type: String,
     var required: List<String>? = null,
     val keywords: List<String>? = null,
@@ -24,7 +25,7 @@ data class Extension(
 data class AppExtensionGroup(
     val name: String,
     val version: String,
-    val description: String,
+    val description: String? = null,
     val main: List<Extension>,
 ) {
     constructor(single: AppExtensionSingle) : this(name = single.name, version = single.version, description = single.description, listOf(single.main))
@@ -33,7 +34,7 @@ data class AppExtensionGroup(
 data class AppExtensionSingle(
     val name: String,
     val version: String,
-    val description: String,
+    val description: String? = null,
     val main: Extension,
 )
 
