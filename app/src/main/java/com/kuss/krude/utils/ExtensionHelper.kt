@@ -43,20 +43,25 @@ object ExtensionHelper {
             val intent = Intent()
             val data = extension.data!!
             intent.setComponent(ComponentName(data.packageField, data.classField))
-            val extra = data.extra
-            extra.asMap().forEach {
-                if (it.value.isJsonPrimitive) {
-                    val primitive = it.value.asJsonPrimitive
-                    when {
-                        primitive.isString -> intent.putExtra(it.key, primitive.asString)
-                        primitive.isNumber -> intent.putExtra(it.key, primitive.asNumber.toInt())
-                        primitive.isBoolean -> intent.putExtra(it.key, primitive.asBoolean)
-                        else -> println("The value of '$it.key' is neither a String nor a Number.")
+            if (data.extra != null) {
+                data.extra.asMap().forEach {
+                    if (it.value.isJsonPrimitive) {
+                        val primitive = it.value.asJsonPrimitive
+                        when {
+                            primitive.isString -> intent.putExtra(it.key, primitive.asString)
+                            primitive.isNumber -> intent.putExtra(it.key, primitive.asNumber.toInt())
+                            primitive.isBoolean -> intent.putExtra(it.key, primitive.asBoolean)
+                            else -> println("The value of '$it.key' is neither a String nor a Number.")
+                        }
                     }
                 }
             }
-            intent.setFlags(data.flags.toInt())
-            intent.setAction(data.action)
+            if (data.flags != null) {
+                intent.setFlags(data.flags.toInt())
+            }
+            if (data.action != null) {
+                intent.setAction(data.action)
+            }
             context.startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
