@@ -222,7 +222,10 @@ class MainViewModel : ViewModel() {
                 ) { exception, extensionUrls ->
                     if (exception != null) {
                         Timber.e("loadExtensions: error, $exception")
-                        ToastUtils.show(context, "Load extensions error, please check the repo url.")
+                        ToastUtils.show(
+                            context,
+                            "Load extensions error, please check the repo url."
+                        )
                         return@fetchExtensionsFromRepo
                     }
                     extensionUrls?.forEach { url ->
@@ -234,8 +237,8 @@ class MainViewModel : ViewModel() {
                             }
                             if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
                                 val nextExtensions = appExtensionGroup.main.filter { extension ->
-                                    if (extension.required != null) {
-                                        return@filter extension.required.any { required ->
+                                    if (!extension.required.isNullOrEmpty()) {
+                                        return@filter extension.required!!.any { required ->
                                             packageNameSet.contains(
                                                 required
                                             )
@@ -245,6 +248,11 @@ class MainViewModel : ViewModel() {
                                 }.map {
                                     it.filterTarget =
                                         FilterHelper.toTarget(it)
+                                    if (!it.required.isNullOrEmpty()) {
+                                        it.required = it.required!!.sortedByDescending { re ->
+                                            packageNameSet.contains(re)
+                                        }
+                                    }
                                     it
                                 }
                                 Timber.d("loadExtensions extensions size = ${extensionMap.size}")
