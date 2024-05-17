@@ -10,3 +10,8 @@ import androidx.compose.ui.unit.dp
 fun Spacing(x: Int, factor: Int = 8) {
     Spacer(modifier = Modifier.size((x * factor).dp))
 }
+
+@Composable
+fun Spacing(x: Float, factor: Int = 8) {
+    Spacer(modifier = Modifier.size((x * factor).dp))
+}

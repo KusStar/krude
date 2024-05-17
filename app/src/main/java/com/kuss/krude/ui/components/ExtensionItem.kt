@@ -127,6 +127,10 @@ fun ExtensionItem(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(4.dp)
             ) {
+                if (!item.required.isNullOrEmpty()) {
+                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
+                }
+                Spacing(x = 0.5f)
                 ExtensionContent(
                     item = item,
                     showStar = showStar,
