@@ -235,78 +235,99 @@ fun BottomSearchBar(
         visible = searchState.text.isNotEmpty(),
     ) {
         HorizontalDivider()
+        Crossfade(targetState = searchResult.isNotEmpty(), label = "searchList") { show ->
+            if (show) {
+                Column {
+                    AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.TwoTone.Star,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    contentDescription = "Star",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacing(x = 1)
+                                Text(
+                                    text = searchState.text,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacing(x = 1)
+                                Text(text = "to app", color = MaterialTheme.colorScheme.secondary)
+                            }
+                        }
+                    }
 
-        Column {
-            AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.TwoTone.Star,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "Star",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                    if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+                        ExtensionList(
+                            searchResult = searchResult,
+                            listState = searchExtensionListState,
+                            starSet = currentStarPackageNameSet,
+                            showUsageCount = settingsState.showUsageCount,
+                            onExtensionClick = { extension, isStar ->
+                                onExtensionClick(extension, isStar)
+                            },
+                            settingsState.dominantHand == DominantHandDefaults.RIGHT
                         )
-                        Spacing(x = 1)
-                        Text(
-                            text = searchState.text,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                        HorizontalDivider()
+                    }
+
+                    MainList(
+                        searchResult = searchResult,
+                        listState = searchMainListState,
+                        starSet = currentStarPackageNameSet,
+                        settingsState = settingsState,
+                        onAppClick = { app, isStar ->
+                            onAppClick(app, isStar)
+                        },
+                        onExtensionClick = { extension, isStar ->
+                            onExtensionClick(extension, isStar)
+                        },
+                        toAppDetail = { app ->
+                            toAppDetail(app)
+                        },
+                        reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT
+                    )
+
+                    if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+                        HorizontalDivider()
+                        ExtensionList(
+                            searchResult = searchResult,
+                            listState = searchExtensionListState,
+                            starSet = currentStarPackageNameSet,
+                            showUsageCount = settingsState.showUsageCount,
+                            onExtensionClick = { extension, isStar ->
+                                onExtensionClick(extension, isStar)
+                            },
+                            settingsState.dominantHand == DominantHandDefaults.RIGHT
                         )
-                        Spacing(x = 1)
-                        Text(text = "to app", color = MaterialTheme.colorScheme.secondary)
                     }
                 }
-            }
-
-            if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
-                ExtensionList(
-                    searchResult = searchResult,
-                    listState = searchExtensionListState,
-                    starSet = currentStarPackageNameSet,
-                    showUsageCount = settingsState.showUsageCount,
-                    onExtensionClick = { extension, isStar ->
-                        onExtensionClick(extension, isStar)
-                    },
-                    settingsState.dominantHand == DominantHandDefaults.RIGHT
-                )
-                HorizontalDivider()
-            }
-
-            MainList(
-                searchResult = searchResult,
-                listState = searchMainListState,
-                starSet = currentStarPackageNameSet,
-                settingsState = settingsState,
-                onAppClick = { app, isStar ->
-                    onAppClick(app, isStar)
-                },
-                onExtensionClick = { extension, isStar ->
-                    onExtensionClick(extension, isStar)
-                },
-                toAppDetail = { app ->
-                    toAppDetail(app)
-                },
-                reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT
-            )
-
-            if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
-                HorizontalDivider()
-                ExtensionList(
-                    searchResult = searchResult,
-                    listState = searchExtensionListState,
-                    starSet = currentStarPackageNameSet,
-                    showUsageCount = settingsState.showUsageCount,
-                    onExtensionClick = { extension, isStar ->
-                        onExtensionClick(extension, isStar)
-                    },
-                    settingsState.dominantHand == DominantHandDefaults.RIGHT
-                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.mipmap.ic_launcher_foreground),
+                        contentDescription = null,
+                        modifier = Modifier.size(96.dp)
+                    )
+                    Text(
+                        text = stringResource(id = R.string.no_match_app),
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
         }
     }
@@ -463,76 +484,19 @@ fun MainList(
             searchResult else
             searchResult.filter { it.isApp() }
     }
-    Crossfade(
-        targetState = mainData.isNotEmpty(),
-        label = "filteredItems"
-    ) { show ->
-        val height = 128.dp
-        if (show) {
-            if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
-                LazyRow(
-                    modifier = Modifier
-                        .height(height)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    state = listState,
-                    reverseLayout = reverseLayout
-                ) {
-                    itemsIndexed(
-                        mainData,
-                        key = { _, item -> item.key() }) { _, item ->
-                        if (item.isApp()) {
-                            val app = item.asApp()!!
-                            val isStar = starSet.contains(app.packageName)
-                            AppItem(
-                                modifier = Modifier
-                                    .width(96.dp),
-                                item = app,
-                                titleFontSize = 14.sp,
-                                showStar = isStar,
-                                titleSingleLine = true,
-                                showSubtitle = false,
-                                onClick = {
-                                    onAppClick(app, isStar)
-                                },
-                                onLongClick = {
-                                    toAppDetail(app)
-                                },
-                                showTimes = settingsState.showUsageCount,
-                            )
-                        }
-                        if (item.isExtension()) {
-                            val extension = item.asExtension()!!
-                            val isStar = starSet.contains(extension.name)
-                            ExtensionItem(
-                                modifier = Modifier
-                                    .width(96.dp),
-                                item = extension,
-                                titleFontSize = 14.sp,
-                                showStar = isStar,
-                                showSubtitle = false,
-                                onClick = {
-                                    onExtensionClick(extension, isStar)
-                                },
-                                onLongClick = {
-                                },
-                                showTimes = settingsState.showUsageCount,
-                            )
-                        }
-                    }
-                }
-            } else {
-                LazyRow(
-                    modifier = Modifier
-                        .height(height)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    state = listState,
-                    reverseLayout = reverseLayout
-                ) {
-                    itemsIndexed(
-                        mainData,
-                        key = { _, item -> item.key() }) { _, item ->
+    AnimatedVisibility(visible = mainData.isNotEmpty()) {
+        if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
+            LazyRow(
+                modifier = Modifier
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                state = listState,
+                reverseLayout = reverseLayout
+            ) {
+                itemsIndexed(
+                    mainData,
+                    key = { _, item -> item.key() }) { _, item ->
+                    if (item.isApp()) {
                         val app = item.asApp()!!
                         val isStar = starSet.contains(app.packageName)
                         AppItem(
@@ -552,25 +516,56 @@ fun MainList(
                             showTimes = settingsState.showUsageCount,
                         )
                     }
+                    if (item.isExtension()) {
+                        val extension = item.asExtension()!!
+                        val isStar = starSet.contains(extension.name)
+                        ExtensionItem(
+                            modifier = Modifier
+                                .width(96.dp),
+                            item = extension,
+                            titleFontSize = 14.sp,
+                            showStar = isStar,
+                            showSubtitle = false,
+                            onClick = {
+                                onExtensionClick(extension, isStar)
+                            },
+                            onLongClick = {
+                            },
+                            showTimes = settingsState.showUsageCount,
+                        )
+                    }
                 }
             }
         } else {
-            Row(
+            LazyRow(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(height),
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                state = listState,
+                reverseLayout = reverseLayout
             ) {
-                Image(
-                    painter = painterResource(R.mipmap.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(96.dp)
-                )
-                Text(
-                    text = stringResource(id = R.string.no_match_app),
-                    color = MaterialTheme.colorScheme.secondary
-                )
+                itemsIndexed(
+                    mainData,
+                    key = { _, item -> item.key() }) { _, item ->
+                    val app = item.asApp()!!
+                    val isStar = starSet.contains(app.packageName)
+                    AppItem(
+                        modifier = Modifier
+                            .width(96.dp),
+                        item = app,
+                        titleFontSize = 14.sp,
+                        showStar = isStar,
+                        titleSingleLine = true,
+                        showSubtitle = false,
+                        onClick = {
+                            onAppClick(app, isStar)
+                        },
+                        onLongClick = {
+                            toAppDetail(app)
+                        },
+                        showTimes = settingsState.showUsageCount,
+                    )
+                }
             }
         }
     }
