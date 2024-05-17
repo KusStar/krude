@@ -79,10 +79,10 @@ fun ExtensionContent(
             )
         }
 
-        AnimatedVisibility(visible = showSubtitle) {
+        AnimatedVisibility(visible = showSubtitle && item.description != null) {
             Spacing(1, 4)
             Text(
-                text = item.description,
+                text = item.description!!,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
                 fontSize = subtitleFontSize,

@@ -259,7 +259,7 @@ class MainViewModel : ViewModel() {
                                 }
                                 Timber.d("loadExtensions extensions size = ${extensionMap.size}")
                                 nextExtensions.forEach {
-                                    extensionMap[it.name] = it
+                                    extensionMap[it.id] = it
                                 }
                             }
                         }

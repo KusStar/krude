@@ -6,6 +6,7 @@ JSON/JS based extension protocol for krude.
 
 ```ts
 type Extension = {
+  id: string
   required?: string[]
   keywords?: string[]
   name: string
@@ -13,6 +14,7 @@ type Extension = {
   type: "scheme"
   uri: string
 } | {
+  id: string
   required?: string[]
   name: string
   description?: string
@@ -85,3 +87,5 @@ Example:
     ]
 }
 ```
+
+More at [Krude Extension Store](https://github.com/KusStar/krude-extensions?tab=readme-ov-file)
