@@ -1,6 +1,5 @@
 package com.kuss.krude.ui
 
-import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -55,7 +54,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -66,7 +64,6 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
-import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.CloseBtn
@@ -94,7 +91,6 @@ fun BottomSearchBar(
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val uriHandler = LocalUriHandler.current
 
     val uiState by mainViewModel.state.collectAsState()
     val settingsState by settingsViewModel.state.collectAsState()
@@ -170,19 +166,7 @@ fun BottomSearchBar(
                 isStar
             )
         } else {
-            when (extension.type) {
-                ExtensionType.SCHEME -> uriHandler.openUri(extension.uri!!)
-                ExtensionType.ACTION -> {
-                    val intent = Intent(extension.uri)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    context.startActivity(intent)
-                }
-
-                ExtensionType.INTENT -> ExtensionHelper.launchExtensionIntent(
-                    context,
-                    extension
-                )
-            }
+            ExtensionHelper.launchExtension(context, extension)
             mainViewModel.updateExtensionPriority(extension)
             clear()
         }

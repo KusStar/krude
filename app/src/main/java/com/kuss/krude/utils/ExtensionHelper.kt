@@ -3,11 +3,13 @@ package com.kuss.krude.utils
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.kuss.krude.interfaces.AppExtensionGroup
 import com.kuss.krude.interfaces.AppExtensionSingle
 import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.interfaces.ExtensionType
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
@@ -36,6 +38,28 @@ object ExtensionHelper {
             )
             .build()
     }
+
+    fun launchExtension(context: Context, extension: Extension) {
+        when (extension.type) {
+            ExtensionType.SCHEME -> {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(extension.uri)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                context.startActivity(intent)
+            }
+            ExtensionType.ACTION -> {
+                val intent = Intent(extension.uri)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                context.startActivity(intent)
+            }
+            ExtensionType.INTENT -> launchExtensionIntent(
+                context,
+                extension
+            )
+        }
+    }
+
 
     fun launchExtensionIntent(context: Context, extension: Extension) {
         try {
