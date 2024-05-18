@@ -93,6 +93,7 @@ class MainViewModel : ViewModel() {
     fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver != null) {
             context.unregisterReceiver(packageEventReceiver)
+            packageEventReceiver = null
         }
         if (packageEventReceiver == null) {
             packageEventReceiver = object : BroadcastReceiver() {
