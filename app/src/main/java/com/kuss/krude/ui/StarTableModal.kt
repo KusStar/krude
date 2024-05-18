@@ -62,7 +62,7 @@ fun StarTableModal(
                 val allStars = mainViewModel.getAllStars(context)
                 Timber.d("getAllStars, ${allStars.size}")
                 stars.addAll(allStars)
-                mainViewModel.state.value.apps.forEach {
+                mainViewModel.state.value.originalApps.forEach {
                     packageNameLabelMap[it.packageName] = it.label
                 }
             }

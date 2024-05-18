@@ -34,6 +34,7 @@ import timber.log.Timber
 
 data class MainState(
     val missingPermission: Boolean = false,
+    val originalApps: List<AppInfo> = listOf(),
     val apps: List<AppInfo> = listOf(),
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
@@ -178,6 +179,7 @@ class MainViewModel : ViewModel() {
     fun loadApps(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
+                Timber.d("loadApps")
                 // load from db
                 val db = getDatabase(context)
 
@@ -186,22 +188,27 @@ class MainViewModel : ViewModel() {
                 if (dbApps.isNotEmpty()) {
                     _state.update { mainState ->
                         mainState.copy(
+                            originalApps = dbApps,
                             apps = dbApps,
                             scrollbarItems = getScrollbarItemsFromApps(dbApps)
                         )
                     }
-                    loadPackageNameSet(dbApps)
+                    postLoadApps(context, dbApps)
                     Timber.d("load from db, ${dbApps.size} apps")
                 }
                 // load from packageManager
                 loadFromPackageManger(context, dbApps)
                 loadExtensions(context)
-                loadHiddenSet(context)
             }
         }
     }
 
-    private fun loadPackageNameSet(apps: List<AppInfo>) {
+    private fun postLoadApps(context: Context, apps: List<AppInfo>) {
+        setPackageNameSet(apps)
+        loadHiddenSet(context, apps)
+    }
+
+    private fun setPackageNameSet(apps: List<AppInfo>) {
         packageNameSet.clear()
         apps.forEach {
             packageNameSet.add(it.packageName)
@@ -221,53 +228,50 @@ class MainViewModel : ViewModel() {
                     ExtensionHelper.EXTENSIONS_REPO
                 }
                 Timber.i("loadExtensions: $repoUrl")
-                ExtensionHelper.fetchExtensionsFromRepo(
+                val (exception, extensionUrls) = ExtensionHelper.fetchExtensionsFromRepo(
                     context,
                     repoUrl
-                ) { exception, extensionUrls ->
-                    if (exception != null) {
-                        Timber.e("loadExtensions: error, $exception")
-                        ToastUtils.show(
-                            context,
-                            "Load extensions error, please check the repo url."
-                        )
-                        return@fetchExtensionsFromRepo
-                    }
-                    extensionUrls?.forEach { url ->
-                        ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
-                            if (appExtensionGroup != null) {
-                                Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.version}")
-                            } else {
-                                Timber.d("loadExtensions: null for $url")
+                )
+                if (exception != null) {
+                    Timber.e("loadExtensions: error, $exception")
+                    ToastUtils.show(
+                        context,
+                        "Load extensions error, please check the repo url."
+                    )
+                    return@withContext
+                }
+                extensionUrls?.forEach { url ->
+                    ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
+                        if (appExtensionGroup != null) {
+                            Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.main.size}")
+                        } else {
+                            Timber.d("loadExtensions: null for $url")
+                        }
+                        if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
+                            val nextExtensions = appExtensionGroup.main.filter { extension ->
+                                if (!extension.required.isNullOrEmpty()) {
+                                    return@filter extension.required!!.any { required ->
+                                        packageNameSet.contains(
+                                            required
+                                        )
+                                    }
+                                }
+                                true
+                            }.map {
+                                it.filterTarget =
+                                    FilterHelper.toTarget(it)
+                                if (!it.required.isNullOrEmpty()) {
+                                    it.required = it.required!!.sortedByDescending { re ->
+                                        packageNameSet.contains(re)
+                                    }
+                                }
+                                it
                             }
-                            if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
-                                val nextExtensions = appExtensionGroup.main.filter { extension ->
-                                    if (!extension.required.isNullOrEmpty()) {
-                                        return@filter extension.required!!.any { required ->
-                                            packageNameSet.contains(
-                                                required
-                                            )
-                                        }
-                                    }
-                                    true
-                                }.map {
-                                    it.filterTarget =
-                                        FilterHelper.toTarget(it)
-                                    if (!it.required.isNullOrEmpty()) {
-                                        it.required = it.required!!.sortedByDescending { re ->
-                                            packageNameSet.contains(re)
-                                        }
-                                    }
-                                    it
-                                }
-                                Timber.d("loadExtensions extensions size = ${extensionMap.size}")
-                                nextExtensions.forEach {
-                                    extensionMap[it.id] = it
-                                }
+                            nextExtensions.forEach {
+                                extensionMap[it.id] = it
                             }
                         }
                     }
-
                 }
             }
         }
@@ -298,15 +302,17 @@ class MainViewModel : ViewModel() {
                     }
                 }
 
-                loadPackageNameSet(apps)
 
                 _state.update { mainState ->
                     mainState.copy(
                         missingPermission = false,
+                        originalApps = apps,
                         apps = apps,
                         scrollbarItems = getScrollbarItemsFromApps(apps)
                     )
                 }
+
+                postLoadApps(context, apps)
 
                 updateDbAppsPriority(context, apps)
 
@@ -618,31 +624,26 @@ class MainViewModel : ViewModel() {
                 val db = getDatabase(context)
                 val hiddenDao = db.hiddenDao()
 
+                hiddenDao.delete(name)
+
                 hiddenDao.insert(Hidden(name))
 
-                loadHiddenSet(context)
+                loadHiddenSet(context, _state.value.apps)
             }
         }
     }
 
-    private fun loadHiddenSet(context: Context) {
+    private fun loadHiddenSet(context: Context, apps: List<AppInfo>) {
         viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)
                 val hiddenDao = db.hiddenDao()
-
-                val data = mutableSetOf<String>()
-
-                hiddenDao.getAll().forEach {
-                    data.add(it.key)
-                }
-
-                val apps = _state.value.apps
+                val hiddenSet = hiddenDao.getAll().mapTo(HashSet()) { it.key }
 
                 _state.update { mainState ->
                     mainState.copy(
-                        hidden = data,
-                        apps = apps.filter { !data.contains(it.packageName) })
+                        hidden = hiddenSet,
+                        apps = apps.filter { !hiddenSet.contains(it.packageName) })
                 }
             }
         }
