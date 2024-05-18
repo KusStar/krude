@@ -90,6 +90,9 @@ class MainViewModel : ViewModel() {
     }
 
     fun initPackageEventReceiver(context: Context) {
+        if (packageEventReceiver != null) {
+            context.unregisterReceiver(packageEventReceiver)
+        }
         if (packageEventReceiver == null) {
             packageEventReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
@@ -603,7 +606,7 @@ class MainViewModel : ViewModel() {
     fun deleteHidden(context: Context, hidden: Hidden) {
         viewModelScope.launch {
             withContext(IO) {
-                getDatabase(context).hiddenDao().delete(hidden)
+                getDatabase(context).hiddenDao().delete(hidden.key)
                 loadApps(context)
             }
         }

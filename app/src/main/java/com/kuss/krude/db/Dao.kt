@@ -88,6 +88,6 @@ interface HiddenDao {
     @Query("DELETE FROM hidden")
     fun deleteAll()
 
-    @Delete
-    fun delete(hidden: Hidden)
+    @Query("DELETE FROM hidden where `key` = :key")
+    fun delete(key: String)
 }
