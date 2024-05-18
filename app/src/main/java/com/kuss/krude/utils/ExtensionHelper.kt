@@ -23,7 +23,7 @@ object ExtensionHelper {
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
     val FALLBACK_REPO = EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
 
-    val GH_RAW_PROXY = "https://mirror.ghproxy.com"
+    const val GH_RAW_PROXY = "https://mirror.ghproxy.com"
 
     private var client: OkHttpClient? = null
 
@@ -36,6 +36,9 @@ object ExtensionHelper {
                     maxSize = 50L * 1024L * 1024L // 50 MiB
                 )
             )
+            .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+            .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
             .build()
     }
 
@@ -61,7 +64,7 @@ object ExtensionHelper {
     }
 
 
-    fun launchExtensionIntent(context: Context, extension: Extension) {
+    private fun launchExtensionIntent(context: Context, extension: Extension) {
         try {
             Timber.d("launchExtensionIntent: extension = $extension")
             val intent = Intent()
@@ -94,9 +97,8 @@ object ExtensionHelper {
 
     fun fetchExtensionsFromRepo(
         context: Context,
-        repoUrl: String,
-        onResult: (exception: Exception?, extensionUrls: List<String>?) -> Unit
-    ) {
+        repoUrl: String
+    ): Pair<Exception?, List<String>?> {
         if (client == null) {
             initClient(context)
         }
@@ -106,39 +108,36 @@ object ExtensionHelper {
             .cacheControl(CacheControl.FORCE_NETWORK)
             .build()
 
-        client!!.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                e.printStackTrace()
-                if (repoUrl.startsWith("https://api.github.com")) {
-                    Timber.d("fetchExtensionsFromRepo: fallback to FALLBACK_REPO")
-                    fetchExtensionsFromRepo(context, FALLBACK_REPO, onResult)
-                } else {
-                    onResult(e, null)
-                }
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!it.isSuccessful) throw IOException("Unexpected code $response")
-                    val body = it.body?.string()
-                    val gson = Gson()
-                    val extensionUrls: MutableList<String> = mutableListOf()
-                    try {
-                        gson.fromJson(body, JsonArray::class.java)?.forEach { data ->
-                            val name = data.asJsonObject.get("name").asString
-                            Timber.d("fetchExtensionsFromRepo: extension = $name")
-                            val url = data.asJsonObject.get("download_url").asString
-                            extensionUrls.add(url)
-                        }
-                        Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionUrls")
-                        onResult(null, extensionUrls)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        onResult(e, null)
+        try {
+            val response = client!!.newCall(request).execute()
+            response.use {
+                if (!it.isSuccessful) throw IOException("Unexpected code $response")
+                val body = it.body?.string()
+                val gson = Gson()
+                val extensionUrls: MutableList<String> = mutableListOf()
+                try {
+                    gson.fromJson(body, JsonArray::class.java)?.forEach { data ->
+                        val name = data.asJsonObject.get("name").asString
+                        Timber.d("fetchExtensionsFromRepo: extension = $name")
+                        val url = data.asJsonObject.get("download_url").asString
+                        extensionUrls.add(url)
                     }
+                    Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionUrls")
+                    return Pair(null, extensionUrls)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return Pair(e, null)
                 }
             }
-        })
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (repoUrl.startsWith("https://api.github.com")) {
+                Timber.d("fetchExtensionsFromRepo: fallback to FALLBACK_REPO")
+                return fetchExtensionsFromRepo(context, FALLBACK_REPO)
+            } else {
+                return Pair(e, null)
+            }
+        }
     }
 
     fun fetchExtension(

@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,22 +65,8 @@ fun MoreModal(
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel
 ) {
-    val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
     val uiState by mainViewModel.state.collectAsState()
-    val settingsState by settingsViewModel.state.collectAsState()
     val showMoreModal = uiState.showMoreSheet
-
-    fun dismiss() {
-        mainViewModel.setShowMoreSheet(false)
-    }
-
-    var showAbout by remember {
-        mutableStateOf(false)
-    }
-
     var showStarTable by remember {
         mutableStateOf(false)
     }
@@ -87,8 +74,27 @@ fun MoreModal(
     var showHiddenTable by remember {
         mutableStateOf(false)
     }
-
     if (showMoreModal) {
+        val context = LocalContext.current
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        )
+        val settingsState by settingsViewModel.state.collectAsState()
+
+        fun dismiss() {
+            mainViewModel.setShowMoreSheet(false)
+        }
+
+        var showAbout by remember {
+            mutableStateOf(false)
+        }
+
+        LaunchedEffect(settingsState.devExtension, settingsState.devExtensionRepo) {
+            if (settingsState.enableExtension) {
+                mainViewModel.loadExtensions(context)
+            }
+        }
+
         ModalBottomSheet(
             onDismissRequest = {
                 dismiss()

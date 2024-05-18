@@ -57,8 +57,7 @@ fun HiddenTableModal(
         LaunchedEffect(true) {
             withContext(Dispatchers.IO) {
                 hiddenList.addAll(mainViewModel.getHiddenList(context))
-                val apps = mainViewModel.state.value.apps
-                apps.forEach {
+                mainViewModel.state.value.originalApps.forEach {
                     packageNameToNameMap[it.packageName] = it.label
                 }
             }
