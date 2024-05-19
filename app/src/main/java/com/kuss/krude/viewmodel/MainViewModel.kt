@@ -90,30 +90,45 @@ class MainViewModel : ViewModel() {
         this.settingsViewModel = settingsViewModel
     }
 
-    fun initPackageEventReceiver(context: Context) {
+    fun unregisterPackageEventReceiver(context: Context) {
         if (packageEventReceiver != null) {
-            context.unregisterReceiver(packageEventReceiver)
-            packageEventReceiver = null
+            try {
+                context.unregisterReceiver(packageEventReceiver)
+                packageEventReceiver = null
+                Timber.d("unregisterPackageEventReceiver")
+            } catch(_: Exception) {
+
+            }
         }
+    }
+
+    fun initPackageEventReceiver(context: Context) {
         if (packageEventReceiver == null) {
             packageEventReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    Timber.d("onReceive: ${intent.action}")
+                    Timber.d("packageEventReceiver onReceive: ${intent.action}")
                     when (intent.action) {
                         Intent.ACTION_PACKAGE_ADDED -> {
                             onPackageAdded(context, intent)
                         }
-
                         Intent.ACTION_PACKAGE_REMOVED -> {
                             onPackageRemoved(intent)
+                        }
+                        Intent.ACTION_PACKAGE_REPLACED -> {
+                            loadApps(context)
+                        }
+                        Intent.ACTION_PACKAGE_CHANGED -> {
+                            loadApps(context)
                         }
                     }
                 }
             }
 
-            val filter = IntentFilter(Intent.ACTION_PACKAGE_ADDED)
+            val filter = IntentFilter()
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED)
             filter.addAction(Intent.ACTION_PACKAGE_REMOVED)
             filter.addAction(Intent.ACTION_PACKAGE_REPLACED)
+            filter.addAction(Intent.ACTION_PACKAGE_CHANGED)
             filter.addDataScheme("package")
 
             context.registerReceiver(packageEventReceiver, filter)
