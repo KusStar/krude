@@ -249,7 +249,8 @@ fun BottomSearchBar(
                         }
                     }
 
-                    if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+                    if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+                        val hasApp = searchResult.any { it.isApp() }
                         ExtensionList(
                             searchResult = searchResult,
                             listState = searchExtensionListState,
@@ -260,7 +261,9 @@ fun BottomSearchBar(
                             },
                             settingsState.dominantHand == DominantHandDefaults.RIGHT
                         )
-                        HorizontalDivider()
+                        AnimatedVisibility(visible = hasApp) {
+                            HorizontalDivider()
+                        }
                     }
 
                     MainList(
@@ -280,8 +283,11 @@ fun BottomSearchBar(
                         reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT
                     )
 
-                    if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
-                        HorizontalDivider()
+                    if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+                        val hasApp = searchResult.any { it.isApp() }
+                        AnimatedVisibility(visible = hasApp) {
+                            HorizontalDivider()
+                        }
                         ExtensionList(
                             searchResult = searchResult,
                             listState = searchExtensionListState,
