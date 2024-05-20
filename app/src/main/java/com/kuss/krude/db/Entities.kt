@@ -4,6 +4,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.kuss.krude.interfaces.Extension
 import java.util.Date
 
 @Entity(
@@ -45,6 +46,15 @@ data class Hidden(
     @PrimaryKey
     val key: String,
     val createdAt: Date = Date(),
+)
+
+@Entity(
+    tableName = "extension_cache"
+)
+data class ExtensionCache(
+    @PrimaryKey
+    val id: String,
+    val extension: Extension
 )
 
 data class UsageCountByDay(

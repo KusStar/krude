@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.kuss.krude.db.AppDatabase
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.db.ExtensionCache
 import com.kuss.krude.db.Hidden
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
@@ -236,6 +237,7 @@ class MainViewModel : ViewModel() {
         loadExtensionsJob = viewModelScope.launch {
             withContext(IO) {
                 extensionMap.clear()
+                loadExtensionsFromCache(context)
 
                 val settingsState = getSettingsState()
                 val repoUrl = if (settingsState.devExtension) {
@@ -286,9 +288,39 @@ class MainViewModel : ViewModel() {
                             nextExtensions.forEach {
                                 extensionMap[it.id] = it
                             }
+                            saveExtensionsIntoCache(context, nextExtensions)
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun loadExtensionsFromCache(context: Context)  {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                val extensionCacheDao = db.extensionCacheDao()
+                extensionCacheDao.getAll().forEach {
+                    extensionMap[it.id] = it.extension
+                }
+            }
+        }
+    }
+
+    private fun saveExtensionsIntoCache(context: Context, extensions: List<Extension>) {
+        viewModelScope.launch {
+            withContext(IO) {
+                if (extensions.isEmpty()) {
+                    Timber.d("cacheExtensions skip, extensions is empty")
+                    return@withContext
+                }
+                val db = getDatabase(context)
+                val extensionCacheDao = db.extensionCacheDao()
+                extensions.forEach {
+                    extensionCacheDao.insert(ExtensionCache(id = it.id, extension = it))
+                }
+                Timber.d("cacheExtensions done, ${extensions.size}")
             }
         }
     }

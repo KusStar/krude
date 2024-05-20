@@ -91,3 +91,18 @@ interface HiddenDao {
     @Query("DELETE FROM hidden where `key` = :key")
     fun delete(key: String)
 }
+
+@Dao
+interface ExtensionCacheDao {
+    @Query("SELECT * FROM extension_cache")
+    fun getAll(): List<ExtensionCache>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(extensionCache: ExtensionCache)
+
+    @Query("DELETE FROM extension_cache")
+    fun deleteAll()
+
+    @Query("DELETE FROM extension_cache where `id` = :id")
+    fun delete(id: String)
+}
