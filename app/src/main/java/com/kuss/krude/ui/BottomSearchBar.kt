@@ -209,7 +209,7 @@ fun BottomSearchBar(
         }
     }
 
-    LaunchedEffect(settingsState.enableExtension) {
+    LaunchedEffect(settingsState.enableExtension, uiState.extensionMap) {
         coroutineScope.launch {
             refresh(settingsState.fuzzySearch)
         }
