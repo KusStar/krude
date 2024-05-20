@@ -46,6 +46,7 @@ data class MainState(
     val showMoreSheet: Boolean = false,
     val currentStarPackageNameSet: Set<String> = setOf(),
     val hidden: Set<String> = setOf(),
+    val extensionMap: Map<String, Extension> = mapOf()
 )
 
 class MainViewModel : ViewModel() {
@@ -73,14 +74,12 @@ class MainViewModel : ViewModel() {
 
     private var packageNameSet: MutableSet<String> = mutableSetOf()
 
-    private var extensionMap: MutableMap<String, Extension> = mutableMapOf()
-
     private lateinit var settingsViewModel: SettingsViewModel
 
     private var loadExtensionsJob: Job? = null
 
     private fun getExtensions(): List<Extension> {
-        return extensionMap.values.toList()
+        return _state.value.extensionMap.values.toList()
     }
 
     private fun getSettingsState(): SettingsState {
@@ -236,7 +235,9 @@ class MainViewModel : ViewModel() {
         loadExtensionsJob?.cancel()
         loadExtensionsJob = viewModelScope.launch {
             withContext(IO) {
-                extensionMap.clear()
+                _state.update {
+                    it.copy(extensionMap = mapOf())
+                }
                 loadExtensionsFromCache(context)
 
                 val settingsState = getSettingsState()
@@ -285,10 +286,16 @@ class MainViewModel : ViewModel() {
                                 }
                                 it
                             }
-                            nextExtensions.forEach {
-                                extensionMap[it.id] = it
+                            if (nextExtensions.isNotEmpty()) {
+                                val tempMap = _state.value.extensionMap.toMutableMap()
+                                nextExtensions.forEach {
+                                    tempMap[it.id] = it
+                                }
+                                _state.update {
+                                    it.copy(extensionMap = tempMap)
+                                }
+                                saveExtensionsIntoCache(context, nextExtensions)
                             }
-                            saveExtensionsIntoCache(context, nextExtensions)
                         }
                     }
                 }
@@ -301,8 +308,12 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 val extensionCacheDao = db.extensionCacheDao()
+                val tempMap = mutableMapOf<String, Extension>()
                 extensionCacheDao.getAll().forEach {
-                    extensionMap[it.id] = it.extension
+                    tempMap[it.id] = it.extension
+                }
+                _state.update {
+                    it.copy(extensionMap = tempMap)
                 }
             }
         }
@@ -645,9 +656,13 @@ class MainViewModel : ViewModel() {
     fun updateExtensionPriority(extension: Extension) {
         viewModelScope.launch {
             withContext(IO) {
-                if (extensionMap.containsKey(extension.name)) {
+                val tempMap = _state.value.extensionMap.toMutableMap()
+                if (tempMap.containsKey(extension.name)) {
                     extension.priority += 1
-                    extensionMap[extension.name] = extension
+                    tempMap[extension.name] = extension
+                    _state.update {
+                        it.copy(extensionMap = tempMap)
+                    }
                 }
             }
         }
