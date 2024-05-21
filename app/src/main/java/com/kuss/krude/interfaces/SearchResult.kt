@@ -49,7 +49,7 @@ class SearchResultItem(
         return if (isApp()) {
             asApp()!!.packageName
         } else {
-            extension!!.name
+            extension!!.id
         }
     }
 }
