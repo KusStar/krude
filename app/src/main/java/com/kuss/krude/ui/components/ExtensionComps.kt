@@ -23,7 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -279,6 +282,16 @@ fun ExtensionGroupList(
         }
     }
     AnimatedVisibility(visible = searchResultExtensions.isNotEmpty()) {
+        val hapticFeedback = LocalHapticFeedback.current
+        val standaloneList = group[STANDALONE_GROUP]
+        val extensionGroups = group.filter { it.key != STANDALONE_GROUP }.map {
+            ExtensionGroupItem(extensions = it.value, key = it.value[0].required!![0])
+        }.toMutableList()
+        if (standaloneList != null) {
+            extensionGroups.addAll(standaloneList.map {
+                ExtensionGroupItem(extensions = listOf(it), key = it.id)
+            })
+        }
         LazyRow(
             modifier = Modifier
                 .padding(vertical = 4.dp),
@@ -286,25 +299,20 @@ fun ExtensionGroupList(
             state = listState,
             reverseLayout = reverseLayout
         ) {
-            val standaloneList = group[STANDALONE_GROUP]
-            val extensionGroups = group.filter { it.key != STANDALONE_GROUP }.map {
-                ExtensionGroupItem(extensions = it.value, key = it.value[0].required!![0])
-            }.toMutableList()
-            if (standaloneList != null) {
-                extensionGroups.addAll(standaloneList.map {
-                    ExtensionGroupItem(extensions = listOf(it), key = it.id)
-                })
-            }
-            Timber.d("extensionGroups: values = ${extensionGroups.joinToString { it.extensions.joinToString { it.id } }}")
             itemsIndexed(extensionGroups, key = { _, item -> item.key }) { index, group ->
                 val extensions = group.extensions
                 if (extensions.size > 1) {
                     val state = rememberFWheelPickerState()
-                    val hapticFeedback = LocalHapticFeedback.current
+                    var hapticFeedbackEnable by remember { mutableStateOf(false) }
                     LaunchedEffect(state) {
                         snapshotFlow { state.currentIndexSnapshot }
                             .collect {
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                if (state.currentIndexSnapshot > 0) {
+                                    hapticFeedbackEnable = true
+                                }
+                                if (hapticFeedbackEnable) {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                }
                             }
                     }
                     FVerticalWheelPicker(
