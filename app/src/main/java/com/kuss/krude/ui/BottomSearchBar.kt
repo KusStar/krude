@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,7 +33,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -68,6 +66,7 @@ import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.CloseBtn
 import com.kuss.krude.ui.components.ExtensionItem
+import com.kuss.krude.ui.components.ExtensionList
 import com.kuss.krude.ui.components.MoreBtns
 import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
@@ -259,7 +258,8 @@ fun BottomSearchBar(
                             onExtensionClick = { extension, isStar ->
                                 onExtensionClick(extension, isStar)
                             },
-                            settingsState.dominantHand == DominantHandDefaults.RIGHT
+                            settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                            false
                         )
                         AnimatedVisibility(visible = hasApp) {
                             HorizontalDivider()
@@ -296,7 +296,8 @@ fun BottomSearchBar(
                             onExtensionClick = { extension, isStar ->
                                 onExtensionClick(extension, isStar)
                             },
-                            settingsState.dominantHand == DominantHandDefaults.RIGHT
+                            settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                            false
                         )
                     }
                 }
@@ -555,51 +556,6 @@ fun MainList(
                         },
                         showTimes = settingsState.showUsageCount,
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ExtensionList(
-    searchResult: List<SearchResultItem>,
-    listState: LazyListState,
-    starSet: Set<String>,
-    showUsageCount: Boolean,
-    onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-    reverseLayout: Boolean
-) {
-    val extensions = remember(searchResult) {
-        searchResult.filter { it.isExtension() }
-    }
-    AnimatedVisibility(visible = extensions.isNotEmpty()) {
-        LazyRow(
-            modifier = Modifier
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            state = listState,
-            reverseLayout = reverseLayout
-        ) {
-            itemsIndexed(extensions, key = { _, item -> item.key() }) { index, item ->
-                val extension = item.asExtension()!!
-                val isStar = starSet.contains(extension.name)
-                ExtensionItem(
-                    modifier = Modifier,
-                    item = extension,
-                    titleFontSize = 14.sp,
-                    showStar = isStar,
-                    showSubtitle = false,
-                    horizontal = true,
-                    onClick = {
-                        onExtensionClick(extension, isStar)
-                    },
-                    onLongClick = {
-                    },
-                    showTimes = showUsageCount,
-                )
-                if (index < extensions.size - 1) {
-                    VerticalDivider(modifier = Modifier.height(16.dp))
                 }
             }
         }

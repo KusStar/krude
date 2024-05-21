@@ -11,6 +11,7 @@ buildscript {
         //noinspection JcenterRepositoryObsolete
         jcenter()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.3.1'
@@ -26,6 +27,7 @@ allprojects {
         //noinspection JcenterRepositoryObsolete
         jcenter()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
