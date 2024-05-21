@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class SettingsRepository(private val context: Context) {
-    private val Context.dataStore by preferencesDataStore(name = if (BuildConfig.DEBUG) "settings_debug" else "settings" )
 
     companion object {
+        private val Context.dataStore by preferencesDataStore(name = if (BuildConfig.DEBUG) "settings_debug" else "settings" )
         val AUTO_FOCUS_KEY = booleanPreferencesKey("auto_focus")
         val FUZZY_SEARCH_KEY = booleanPreferencesKey("fuzzy_search")
         val SHOW_USAGE_COUNT_KEY = booleanPreferencesKey("show_usage_count")
