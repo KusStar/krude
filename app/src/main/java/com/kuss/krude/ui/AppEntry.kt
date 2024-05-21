@@ -168,7 +168,7 @@ fun AppEntry(
                         mainViewModel.loadApps(context)
                     }
                 ) {
-                    Text(stringResource(id = R.string.close))
+                    Text(stringResource(id = R.string.granted))
                 }
             }
         )
