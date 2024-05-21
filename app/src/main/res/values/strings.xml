@@ -43,4 +43,5 @@
     <string name="refetch_extensions">Refetch extensions</string>
     <string name="granted">Granted</string>
     <string name="go_grant">Go to grant</string>
+    <string name="extension_group_layout">Extension group layout</string>
 </resources>

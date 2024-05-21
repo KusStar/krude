@@ -30,6 +30,7 @@ data class SettingsState(
     val showLeftSideBackSpace: Boolean = true,
     val dominantHand: String = DominantHandDefaults.LEFT,
     val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP,
+    val extensionGroupLayout: Boolean = true,
     val devMode: Boolean = false,
     val devExtension: Boolean = false,
     val devExtensionRepo: String = "http://localhost:12345",
@@ -133,6 +134,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
     fun setExtensionDisplayMode(mode: String) {
         viewModelScope.launch {
             settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE, mode)
+            loadSettings()
+        }
+    }
+
+    fun setExtensionGroupLayout(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveBoolSetting(SettingsRepository.EXTENSION_GROUP_LAYOUT, enabled)
             loadSettings()
         }
     }

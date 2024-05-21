@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.HistoryToggleOff
 import androidx.compose.material.icons.filled.ImportantDevices
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Merge
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
@@ -227,6 +228,19 @@ fun MoreModal(
                                 title = { Text(text = stringResource(id = R.string.extension_list)) },
                                 onClick = {
 
+                                }
+                            )
+                            SettingsCheckbox(
+                                icon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Merge,
+                                        contentDescription = null
+                                    )
+                                },
+                                title = { Text(text = stringResource(id = R.string.extension_group_layout)) },
+                                state = settingsState.extensionGroupLayout,
+                                onCheckedChange = { next ->
+                                    settingsViewModel.setExtensionGroupLayout(next)
                                 }
                             )
                             if (settingsState.devMode) {

@@ -259,7 +259,7 @@ fun BottomSearchBar(
                                 onExtensionClick(extension, isStar)
                             },
                             settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                            false
+                            settingsState.extensionGroupLayout
                         )
                         AnimatedVisibility(visible = hasApp) {
                             HorizontalDivider()
@@ -297,7 +297,7 @@ fun BottomSearchBar(
                                 onExtensionClick(extension, isStar)
                             },
                             settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                            false
+                            settingsState.extensionGroupLayout
                         )
                     }
                 }
