@@ -19,6 +19,15 @@ object AppHelper {
     }
 
     @JvmStatic
+    fun getAllPackageNames(context: Context): List<String> {
+        val pm = context.packageManager
+        val allApps = pm.getInstalledApplications(PackageManager.MATCH_ALL)
+        return allApps.map {
+            it.packageName
+        }
+    }
+
+    @JvmStatic
     fun getAppInfo(app: ApplicationInfo, pm: PackageManager, context: Context): AppInfo {
         val label = app.loadLabel(pm).toString()
         val abbr = FilterHelper.getAbbr(label)
