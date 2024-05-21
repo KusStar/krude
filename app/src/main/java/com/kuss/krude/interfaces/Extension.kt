@@ -11,7 +11,7 @@ object ExtensionType {
 
 data class Extension(
     val id: String,
-    val name: String,
+    var name: String,
     val description: String? = null,
     val type: String,
     var required: List<String>? = null,

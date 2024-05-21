@@ -283,6 +283,8 @@ class MainViewModel : ViewModel() {
                                     it.required = it.required!!.sortedByDescending { re ->
                                         packageNameSet.contains(re)
                                     }
+                                    // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
+                                    it.name = if (it.name.contains("-")) it.name.split("-", limit = 2)[1] else it.name
                                 }
                                 it
                             }
