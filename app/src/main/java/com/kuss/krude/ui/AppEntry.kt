@@ -65,7 +65,7 @@ fun AppEntry(
 
     val lifeCycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { source, event ->
+        val observer = LifecycleEventObserver { _, event ->
             Timber.d("Lifecycle event: $event")
             if (event == Lifecycle.Event.ON_DESTROY) {
                 mainViewModel.unregisterPackageEventReceiver(context)
@@ -159,7 +159,7 @@ fun AppEntry(
                         ActivityHelper.toDetail(context, context.packageName)
                     }
                 ) {
-                    Text(stringResource(id = R.string.confirm))
+                    Text(stringResource(id = R.string.go_grant))
                 }
             },
             dismissButton = {
