@@ -213,6 +213,7 @@ class MainViewModel : ViewModel() {
                     Timber.d("load from db, ${dbApps.size} apps")
                 }
                 // load from packageManager
+                loadPackageNameSet(context)
                 loadFromPackageManger(context, dbApps)
                 loadExtensions(context)
             }
@@ -220,14 +221,19 @@ class MainViewModel : ViewModel() {
     }
 
     private fun postLoadApps(context: Context, apps: List<AppInfo>) {
-        setPackageNameSet(apps)
         loadHiddenSet(context, apps)
     }
 
-    private fun setPackageNameSet(apps: List<AppInfo>) {
-        packageNameSet.clear()
-        apps.forEach {
-            packageNameSet.add(it.packageName)
+    private fun loadPackageNameSet(context: Context) {
+        packageNameSet.addAll(AppHelper.getAllPackageNames(context))
+    }
+
+    fun clearExtensionsCache(context: Context) {
+        viewModelScope.launch {
+            withContext(IO) {
+                val db = getDatabase(context)
+                db.extensionCacheDao().deleteAll()
+            }
         }
     }
 

@@ -213,6 +213,7 @@ fun MoreModal(
                                 },
                                 title = { Text(text = stringResource(id = R.string.refetch_extensions)) },
                                 onClick = {
+                                    mainViewModel.clearExtensionsCache(context)
                                     mainViewModel.loadExtensions(context)
                                 }
                             )
