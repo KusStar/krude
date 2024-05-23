@@ -5,6 +5,13 @@ JSON/JS based extension protocol for krude.
 ## Example
 
 ```ts
+type I18N = {
+  name?: string
+  description?: string
+  keywords?: string[]
+  type?: string
+}
+
 type Extension = {
   id: string
   required?: string[]
@@ -13,21 +20,34 @@ type Extension = {
   description?: string
   type: "scheme"
   uri: string
+  i18n?: {
+    [key: string]: I18N & {
+      uri?: string
+    }
+  }
 } | {
   id: string
   required?: string[]
+  keywords?: string[]
   name: string
   description?: string
   type: "intent"
-  data: {
-    package: string
-    class: string
-    extras?: {
-      [key: string]: string | number | boolean
+  data: IntentData
+  i18n?: {
+    [key: string]: I18N & {
+      data?: IntentData
     }
-    flags?: number
-    action?: string
   }
+}
+
+type IntentData = {
+  package: string
+  class: string
+  extras?: {
+    [key: string]: string | number | boolean
+  }
+  flags?: number
+  action?: string
 }
 
 type Main = Extension | Extension[] | string
