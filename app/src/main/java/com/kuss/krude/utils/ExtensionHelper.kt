@@ -10,6 +10,7 @@ import com.kuss.krude.interfaces.AppExtensionGroup
 import com.kuss.krude.interfaces.AppExtensionSingle
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
+import com.kuss.krude.interfaces.I18NExtension
 import okhttp3.Cache
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
@@ -189,6 +190,15 @@ object ExtensionHelper {
                 }
             }
         })
+    }
+
+    fun overwriteI18nExtension(target: Extension, from: I18NExtension) {
+        from.name?.let { target.name = it }
+        from.description?.let { target.description = it }
+        from.keywords?.let { target.keywords = it }
+        from.type?.let { target.type = it }
+        from.uri?.let { target.uri = it }
+        from.data?.let { target.data = it }
     }
 
 }
