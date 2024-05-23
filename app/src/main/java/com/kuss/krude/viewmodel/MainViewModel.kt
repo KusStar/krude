@@ -21,6 +21,7 @@ import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.ExtensionHelper.overwriteI18nExtension
 import com.kuss.krude.utils.FilterHelper
+import com.kuss.krude.utils.LocaleHelper
 import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.viewmodel.settings.SettingsState
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
@@ -288,10 +289,10 @@ class MainViewModel : ViewModel() {
                                 true
                             }.map {
                                 if (it.i18n != null) {
-                                    if (it.i18n.zh != null) {
+                                    if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
                                         overwriteI18nExtension(it, it.i18n.zh)
                                     }
-                                    if (it.i18n.en != null) {
+                                    if (LocaleHelper.currentLocale == "en" &&it.i18n.en != null) {
                                         overwriteI18nExtension(it, it.i18n.en)
                                     }
                                 }
