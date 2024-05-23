@@ -19,6 +19,7 @@ import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.ExtensionHelper
+import com.kuss.krude.utils.ExtensionHelper.overwriteI18nExtension
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.viewmodel.settings.SettingsState
@@ -96,7 +97,7 @@ class MainViewModel : ViewModel() {
                 context.unregisterReceiver(packageEventReceiver)
                 packageEventReceiver = null
                 Timber.d("unregisterPackageEventReceiver")
-            } catch(_: Exception) {
+            } catch (_: Exception) {
 
             }
         }
@@ -111,12 +112,15 @@ class MainViewModel : ViewModel() {
                         Intent.ACTION_PACKAGE_ADDED -> {
                             onPackageAdded(context, intent)
                         }
+
                         Intent.ACTION_PACKAGE_REMOVED -> {
                             onPackageRemoved(intent)
                         }
+
                         Intent.ACTION_PACKAGE_REPLACED -> {
                             loadApps(context)
                         }
+
                         Intent.ACTION_PACKAGE_CHANGED -> {
                             loadApps(context)
                         }
@@ -283,6 +287,14 @@ class MainViewModel : ViewModel() {
                                 }
                                 true
                             }.map {
+                                if (it.i18n != null) {
+                                    if (it.i18n.zh != null) {
+                                        overwriteI18nExtension(it, it.i18n.zh)
+                                    }
+                                    if (it.i18n.en != null) {
+                                        overwriteI18nExtension(it, it.i18n.en)
+                                    }
+                                }
                                 it.filterTarget =
                                     FilterHelper.toTarget(it)
                                 if (!it.required.isNullOrEmpty()) {
@@ -290,8 +302,12 @@ class MainViewModel : ViewModel() {
                                         packageNameSet.contains(re)
                                     }
                                     // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
-                                    it.name = if (it.name.contains("-")) it.name.split("-", limit = 2)[1] else it.name
+                                    it.name = if (it.name.contains("-")) it.name.split(
+                                        "-",
+                                        limit = 2
+                                    )[1] else it.name
                                 }
+
                                 it
                             }
                             if (nextExtensions.isNotEmpty()) {
@@ -311,7 +327,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun loadExtensionsFromCache(context: Context)  {
+    private fun loadExtensionsFromCache(context: Context) {
         viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)

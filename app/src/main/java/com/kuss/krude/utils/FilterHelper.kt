@@ -49,10 +49,10 @@ object FilterHelper {
     fun toTarget(extension: Extension): String {
         val keywordString =
             if (extension.keywords != null) {
-                val keywordsPlain = extension.keywords.joinToString(",")
-                val keywordsPinyin = extension.keywords.map {
+                val keywordsPlain = extension.keywords!!.joinToString(",")
+                val keywordsPinyin = extension.keywords!!.joinToString(",") {
                     toPinyinWithAbbr(it)
-                }.joinToString(",")
+                }
 
                 ",${keywordsPlain},${keywordsPinyin}}"
             } else {

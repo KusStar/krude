@@ -12,14 +12,15 @@ object ExtensionType {
 data class Extension(
     val id: String,
     var name: String,
-    val description: String? = null,
-    val type: String,
+    var description: String? = null,
+    var type: String,
     var required: List<String>? = null,
-    val keywords: List<String>? = null,
-    val uri: String? = null,
-    val data: IntentData? = null,
+    var keywords: List<String>? = null,
+    var uri: String? = null,
+    var data: IntentData? = null,
     var priority: Int = 0,
-    var filterTarget: String? = null
+    var filterTarget: String? = null,
+    val i18n: I18N? = null
 )
 
 data class AppExtensionGroup(
@@ -48,3 +49,17 @@ data class IntentData(
     val action: String? = null,
 )
 
+
+data class I18NExtension(
+    var name: String? = null,
+    var description: String? = null,
+    var keywords: List<String>? = null,
+    var type: String? = null,
+    var uri: String? = null,
+    var data: IntentData? = null,
+)
+
+data class I18N(
+    val zh: I18NExtension? = null,
+    val en: I18NExtension? = null
+)
