@@ -65,7 +65,6 @@ import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.ui.components.AppItem
 import com.kuss.krude.ui.components.CloseBtn
-import com.kuss.krude.ui.components.ExtensionItem
 import com.kuss.krude.ui.components.ExtensionList
 import com.kuss.krude.ui.components.MoreBtns
 import com.kuss.krude.ui.components.SoftKeyboardView
@@ -274,9 +273,6 @@ fun BottomSearchBar(
                         onAppClick = { app, isStar ->
                             onAppClick(app, isStar)
                         },
-                        onExtensionClick = { extension, isStar ->
-                            onExtensionClick(extension, isStar)
-                        },
                         toAppDetail = { app ->
                             toAppDetail(app)
                         },
@@ -466,97 +462,41 @@ fun MainList(
     starSet: Set<String>,
     settingsState: SettingsState,
     onAppClick: (app: AppInfo, isStar: Boolean) -> Unit,
-    onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean
 ) {
     val mainData = remember(settingsState, searchResult) {
-        if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE)
-            searchResult else
-            searchResult.filter { it.isApp() }
+        searchResult.filter { it.isApp() }
     }
     AnimatedVisibility(visible = mainData.isNotEmpty()) {
-        if (settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE) {
-            LazyRow(
-                modifier = Modifier
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                state = listState,
-                reverseLayout = reverseLayout
-            ) {
-                itemsIndexed(
-                    mainData,
-                    key = { _, item -> item.key() }) { _, item ->
-                    if (item.isApp()) {
-                        val app = item.asApp()!!
-                        val isStar = starSet.contains(app.packageName)
-                        AppItem(
-                            modifier = Modifier
-                                .width(96.dp),
-                            item = app,
-                            titleFontSize = 14.sp,
-                            showStar = isStar,
-                            titleSingleLine = true,
-                            showSubtitle = false,
-                            onClick = {
-                                onAppClick(app, isStar)
-                            },
-                            onLongClick = {
-                                toAppDetail(app)
-                            },
-                            showTimes = settingsState.showUsageCount,
-                        )
-                    }
-                    if (item.isExtension()) {
-                        val extension = item.asExtension()!!
-                        val isStar = starSet.contains(extension.name)
-                        ExtensionItem(
-                            modifier = Modifier
-                                .width(96.dp),
-                            item = extension,
-                            titleFontSize = 14.sp,
-                            showStar = isStar,
-                            showSubtitle = false,
-                            onClick = {
-                                onExtensionClick(extension, isStar)
-                            },
-                            onLongClick = {
-                            },
-                            showTimes = settingsState.showUsageCount,
-                        )
-                    }
-                }
-            }
-        } else {
-            LazyRow(
-                modifier = Modifier
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                state = listState,
-                reverseLayout = reverseLayout
-            ) {
-                itemsIndexed(
-                    mainData,
-                    key = { _, item -> item.key() }) { _, item ->
-                    val app = item.asApp()!!
-                    val isStar = starSet.contains(app.packageName)
-                    AppItem(
-                        modifier = Modifier
-                            .width(96.dp),
-                        item = app,
-                        titleFontSize = 14.sp,
-                        showStar = isStar,
-                        titleSingleLine = true,
-                        showSubtitle = false,
-                        onClick = {
-                            onAppClick(app, isStar)
-                        },
-                        onLongClick = {
-                            toAppDetail(app)
-                        },
-                        showTimes = settingsState.showUsageCount,
-                    )
-                }
+        LazyRow(
+            modifier = Modifier
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            state = listState,
+            reverseLayout = reverseLayout
+        ) {
+            itemsIndexed(
+                mainData,
+                key = { _, item -> item.key() }) { _, item ->
+                val app = item.asApp()!!
+                val isStar = starSet.contains(app.packageName)
+                AppItem(
+                    modifier = Modifier
+                        .width(96.dp),
+                    item = app,
+                    titleFontSize = 14.sp,
+                    showStar = isStar,
+                    titleSingleLine = true,
+                    showSubtitle = false,
+                    onClick = {
+                        onAppClick(app, isStar)
+                    },
+                    onLongClick = {
+                        toAppDetail(app)
+                    },
+                    showTimes = settingsState.showUsageCount,
+                )
             }
         }
     }

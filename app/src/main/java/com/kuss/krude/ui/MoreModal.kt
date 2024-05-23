@@ -191,7 +191,6 @@ fun MoreModal(
                                     },
                                     values = listOf(
                                         ExtensionDisplayModeDefaults.ON_TOP,
-                                        ExtensionDisplayModeDefaults.IN_LINE,
                                         ExtensionDisplayModeDefaults.ON_BOTTOM
                                     ),
                                     title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
