@@ -1,6 +1,7 @@
 package com.kuss.krude.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,9 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -43,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
-import com.kuss.krude.utils.measureTextWidth
+import com.kuss.krude.utils.measureMaxWidthOfTexts
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 import timber.log.Timber
@@ -264,6 +267,7 @@ fun ExtensionGroupList(
         }
     }
     AnimatedVisibility(visible = searchResultExtensions.isNotEmpty()) {
+        val density = LocalDensity.current
         val hapticFeedback = LocalHapticFeedback.current
         val standaloneList = group[STANDALONE_GROUP]
         val extensionGroups = group.filter { it.key != STANDALONE_GROUP }.map {
@@ -274,12 +278,14 @@ fun ExtensionGroupList(
                 ExtensionGroupItem(extensions = listOf(it), key = it.id)
             })
         }
+        val textMeasurer = rememberTextMeasurer()
         LazyRow(
             modifier = Modifier
-                .padding(vertical = 4.dp),
+                .padding(vertical = 4.dp)
+                .animateContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             state = listState,
-            reverseLayout = reverseLayout
+            reverseLayout = reverseLayout,
         ) {
             itemsIndexed(extensionGroups, key = { _, item -> item.key }) { index, group ->
                 val extensions = group.extensions
@@ -297,13 +303,21 @@ fun ExtensionGroupList(
                                 }
                             }
                     }
-                    val longestText = extensions.maxBy { it.name.length }.name
-
-                    val textWidth = measureTextWidth(text = longestText, style = TextStyle(fontSize = 14.sp))
-
+                    val allTexts = remember {
+                        extensions.map { it.name }
+                    }
+                    val maxTextWidth = remember(allTexts) {
+                        with(density) {
+                            measureMaxWidthOfTexts(
+                                textMeasurer,
+                                texts = allTexts,
+                                style = TextStyle(fontSize = 14.sp)
+                            ).toDp()
+                        }
+                    }
                     FVerticalWheelPicker(
                         state = state,
-                        modifier = Modifier.width(64.dp + textWidth),
+                        modifier = Modifier.width(64.dp + maxTextWidth),
                         count = extensions.size,
                         itemHeight = 40.dp,
                         focus = {},
