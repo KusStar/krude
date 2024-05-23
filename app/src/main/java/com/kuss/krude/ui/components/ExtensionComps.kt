@@ -34,6 +34,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.utils.measureTextWidth
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 import timber.log.Timber
@@ -121,7 +123,6 @@ fun ExtensionItem(
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false,
-    horizontal: Boolean = false,
     padding: Dp = 4.dp
 ) {
     CustomButton(
@@ -137,43 +138,25 @@ fun ExtensionItem(
                 )
             },
         shape = RoundedCornerShape(8.dp),
-        enabled = enabled
+        enabled = enabled,
     ) {
-        if (horizontal) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(padding)
-            ) {
-                if (!item.required.isNullOrEmpty()) {
-                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
-                }
-                Spacing(x = 0.5f)
-                ExtensionContent(
-                    item = item,
-                    showStar = showStar,
-                    showTimes = showTimes,
-                    showSubtitle = showSubtitle,
-                    titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize
-                )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(padding)
+        ) {
+            if (!item.required.isNullOrEmpty()) {
+                AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
             }
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                ExtensionIcon(iconSize)
-                Spacing(x = 1)
-                ExtensionContent(
-                    item = item,
-                    showStar = showStar,
-                    showTimes = showTimes,
-                    showSubtitle = showSubtitle,
-                    titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize
-                )
-            }
+            Spacing(x = 0.5f)
+            ExtensionContent(
+                item = item,
+                showStar = showStar,
+                showTimes = showTimes,
+                showSubtitle = showSubtitle,
+                titleFontSize = titleFontSize,
+                subtitleFontSize = subtitleFontSize
+            )
         }
     }
 }
@@ -238,7 +221,6 @@ fun ExtensionFlatList(
                     titleFontSize = 14.sp,
                     showStar = isStar,
                     showSubtitle = false,
-                    horizontal = true,
                     onClick = {
                         onExtensionClick(extension, isStar)
                     },
@@ -315,9 +297,13 @@ fun ExtensionGroupList(
                                 }
                             }
                     }
+                    val longestText = extensions.maxBy { it.name.length }.name
+
+                    val textWidth = measureTextWidth(text = longestText, style = TextStyle(fontSize = 14.sp))
+
                     FVerticalWheelPicker(
                         state = state,
-                        modifier = Modifier.width(128.dp),
+                        modifier = Modifier.width(64.dp + textWidth),
                         count = extensions.size,
                         itemHeight = 40.dp,
                         focus = {},
@@ -330,7 +316,6 @@ fun ExtensionGroupList(
                             titleFontSize = 14.sp,
                             showStar = isStar,
                             showSubtitle = false,
-                            horizontal = true,
                             onClick = {
                                 onExtensionClick(extension, isStar)
                             },
@@ -349,7 +334,6 @@ fun ExtensionGroupList(
                         titleFontSize = 14.sp,
                         showStar = isStar,
                         showSubtitle = false,
-                        horizontal = true,
                         onClick = {
                             onExtensionClick(extension, isStar)
                         },
