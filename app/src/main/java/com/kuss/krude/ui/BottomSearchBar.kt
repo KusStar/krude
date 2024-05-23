@@ -2,6 +2,7 @@ package com.kuss.krude.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -159,7 +160,7 @@ fun BottomSearchBar(
             mainViewModel.starApp(
                 context,
                 settingsState.enableExtension,
-                extension.name,
+                extension.id,
                 keyword = searchState.text,
                 isStar
             )
@@ -180,6 +181,7 @@ fun BottomSearchBar(
                 keyword = searchState.text,
                 isStar
             )
+            starMode = !starMode
         } else {
             openApp(app)
             insertSearchHistory(searchState.text)
@@ -471,7 +473,7 @@ fun MainList(
     AnimatedVisibility(visible = mainData.isNotEmpty()) {
         LazyRow(
             modifier = Modifier
-                .padding(vertical = 8.dp),
+                .padding(vertical = 8.dp).animateContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             state = listState,
             reverseLayout = reverseLayout
