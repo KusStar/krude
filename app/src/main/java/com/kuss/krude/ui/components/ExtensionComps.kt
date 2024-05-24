@@ -122,11 +122,11 @@ fun ExtensionItem(
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
     enabled: Boolean = true,
-    iconSize: Dp = 32.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false,
-    padding: Dp = 4.dp
+    padding: Dp = 4.dp,
+    showIcon: Boolean
 ) {
     CustomButton(
         onClick = onClick,
@@ -148,10 +148,12 @@ fun ExtensionItem(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.padding(padding)
         ) {
-            if (!item.required.isNullOrEmpty()) {
-                AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
+            if (showIcon) {
+                if (!item.required.isNullOrEmpty()) {
+                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
+                }
+                Spacing(x = 0.5f)
             }
-            Spacing(x = 0.5f)
             ExtensionContent(
                 item = item,
                 showStar = showStar,
@@ -230,6 +232,7 @@ fun ExtensionFlatList(
                     onLongClick = {
                     },
                     showTimes = showUsageCount,
+                    showIcon = true
                 )
                 if (index < extensions.size - 1) {
                     VerticalDivider(modifier = Modifier.height(16.dp))
@@ -315,29 +318,39 @@ fun ExtensionGroupList(
                             ).toDp()
                         }
                     }
-                    FVerticalWheelPicker(
-                        state = state,
-                        modifier = Modifier.width(64.dp + maxTextWidth),
-                        count = extensions.size,
-                        itemHeight = 40.dp,
-                        focus = {},
-                    ) { idx ->
-                        val extension = extensions[idx]
-                        val isStar = starSet.contains(extension.name)
-                        ExtensionItem(
-                            modifier = Modifier,
-                            item = extension,
-                            titleFontSize = 14.sp,
-                            showStar = isStar,
-                            showSubtitle = false,
-                            onClick = {
-                                onExtensionClick(extension, isStar)
-                            },
-                            onLongClick = {
-                            },
-                            showTimes = showUsageCount,
-                            padding = 0.dp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        AsyncAppIcon(
+                            packageName = extensions[0].required!![0],
+                            modifier = Modifier.size(24.dp)
                         )
+                        FVerticalWheelPicker(
+                            state = state,
+                            modifier = Modifier.width(40.dp + maxTextWidth),
+                            count = extensions.size,
+                            focus = {},
+                        ) { idx ->
+                            val extension = extensions[idx]
+                            val isStar = starSet.contains(extension.name)
+                            ExtensionItem(
+                                modifier = Modifier,
+                                item = extension,
+                                titleFontSize = 14.sp,
+                                showStar = isStar,
+                                showSubtitle = false,
+                                onClick = {
+                                    onExtensionClick(extension, isStar)
+                                },
+                                onLongClick = {
+                                },
+                                showTimes = showUsageCount,
+                                padding = 0.dp,
+                                showIcon = false,
+                            )
+                        }
                     }
                 } else {
                     val extension = extensions[0]
@@ -354,6 +367,7 @@ fun ExtensionGroupList(
                         onLongClick = {
                         },
                         showTimes = showUsageCount,
+                        showIcon = true
                     )
                 }
 
