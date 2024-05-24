@@ -36,6 +36,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,6 +53,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +62,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
@@ -77,6 +81,7 @@ import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.SettingsState
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -186,6 +191,27 @@ fun BottomSearchBar(
             openApp(app)
             insertSearchHistory(searchState.text)
             searchState = TextFieldValue("")
+        }
+    }
+
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifeCycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            Timber.d("Lifecycle event: $event")
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                mainViewModel.unregisterPackageEventReceiver(context)
+            }
+            if (event == Lifecycle.Event.ON_RESUME) {
+                coroutineScope.launch {
+                    delay(100)
+                    focusRequester.requestFocus()
+                    isFocused.value = true
+                }
+            }
+        }
+        lifeCycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifeCycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
