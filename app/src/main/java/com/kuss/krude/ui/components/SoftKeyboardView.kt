@@ -9,12 +9,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -37,6 +39,11 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private fun getKeymaps(showLeftSideBackspace: Boolean): List<String> {
+    val bottomKeys = if (showLeftSideBackspace) "~zxcvbnm-" else "zxcvbnm-"
+    return listOf("qwertyuiop", "asdfghjkl", bottomKeys)
+}
+
 @Composable
 fun SoftKeyboardView(
     showLeftSideBackspace: Boolean,
@@ -46,27 +53,27 @@ fun SoftKeyboardView(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
-
-    val bottomKeys = if (showLeftSideBackspace) "-zxcvbnm-" else "zxcvbnm-"
-    val keymaps = listOf("qwertyuiop", "asdfghjkl", bottomKeys)
+    val keymaps = remember(showLeftSideBackspace) {
+        getKeymaps(showLeftSideBackspace)
+    }
 
     BackHandler(enabled = true, onBack = onBack)
 
-    Column(
+    LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
     ) {
-        keymaps.forEach {
-            Row(
+        items(keymaps, key = { it }) {
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                it.toList().forEach {
+                items(it.toList(), key = { it }) {
                     val interactionSource = remember { MutableInteractionSource() }
 
-                    val isDeleting = it == '-'
+                    val isDeleting = it == '-' || it == '~'
                     fun send() {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onClick(it, isDeleting)
@@ -137,6 +144,8 @@ fun SoftKeyboardView(
             }
         }
 
-        bottomContent()
+        item {
+            bottomContent()
+        }
     }
 }
