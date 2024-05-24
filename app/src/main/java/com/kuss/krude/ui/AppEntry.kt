@@ -63,20 +63,6 @@ fun AppEntry(
         mainViewModel.loadApps(context)
     }
 
-    val lifeCycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            Timber.d("Lifecycle event: $event")
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                mainViewModel.unregisterPackageEventReceiver(context)
-            }
-        }
-        lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     fun openApp(appInfo: AppInfo) {
         ActivityHelper.startPackageActivity(context, appInfo.packageName, activity.window.decorView)
 
