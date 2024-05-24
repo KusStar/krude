@@ -1,8 +1,12 @@
 package com.kuss.krude.ui.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,14 +23,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SoftKeyboardView(
@@ -35,6 +44,7 @@ fun SoftKeyboardView(
     onClick: (key: Char, isDeleting: Boolean) -> Unit,
     bottomContent: @Composable () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
     val bottomKeys = if (showLeftSideBackspace) "-zxcvbnm-" else "zxcvbnm-"
@@ -54,12 +64,22 @@ fun SoftKeyboardView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 it.toList().forEach {
+                    val interactionSource = remember { MutableInteractionSource() }
+
                     val isDeleting = it == '-'
+                    fun send() {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClick(it, isDeleting)
+                    }
+
                     Column(
                         modifier = Modifier
                             .height(56.dp)
                             .width(if (isDeleting && showLeftSideBackspace) 48.dp else 40.dp)
-                            .padding(horizontal = if (isDeleting && showLeftSideBackspace) 6.dp else 3.dp, vertical = 6.dp)
+                            .padding(
+                                horizontal = if (isDeleting && showLeftSideBackspace) 6.dp else 3.dp,
+                                vertical = 6.dp
+                            )
                             .clip(RoundedCornerShape(8.dp))
                             .background(
                                 if (isDeleting)
@@ -67,9 +87,32 @@ fun SoftKeyboardView(
                                 else
                                     MaterialTheme.colorScheme.secondary
                             )
-                            .clickable() {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                onClick(it, isDeleting)
+                            .indication(
+                                interactionSource = interactionSource,
+                                LocalIndication.current
+                            )
+                            .pointerInput(interactionSource) {
+                                detectTapGestures(
+                                    onPress = { offset ->
+                                        val press = PressInteraction.Press(offset)
+                                        interactionSource.emit(press)
+
+                                        send()
+
+                                        val job = coroutineScope.launch {
+                                            delay(500)
+                                            while (true) {
+                                                send()
+                                                delay(66)
+                                            }
+                                        }
+
+                                        tryAwaitRelease()
+                                        job.cancel()
+
+                                        interactionSource.emit(PressInteraction.Release(press))
+                                    }
+                                )
                             },
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
