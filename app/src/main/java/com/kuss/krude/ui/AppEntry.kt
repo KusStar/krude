@@ -1,40 +1,27 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.ui.components.AppItem
-import com.kuss.krude.ui.components.AppItemShimmer
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
-import timber.log.Timber
 
 @Composable
 fun AppEntry(
@@ -77,46 +64,43 @@ fun AppEntry(
     }
 
     if (!missingPermission) {
-        Column {
-            Row(modifier = Modifier.weight(1f, false)) {
-                LaunchedEffect(firstVisibleItemIndex) {
-                    val next = scrollbarItems.indexOfFirst {
-                        it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
-                    }
-
-                    mainViewModel.setSelectedHeaderIndex(next)
-                }
-
-                LazyVerticalStaggeredGrid(
-                    state = listState,
-                    columns = StaggeredGridCells.Adaptive(128.dp),
-                    // content padding
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(
-                        start = 12.dp,
-                        top = 16.dp,
-                        end = 12.dp,
-                        bottom = 12.dp
-                    ),
-                    content = {
-                        if (apps.isNotEmpty()) {
-                            items(apps, key = { item -> item.packageName }) { item ->
-                                AppItem(item = item,
-                                    onClick = {
-                                        openApp(item)
-                                    }, onLongClick = {
-                                        toAppDetail(item)
-                                    })
-                            }
-                        } else {
-                            items(16) {
-                                AppItemShimmer()
-                            }
-                        }
-                    }
-                )
-                AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
-            }
+        Column(verticalArrangement = Arrangement.Bottom) {
+//            Row(modifier = Modifier.weight(1f, false)) {
+//                LaunchedEffect(firstVisibleItemIndex) {
+//                    val next = scrollbarItems.indexOfFirst {
+//                        it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
+//                    }
+//
+//                LazyVerticalStaggeredGrid(
+//                    state = listState,
+//                    columns = StaggeredGridCells.Adaptive(128.dp),
+//                    // content padding
+//                    modifier = Modifier.weight(1f),
+//                    contentPadding = PaddingValues(
+//                        start = 12.dp,
+//                        top = 16.dp,
+//                        end = 12.dp,
+//                        bottom = 12.dp
+//                    ),
+//                    content = {
+//                        if (apps.isNotEmpty()) {
+//                            items(apps, key = { item -> item.packageName }) { item ->
+//                                AppItem(item = item,
+//                                    onClick = {
+//                                        openApp(item)
+//                                    }, onLongClick = {
+//                                        toAppDetail(item)
+//                                    })
+//                            }
+//                        } else {
+//                            items(16) {
+//                                AppItemShimmer()
+//                            }
+//                        }
+//                    }
+//                )
+//                AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
+//            }
             BottomSearchBar(
                 mainViewModel,
                 settingsViewModel,
