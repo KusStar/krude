@@ -439,7 +439,7 @@ fun BottomSearchBar(
             AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0) {
                 LazyRow(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(top = 8.dp)
                 ) {
                     item {
                         AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
@@ -499,7 +499,8 @@ fun MainList(
     AnimatedVisibility(visible = mainData.isNotEmpty()) {
         LazyRow(
             modifier = Modifier
-                .padding(vertical = 8.dp).animateContentSize(),
+                .padding(vertical = 8.dp)
+                .animateContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             state = listState,
             reverseLayout = reverseLayout
