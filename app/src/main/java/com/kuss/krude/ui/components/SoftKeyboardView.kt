@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -49,6 +51,8 @@ fun SoftKeyboardView(
     showLeftSideBackspace: Boolean,
     onBack: () -> Unit,
     onClick: (key: Char, isDeleting: Boolean) -> Unit,
+    offset: Int = 0,
+    scale: Float = 1f,
     bottomContent: @Composable () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -63,7 +67,9 @@ fun SoftKeyboardView(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
+            .padding(bottom = 24.dp)
+            .scale(scale)
+            .absoluteOffset(x = offset.dp)
     ) {
         items(keymaps, key = { it }) {
             LazyRow(

@@ -44,4 +44,5 @@
     <string name="granted">Granted</string>
     <string name="go_grant">Go to grant</string>
     <string name="extension_group_layout">Extension group layout</string>
+    <string name="embed_keyboard_settings">Custom Keyboard Settings</string>
 </resources>

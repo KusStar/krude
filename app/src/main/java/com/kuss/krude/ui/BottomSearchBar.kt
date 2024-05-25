@@ -416,6 +416,8 @@ fun BottomSearchBar(
     ) {
         SoftKeyboardView(
             showLeftSideBackspace = settingsState.showLeftSideBackSpace,
+            scale = settingsState.customKeyboardScale,
+            offset = settingsState.customKeyboardOffset,
             onBack = {
                 isFocused.value = false
                 focusManager.clearFocus()
