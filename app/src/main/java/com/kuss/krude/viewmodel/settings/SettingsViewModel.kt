@@ -9,34 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-object DominantHandDefaults {
-    const val LEFT = "left"
-    const val RIGHT = "right"
-}
-
-object ExtensionDisplayModeDefaults {
-    const val ON_TOP = "on_top"
-    const val ON_BOTTOM = "on_bottom"
-}
-
-data class SettingsState(
-    val autoFocus: Boolean = true,
-    val fuzzySearch: Boolean = true,
-    val showUsageCount: Boolean = false,
-    val enableExtension: Boolean = true,
-    val useEmbedKeyboard: Boolean = true,
-    val showSearchHistory: Boolean = true,
-    val showLeftSideBackSpace: Boolean = true,
-    val dominantHand: String = DominantHandDefaults.LEFT,
-    val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP,
-    val extensionGroupLayout: Boolean = true,
-    val devMode: Boolean = false,
-    val devExtension: Boolean = false,
-    val devExtensionRepo: String = "http://localhost:12345",
-)
-
-val DEFAULT_SETTINGS_STATE = SettingsState()
-
 class SettingsViewModel(private val settingsRepository: SettingsRepository) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -111,56 +83,70 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
 
     fun setShowLeftSideBackspace(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveBoolSetting(SettingsRepository.SHOW_LEFT_SIDE_BACKSPACE, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.SHOW_LEFT_SIDE_BACKSPACE_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setDominantHand(hand: String) {
         viewModelScope.launch {
-            settingsRepository.saveStringSetting(SettingsRepository.DOMINANT_HAND, hand)
+            settingsRepository.saveStringSetting(SettingsRepository.DOMINANT_HAND_KEY, hand)
             loadSettings()
         }
     }
 
     fun setEnableExtension(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveBoolSetting(SettingsRepository.ENABLE_EXTENSION, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.ENABLE_EXTENSION_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setExtensionDisplayMode(mode: String) {
         viewModelScope.launch {
-            settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE, mode)
+            settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE_KEY, mode)
             loadSettings()
         }
     }
 
     fun setExtensionGroupLayout(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveBoolSetting(SettingsRepository.EXTENSION_GROUP_LAYOUT, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.EXTENSION_GROUP_LAYOUT_KEY, enabled)
+            loadSettings()
+        }
+    }
+
+    fun setCustomKeyboardScale(scale: Float) {
+        viewModelScope.launch {
+            settingsRepository.saveFloatSetting(SettingsRepository.CUSTOM_KEYBOARD_SCALE_KEY, scale)
+            loadSettings()
+        }
+    }
+
+    fun setCustomKeyboardOffset(offset: Int) {
+        viewModelScope.launch {
+            settingsRepository.saveIntSetting(SettingsRepository.CUSTOM_KEYBOARD_OFFSET_KEY, offset)
             loadSettings()
         }
     }
 
     fun setDevMode(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveBoolSetting(SettingsRepository.DEV_MODE, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.DEV_MODE_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setDevExtension(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.saveBoolSetting(SettingsRepository.DEV_EXTENSION, enabled)
+            settingsRepository.saveBoolSetting(SettingsRepository.DEV_EXTENSION_KEY, enabled)
             loadSettings()
         }
     }
 
     fun setDevExtensionRepo(url: String) {
         viewModelScope.launch {
-            settingsRepository.saveStringSetting(SettingsRepository.DEV_EXTENSION_REPO, url)
+            settingsRepository.saveStringSetting(SettingsRepository.DEV_EXTENSION_REPO_KEY, url)
             loadSettings()
         }
     }

@@ -7,13 +7,19 @@ import android.widget.Toast
 
 object ToastUtils {
     private val handler = Handler(Looper.getMainLooper())
+    private var toaster: Toast? = null
     fun show(context: Context, message: String, duration: Int = Toast.LENGTH_SHORT) {
+        if (toaster != null) {
+            toaster?.cancel()
+        }
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            Toast.makeText(context, message, duration).show()
+            toaster = Toast.makeText(context, message, duration)
+            toaster?.show()
             return
         }
         handler.post {
-            Toast.makeText(context, message, duration).show()
+            toaster = Toast.makeText(context, message, duration)
+            toaster?.show()
         }
     }
 }

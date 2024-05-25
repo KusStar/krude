@@ -44,4 +44,5 @@
     <string name="granted">已授权</string>
     <string name="go_grant">前往授权</string>
     <string name="extension_group_layout">扩展合并显示</string>
+    <string name="embed_keyboard_settings">自定义键盘设置</string>
 </resources>
