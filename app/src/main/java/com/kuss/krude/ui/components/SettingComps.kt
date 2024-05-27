@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.Segment
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.HistoryToggleOff
+import androidx.compose.material.icons.filled.HorizontalRule
 import androidx.compose.material.icons.filled.ImportantDevices
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.KeyboardCommandKey
@@ -111,6 +112,21 @@ fun SettingSections(
         state = settingsState.autoFocus,
         onCheckedChange = { next ->
             settingsViewModel.setAutoFocus(next)
+        }
+    )
+
+    // settingsState.appItemHorizontal
+    SettingsCheckbox(
+        icon = {
+            Icon(
+                imageVector = Icons.Default.HorizontalRule,
+                contentDescription = stringResource(id = R.string.app_item_horizontal)
+            )
+        },
+        title = { Text(text = stringResource(id = R.string.app_item_horizontal)) },
+        state = settingsState.appItemHorizontal,
+        onCheckedChange = { next ->
+            settingsViewModel.setAppItemHorizontal(next)
         }
     )
 

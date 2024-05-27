@@ -130,6 +130,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
     }
 
+    fun setAppItemHorizontal(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.saveBoolSetting(SettingsRepository.APP_ITEM_HORIZONTAL_KEY, enabled)
+            loadSettings()
+        }
+    }
+
     fun setDevMode(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.saveBoolSetting(SettingsRepository.DEV_MODE_KEY, enabled)

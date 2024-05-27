@@ -38,6 +38,7 @@ data class SettingsState(
     val devMode: Boolean = false,
     val devExtension: Boolean = false,
     val devExtensionRepo: String = "http://localhost:12345",
+    val appItemHorizontal: Boolean = true
 )
 
 val DEFAULT_SETTINGS_STATE = SettingsState()
@@ -58,6 +59,7 @@ class SettingsRepository(private val context: Context) {
         val EXTENSION_GROUP_LAYOUT_KEY = booleanPreferencesKey("extension_group_layout")
         val CUSTOM_KEYBOARD_SCALE_KEY = floatPreferencesKey("custom_keyboard_scale")
         val CUSTOM_KEYBOARD_OFFSET_KEY = intPreferencesKey("custom_keyboard_offset")
+        val APP_ITEM_HORIZONTAL_KEY = booleanPreferencesKey("app_item_horizontal")
         val DEV_MODE_KEY = booleanPreferencesKey("dev_mode")
         val DEV_EXTENSION_KEY = booleanPreferencesKey("dev_extension")
         val DEV_EXTENSION_REPO_KEY = stringPreferencesKey("dev_extension_repo")
@@ -103,6 +105,7 @@ class SettingsRepository(private val context: Context) {
                 extensionGroupLayout = preferences[EXTENSION_GROUP_LAYOUT_KEY] ?: DEFAULT_SETTINGS_STATE.extensionGroupLayout,
                 customKeyboardScale = preferences[CUSTOM_KEYBOARD_SCALE_KEY] ?: DEFAULT_SETTINGS_STATE.customKeyboardScale,
                 customKeyboardOffset = preferences[CUSTOM_KEYBOARD_OFFSET_KEY] ?: DEFAULT_SETTINGS_STATE.customKeyboardOffset,
+                appItemHorizontal =  preferences[APP_ITEM_HORIZONTAL_KEY] ?: DEFAULT_SETTINGS_STATE.appItemHorizontal,
                 // dev mode
                 devMode = preferences[DEV_MODE_KEY] ?: DEFAULT_SETTINGS_STATE.devMode,
                 devExtension = preferences[DEV_EXTENSION_KEY] ?: DEFAULT_SETTINGS_STATE.devExtension,
