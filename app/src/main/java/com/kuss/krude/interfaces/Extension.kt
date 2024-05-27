@@ -41,9 +41,9 @@ data class AppExtensionSingle(
 
 data class IntentData(
     @SerializedName("package")
-    val packageField: String,
+    val packageField: String? = null,
     @SerializedName("class")
-    val classField: String,
+    val classField: String? = null,
     val extra: JsonObject? = null,
     val flags: Long? = null,
     val action: String? = null,

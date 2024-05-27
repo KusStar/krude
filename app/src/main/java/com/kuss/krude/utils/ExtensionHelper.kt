@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.kuss.krude.interfaces.AppExtensionGroup
 import com.kuss.krude.interfaces.AppExtensionSingle
 import com.kuss.krude.interfaces.Extension
@@ -22,7 +23,7 @@ import java.io.File
 object ExtensionHelper {
     const val EXTENSIONS_REPO =
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
-    val FALLBACK_REPO = EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
+    private val FALLBACK_REPO = EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
 
     const val GH_RAW_PROXY = "https://mirror.ghproxy.com"
 
@@ -55,6 +56,12 @@ object ExtensionHelper {
             ExtensionType.ACTION -> {
                 val intent = Intent(extension.uri)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                extension.data?.let { data ->
+                    intentPutExtra(intent, data.extra)
+                    if (data.flags != null) {
+                        intent.setFlags(data.flags.toInt())
+                    }
+                }
                 context.startActivity(intent)
             }
             ExtensionType.INTENT -> launchExtensionIntent(
@@ -70,22 +77,16 @@ object ExtensionHelper {
             Timber.d("launchExtensionIntent: extension = $extension")
             val intent = Intent()
             val data = extension.data!!
-            intent.setComponent(ComponentName(data.packageField, data.classField))
+            if (data.packageField != null && data.classField != null) {
+                intent.setComponent(ComponentName(data.packageField, data.classField))
+            }
             if (data.extra != null) {
-                data.extra.asMap().forEach {
-                    if (it.value.isJsonPrimitive) {
-                        val primitive = it.value.asJsonPrimitive
-                        when {
-                            primitive.isString -> intent.putExtra(it.key, primitive.asString)
-                            primitive.isNumber -> intent.putExtra(it.key, primitive.asNumber.toInt())
-                            primitive.isBoolean -> intent.putExtra(it.key, primitive.asBoolean)
-                            else -> println("The value of '$it.key' is neither a String nor a Number.")
-                        }
-                    }
-                }
+                intentPutExtra(intent, data.extra)
             }
             if (data.flags != null) {
                 intent.setFlags(data.flags.toInt())
+            } else {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             if (data.action != null) {
                 intent.setAction(data.action)
@@ -93,6 +94,22 @@ object ExtensionHelper {
             context.startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun intentPutExtra(intent: Intent, dataExtra: JsonObject?) {
+        dataExtra?.let { extra ->
+            extra.asMap().forEach {
+                if (it.value.isJsonPrimitive) {
+                    val primitive = it.value.asJsonPrimitive
+                    when {
+                        primitive.isString -> intent.putExtra(it.key, primitive.asString)
+                        primitive.isNumber -> intent.putExtra(it.key, primitive.asNumber.toInt())
+                        primitive.isBoolean -> intent.putExtra(it.key, primitive.asBoolean)
+                        else -> println("The value of '$it.key' is neither a String nor a Number.")
+                    }
+                }
+            }
         }
     }
 
