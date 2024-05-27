@@ -78,6 +78,7 @@ import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.Reverse
+import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.applyIf
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
@@ -504,7 +505,7 @@ fun MainList(
     AnimatedVisibility(visible = mainData.isNotEmpty()) {
         LazyRow(
             modifier = Modifier
-                .padding(vertical = 8.dp)
+                .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
                 .animateContentSize(),
             verticalAlignment = Alignment.CenterVertically,
             state = listState,
@@ -518,7 +519,7 @@ fun MainList(
                 AppItem(
                     modifier = Modifier.applyIf(!settingsState.appItemHorizontal) { width(96.dp) },
                     item = app,
-                    titleFontSize = 14.sp,
+                    titleFontSize = SizeConst.SEARCH_RESULT_FONT_SIZE,
                     showStar = isStar,
                     titleSingleLine = true,
                     showSubtitle = false,
@@ -528,11 +529,12 @@ fun MainList(
                     onLongClick = {
                         toAppDetail(app)
                     },
+                    iconSize = if (settingsState.appItemHorizontal) SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE else SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE,
                     showTimes = settingsState.showUsageCount,
                     horizontal = settingsState.appItemHorizontal
                 )
 
-                if (settingsState.appItemHorizontal  && index < mainData.size - 1) {
+                if (settingsState.appItemHorizontal && index < mainData.size - 1) {
                     VerticalDivider(modifier = Modifier.height(16.dp))
                 }
             }

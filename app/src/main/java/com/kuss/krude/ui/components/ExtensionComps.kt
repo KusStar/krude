@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.measureMaxWidthOfTexts
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
@@ -150,7 +151,7 @@ fun ExtensionItem(
         ) {
             if (showIcon) {
                 if (!item.required.isNullOrEmpty()) {
-                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(24.dp))
+                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE))
                 }
                 Spacing(x = 0.5f)
             }
@@ -314,7 +315,7 @@ fun ExtensionGroupList(
                             measureMaxWidthOfTexts(
                                 textMeasurer,
                                 texts = allTexts,
-                                style = TextStyle(fontSize = 14.sp)
+                                style = TextStyle(fontSize = SizeConst.SEARCH_RESULT_FONT_SIZE)
                             ).toDp()
                         }
                     }
@@ -325,11 +326,11 @@ fun ExtensionGroupList(
                     ) {
                         AsyncAppIcon(
                             packageName = extensions[0].required!![0],
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
                         )
                         FVerticalWheelPicker(
                             state = state,
-                            modifier = Modifier.width(40.dp + maxTextWidth),
+                            modifier = Modifier.width(38.dp + maxTextWidth),
                             count = extensions.size,
                             focus = {},
                         ) { idx ->
@@ -338,7 +339,7 @@ fun ExtensionGroupList(
                             ExtensionItem(
                                 modifier = Modifier,
                                 item = extension,
-                                titleFontSize = 14.sp,
+                                titleFontSize = SizeConst.SEARCH_RESULT_FONT_SIZE,
                                 showStar = isStar,
                                 showSubtitle = false,
                                 onClick = {
@@ -358,7 +359,7 @@ fun ExtensionGroupList(
                     ExtensionItem(
                         modifier = Modifier,
                         item = extension,
-                        titleFontSize = 14.sp,
+                        titleFontSize = SizeConst.SEARCH_RESULT_FONT_SIZE,
                         showStar = isStar,
                         showSubtitle = false,
                         onClick = {
