@@ -90,6 +90,57 @@ fun AsyncAppIcon(packageName: String, modifier: Modifier) {
 }
 
 @Composable
+fun AppItemContent(
+    item: AppInfo,
+    showStar: Boolean = false,
+    showSubtitle: Boolean = true,
+    titleSingleLine: Boolean = false,
+    titleFontSize: TextUnit = 16.sp,
+    subtitleFontSize: TextUnit = 12.sp,
+    showTimes: Boolean = false
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (showStar) {
+            Icon(
+                Icons.Filled.Star,
+                tint = MaterialTheme.colorScheme.primary,
+                contentDescription = "Star",
+                modifier = Modifier.size(12.dp)
+            )
+        }
+        Text(
+            text = item.label,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = titleFontSize,
+            maxLines = if (titleSingleLine) 1 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+
+    AnimatedVisibility(visible = showTimes) {
+        Spacing(1, 4)
+        Text(
+            text = "${item.priority}${stringResource(id = R.string.open_times)}",
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = subtitleFontSize,
+        )
+    }
+
+    AnimatedVisibility(visible = showSubtitle) {
+        Spacing(1, 4)
+        Text(
+            text = item.packageName,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = subtitleFontSize,
+        )
+    }
+}
+
+
+@Composable
 fun AppItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
@@ -102,7 +153,8 @@ fun AppItem(
     iconSize: Dp = 48.dp,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
-    showTimes: Boolean = false
+    showTimes: Boolean = false,
+    horizontal: Boolean = false
 ) {
     CustomButton(
         onClick = onClick,
@@ -119,52 +171,44 @@ fun AppItem(
         shape = RoundedCornerShape(8.dp),
         enabled = enabled
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            AsyncAppIcon(
-                packageName = item.packageName, modifier = Modifier
-                    .size(iconSize)
-            )
-            Spacing(1)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showStar) {
-                    Icon(
-                        Icons.Filled.Star,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = "Star",
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-                Text(
-                    text = item.label,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = titleFontSize,
-                    maxLines = if (titleSingleLine) 1 else Int.MAX_VALUE,
-                    overflow = TextOverflow.Ellipsis,
+        if (horizontal) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                AsyncAppIcon(
+                    packageName = item.packageName, modifier = Modifier
+                        .size(iconSize/2)
+                )
+                Spacing(1)
+                AppItemContent(
+                    item = item,
+                    showStar = showStar,
+                    showSubtitle = showSubtitle,
+                    titleSingleLine = true,
+                    titleFontSize = titleFontSize,
+                    subtitleFontSize = subtitleFontSize,
+                    showTimes = showTimes
                 )
             }
-
-            AnimatedVisibility(visible = showTimes) {
-                Spacing(1, 4)
-                Text(
-                    text = "${item.priority}${stringResource(id = R.string.open_times)}",
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = subtitleFontSize,
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                AsyncAppIcon(
+                    packageName = item.packageName, modifier = Modifier
+                        .size(iconSize)
                 )
-            }
-
-            AnimatedVisibility(visible = showSubtitle) {
-                Spacing(1, 4)
-                Text(
-                    text = item.packageName,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = subtitleFontSize,
+                Spacing(1)
+                AppItemContent(
+                    item = item,
+                    showStar = showStar,
+                    showSubtitle = showSubtitle,
+                    titleSingleLine = titleSingleLine,
+                    titleFontSize = titleFontSize,
+                    subtitleFontSize = subtitleFontSize,
+                    showTimes = showTimes
                 )
             }
         }

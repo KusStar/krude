@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -76,6 +78,7 @@ import com.kuss.krude.ui.components.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.Reverse
+import com.kuss.krude.utils.applyIf
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
@@ -509,12 +512,11 @@ fun MainList(
         ) {
             itemsIndexed(
                 mainData,
-                key = { _, item -> item.key() }) { _, item ->
+                key = { _, item -> item.key() }) { index, item ->
                 val app = item.asApp()!!
                 val isStar = starSet.contains(app.packageName)
                 AppItem(
-                    modifier = Modifier
-                        .width(96.dp),
+                    modifier = Modifier.applyIf(!settingsState.appItemHorizontal) { width(96.dp) },
                     item = app,
                     titleFontSize = 14.sp,
                     showStar = isStar,
@@ -527,7 +529,12 @@ fun MainList(
                         toAppDetail(app)
                     },
                     showTimes = settingsState.showUsageCount,
+                    horizontal = settingsState.appItemHorizontal
                 )
+
+                if (settingsState.appItemHorizontal  && index < mainData.size - 1) {
+                    VerticalDivider(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
