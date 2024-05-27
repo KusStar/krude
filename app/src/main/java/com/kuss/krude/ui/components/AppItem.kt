@@ -178,7 +178,7 @@ fun AppItem(
             ) {
                 AsyncAppIcon(
                     packageName = item.packageName, modifier = Modifier
-                        .size(iconSize/2)
+                        .size(iconSize)
                 )
                 Spacing(1)
                 AppItemContent(
