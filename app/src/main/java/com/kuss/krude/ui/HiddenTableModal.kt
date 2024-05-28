@@ -30,8 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Hidden
-import com.kuss.krude.ui.components.AsyncAppIcon
-import com.kuss.krude.ui.components.ExtensionIcon
+import com.kuss.krude.ui.components.search.AsyncAppIcon
+import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel

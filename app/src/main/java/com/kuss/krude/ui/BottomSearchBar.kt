@@ -2,7 +2,6 @@ package com.kuss.krude.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,14 +13,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
@@ -35,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -69,21 +63,17 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
-import com.kuss.krude.interfaces.SearchResultItem
-import com.kuss.krude.ui.components.AppItem
-import com.kuss.krude.ui.components.CloseBtn
-import com.kuss.krude.ui.components.ExtensionList
-import com.kuss.krude.ui.components.MoreBtns
-import com.kuss.krude.ui.components.SoftKeyboardView
+import com.kuss.krude.ui.components.search.CloseBtn
+import com.kuss.krude.ui.components.search.ExtensionList
+import com.kuss.krude.ui.components.search.MainList
+import com.kuss.krude.ui.components.search.MoreBtns
+import com.kuss.krude.ui.components.search.SoftKeyboardView
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.Reverse
-import com.kuss.krude.utils.SizeConst
-import com.kuss.krude.utils.applyIf
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
-import com.kuss.krude.viewmodel.settings.SettingsState
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -308,7 +298,10 @@ fun BottomSearchBar(
                         toAppDetail = { app ->
                             toAppDetail(app)
                         },
-                        reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT
+                        reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                        onExtensionClick = { extension, isStar ->
+                            onExtensionClick(extension, isStar)
+                        }
                     )
 
                     if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
@@ -489,56 +482,4 @@ fun BottomSearchBar(
     AppUsageModal(mainViewModel)
 }
 
-@Composable
-fun MainList(
-    searchResult: List<SearchResultItem>,
-    listState: LazyListState,
-    starSet: Set<String>,
-    settingsState: SettingsState,
-    onAppClick: (app: AppInfo, isStar: Boolean) -> Unit,
-    toAppDetail: (AppInfo) -> Unit,
-    reverseLayout: Boolean
-) {
-    val mainData = remember(settingsState, searchResult) {
-        searchResult.filter { it.isApp() }
-    }
-    AnimatedVisibility(visible = mainData.isNotEmpty()) {
-        LazyRow(
-            modifier = Modifier
-                .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
-                .animateContentSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            state = listState,
-            reverseLayout = reverseLayout
-        ) {
-            itemsIndexed(
-                mainData,
-                key = { _, item -> item.key() }) { index, item ->
-                val app = item.asApp()!!
-                val isStar = starSet.contains(app.packageName)
-                AppItem(
-                    modifier = Modifier.applyIf(!settingsState.appItemHorizontal) { width(96.dp) },
-                    item = app,
-                    titleFontSize = SizeConst.SEARCH_RESULT_FONT_SIZE,
-                    showStar = isStar,
-                    titleSingleLine = true,
-                    showSubtitle = false,
-                    onClick = {
-                        onAppClick(app, isStar)
-                    },
-                    onLongClick = {
-                        toAppDetail(app)
-                    },
-                    iconSize = if (settingsState.appItemHorizontal) SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE else SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE,
-                    showTimes = settingsState.showUsageCount,
-                    horizontal = settingsState.appItemHorizontal
-                )
-
-                if (settingsState.appItemHorizontal && index < mainData.size - 1) {
-                    VerticalDivider(modifier = Modifier.height(16.dp))
-                }
-            }
-        }
-    }
-}
 

@@ -19,7 +19,9 @@ object DominantHandDefaults {
 
 object ExtensionDisplayModeDefaults {
     const val ON_TOP = "on_top"
+    const val IN_LINE = "in_line"
     const val ON_BOTTOM = "on_bottom"
+    val LIST = listOf(ON_TOP, IN_LINE, ON_BOTTOM)
 }
 
 data class SettingsState(

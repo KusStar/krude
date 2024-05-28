@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.ui.SettingsCheckbox
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
+import com.kuss.krude.ui.components.search.SoftKeyboardView
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DEFAULT_SETTINGS_STATE
@@ -161,10 +162,7 @@ fun SettingSections(
                         onValueChange = {
                             settingsViewModel.setExtensionDisplayMode(it)
                         },
-                        values = listOf(
-                            ExtensionDisplayModeDefaults.ON_TOP,
-                            ExtensionDisplayModeDefaults.ON_BOTTOM
-                        ),
+                        values = ExtensionDisplayModeDefaults.LIST,
                         title = { Text(text = stringResource(id = R.string.extension_display_mode)) },
                         modifier = Modifier.fillMaxWidth(),
                         icon = {
