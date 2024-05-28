@@ -1,4 +1,4 @@
-package com.kuss.krude.ui.components
+package com.kuss.krude.ui.components.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement

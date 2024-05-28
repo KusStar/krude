@@ -1,4 +1,4 @@
-package com.kuss.krude.ui.components
+package com.kuss.krude.ui.components.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.LocalIndication

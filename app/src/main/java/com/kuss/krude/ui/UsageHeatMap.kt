@@ -40,7 +40,7 @@ import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.ui.components.AppItem
+import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers

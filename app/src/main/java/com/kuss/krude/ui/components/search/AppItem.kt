@@ -1,4 +1,4 @@
-package com.kuss.krude.ui.components
+package com.kuss.krude.ui.components.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.ui.components.CustomButton
+import com.kuss.krude.ui.components.Spacing
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
@@ -154,7 +156,8 @@ fun AppItem(
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false,
-    horizontal: Boolean = false
+    horizontal: Boolean = false,
+    showIcon: Boolean = true
 ) {
     CustomButton(
         onClick = onClick,
@@ -176,11 +179,13 @@ fun AppItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                AsyncAppIcon(
-                    packageName = item.packageName, modifier = Modifier
-                        .size(iconSize)
-                )
-                Spacing(1)
+                if (showIcon) {
+                    AsyncAppIcon(
+                        packageName = item.packageName, modifier = Modifier
+                            .size(iconSize)
+                    )
+                    Spacing(1)
+                }
                 AppItemContent(
                     item = item,
                     showStar = showStar,
