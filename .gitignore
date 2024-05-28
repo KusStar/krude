@@ -1,3 +1,4 @@
+/.kotlin
 keystore
 *.iml
 .gradle
