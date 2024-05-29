@@ -161,7 +161,7 @@ fun MainGroupList(
     val textMeasurer = rememberTextMeasurer()
 
     val groupList = getMainGroupList(data)
-    AnimatedVisibility(visible = data.isNotEmpty()) {
+    AnimatedVisibility(visible = groupList.isNotEmpty()) {
         LazyRow(
             modifier = Modifier
                 .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
@@ -315,7 +315,7 @@ fun MainGroupList(
                     }
                 }
 
-                if (settingsState.appItemHorizontal && index < data.size - 1) {
+                if (settingsState.appItemHorizontal && index < groupList.size - 1) {
                     VerticalDivider(modifier = Modifier.height(16.dp))
                 }
             }
