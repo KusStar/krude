@@ -15,6 +15,7 @@ import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
@@ -279,6 +280,9 @@ class MainViewModel : ViewModel() {
                         }
                         if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
                             val nextExtensions = appExtensionGroup.main.filter { extension ->
+                                if (extension.type == ExtensionType.ALIAS) {
+                                    return@filter false
+                                }
                                 if (!extension.required.isNullOrEmpty()) {
                                     return@filter extension.required!!.any { required ->
                                         packageNameSet.contains(
@@ -311,6 +315,7 @@ class MainViewModel : ViewModel() {
 
                                 it
                             }
+                            // bind alias extensions to apps
                             if (nextExtensions.isNotEmpty()) {
                                 val tempMap = _state.value.extensionMap.toMutableMap()
                                 nextExtensions.forEach {
@@ -321,10 +326,44 @@ class MainViewModel : ViewModel() {
                                 }
                                 saveExtensionsIntoCache(context, nextExtensions)
                             }
+                            val aliasExtensions = appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
+                            if (aliasExtensions.isNotEmpty()) {
+                                Timber.d("loadExtensions: aliasExtensions ${aliasExtensions.size}")
+                                bindAliasFilterTarget(aliasExtensions)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun bindAliasFilterTarget(aliasExtensions: List<Extension>) {
+        val apps = _state.value.apps
+        val extensions = getExtensions()
+        if (extensions.isNotEmpty()) {
+            extensions.forEach { extension ->
+                val aliasSet = aliasExtensions.find {
+                    it.required!!.intersect((extension.required ?: listOf()).toSet()).isNotEmpty()
+                }
+                if (aliasSet != null) {
+                    extension.filterTarget = extension.filterTarget + "," + FilterHelper.keywordsToTarget(aliasSet)
+                }
+            }
+        }
+        _state.update { mainState ->
+            mainState.copy(
+                extensionMap = extensions.associateBy { it.id },
+                apps = apps.map { app ->
+                    val aliasExtension = aliasExtensions.find { it.required!!.contains(app.packageName) }
+                    if (aliasExtension != null) {
+                        return@map app.copy(
+                            filterTarget = app.filterTarget + "," + FilterHelper.keywordsToTarget(aliasExtension)
+                        )
+                    }
+                    app
+                },
+            )
         }
     }
 
