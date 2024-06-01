@@ -2,7 +2,9 @@
 
 JSON/JS based extension protocol for krude.
 
-## Example
+## Interfaces
+
+Extension type can be one of the following: `scheme`, `intent`, `alias`.
 
 ```ts
 type I18N = {
@@ -38,6 +40,12 @@ type Extension = {
       data?: IntentData
     }
   }
+} | {
+  id: string
+  required: string[]
+  keywords: string[]
+  name: string
+  type: "alias"
 }
 
 type IntentData = {
@@ -64,7 +72,8 @@ type KrudeExtension = {
 }
 ```
 
-Example:
+## Example
+
 
 ```json
 {
