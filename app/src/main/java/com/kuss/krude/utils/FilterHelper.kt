@@ -47,6 +47,12 @@ object FilterHelper {
 
     @JvmStatic
     fun toTarget(extension: Extension): String {
+        val keywordString = keywordsToTarget(extension)
+        return "${extension.name},${extension.description},${toPinyinWithAbbr(extension.name)}$keywordString"
+    }
+
+    @JvmStatic
+    fun keywordsToTarget(extension: Extension): String {
         val keywordString =
             if (extension.keywords != null) {
                 val keywordsPlain = extension.keywords!!.joinToString(",")
@@ -58,7 +64,7 @@ object FilterHelper {
             } else {
                 ""
             }
-        return "${extension.name},${extension.description},${toPinyinWithAbbr(extension.name)}$keywordString"
+        return keywordString
     }
 
     @JvmStatic

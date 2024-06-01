@@ -7,6 +7,7 @@ object ExtensionType {
     const val INTENT = "intent"
     const val ACTION = "action"
     const val SCHEME = "scheme"
+    const val ALIAS = "alias"
 }
 
 data class Extension(
