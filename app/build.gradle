@@ -101,7 +101,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "androidx.compose.material:material-icons-extended:1.6.7"
     implementation "androidx.room:room-runtime:$room_version"
@@ -131,7 +131,7 @@ dependencies {
     implementation 'com.github.alorma.compose-settings:ui-tiles:2.1.0'
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation 'com.github.bosphere.android-fadingedgelayout:fadingedgelayout:1.0.0'
-    implementation 'com.github.promeg:tinypinyin:2.0.3'
+    implementation 'io.github.biezhi:TinyPinyin:2.0.3.RELEASE'
     implementation 'me.zhanghai.android.appiconloader:appiconloader:1.5.0'
     implementation 'me.xdrop:fuzzywuzzy:1.4.0'
     implementation 'com.valentinilk.shimmer:compose-shimmer:1.0.5'
