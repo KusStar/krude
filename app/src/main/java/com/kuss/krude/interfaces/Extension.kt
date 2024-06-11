@@ -8,6 +8,7 @@ object ExtensionType {
     const val ACTION = "action"
     const val SCHEME = "scheme"
     const val ALIAS = "alias"
+    const val INTERNAL = "internal"
 }
 
 data class Extension(
