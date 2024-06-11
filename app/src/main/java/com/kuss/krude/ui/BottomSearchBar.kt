@@ -1,6 +1,7 @@
 package com.kuss.krude.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
@@ -67,6 +68,7 @@ import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.internal.SecondLevelExtensionArea
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
@@ -122,8 +124,8 @@ fun BottomSearchBar(
     }
     var searchState by remember { mutableStateOf(TextFieldValue("")) }
 
+    // second level extension
     var isSecondLevelExtension by remember { mutableStateOf(false) }
-
     var secondLevelExtension by remember {
         mutableStateOf<Extension?>(null)
     }
@@ -230,13 +232,17 @@ fun BottomSearchBar(
         refresh(settingsState.fuzzySearch)
     }
 
-    LaunchedEffect(apps.isNotEmpty(), settingsState.autoFocus, isSecondLevelExtension) {
+    LaunchedEffect(apps.isNotEmpty(), settingsState.autoFocus) {
         if (apps.isNotEmpty() && settingsState.autoFocus) {
             focusRequester.requestFocus()
         } else if (!settingsState.autoFocus) {
             focusRequester.freeFocus()
             focusManager.clearFocus()
         }
+    }
+
+    LaunchedEffect(isSecondLevelExtension) {
+        focusRequester.requestFocus()
     }
 
     LaunchedEffect(searchResult) {
@@ -256,274 +262,253 @@ fun BottomSearchBar(
         isSecondLevelExtension = false
     }
 
-    if (isSecondLevelExtension) {
-        if (secondLevelExtension != null) {
-            val ext = secondLevelExtension!!
-            if (ext.id == InternalExtensions.FILES_EXTENSION_ID) {
-                Column {
-                    TextField(
-                        enabled = apps.isNotEmpty(),
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        value = searchState,
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = MaterialTheme.colorScheme.secondary,
-                            focusedTextColor = MaterialTheme.colorScheme.primary,
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                            disabledContainerColor = Color.Transparent,
-                            errorContainerColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
-                            focusedPlaceholderColor = MaterialTheme.colorScheme.primary
-                        ),
-                        onValueChange = {
-                            onTextChange(it)
-                        },
-                        placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
-                    )
-                }
-            }
-        }
-    } else {
-        AnimatedVisibility(
-            visible = searchState.text.isNotEmpty(),
-        ) {
-            HorizontalDivider()
-            Crossfade(targetState = searchResult.isNotEmpty(), label = "searchList") { show ->
-                if (show) {
-                    Column {
-                        AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
-                            Column(
+    AnimatedContent(targetState = isSecondLevelExtension, label = "level") { displayLevel ->
+        if (displayLevel) {
+            SecondLevelExtensionArea(
+                onChange = {
+                    isSecondLevelExtension = it
+                },
+                data = secondLevelExtension,
+                focusRequester = focusRequester
+            )
+        } else {
+            Column {
+                AnimatedVisibility(
+                    visible = searchState.text.isNotEmpty(),
+                ) {
+                    HorizontalDivider()
+                    Crossfade(targetState = searchResult.isNotEmpty(), label = "searchList") { show ->
+                        if (show) {
+                            Column {
+                                AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 16.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                Icons.TwoTone.Star,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                contentDescription = "Star",
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                            Spacing(x = 1)
+                                            Text(
+                                                text = searchState.text,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacing(x = 1)
+                                            Text(
+                                                text = "to app",
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+                                    val hasApp = searchResult.any { it.isApp() }
+                                    ExtensionList(
+                                        searchResult = searchResult,
+                                        listState = searchExtensionListState,
+                                        starSet = currentStarPackageNameSet,
+                                        showUsageCount = settingsState.showUsageCount,
+                                        onExtensionClick = { extension, isStar ->
+                                            onExtensionClick(extension, isStar)
+                                        },
+                                        settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                                        settingsState.extensionGroupLayout
+                                    )
+                                    AnimatedVisibility(visible = hasApp) {
+                                        HorizontalDivider()
+                                    }
+                                }
+
+                                MainList(
+                                    searchResult = searchResult,
+                                    listState = searchMainListState,
+                                    starSet = currentStarPackageNameSet,
+                                    settingsState = settingsState,
+                                    onAppClick = { app, isStar ->
+                                        onAppClick(app, isStar)
+                                    },
+                                    toAppDetail = { app ->
+                                        toAppDetail(app)
+                                    },
+                                    reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                                    onExtensionClick = { extension, isStar ->
+                                        onExtensionClick(extension, isStar)
+                                    }
+                                )
+
+                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+                                    val hasApp = searchResult.any { it.isApp() }
+                                    AnimatedVisibility(visible = hasApp) {
+                                        HorizontalDivider()
+                                    }
+                                    ExtensionList(
+                                        searchResult = searchResult,
+                                        listState = searchExtensionListState,
+                                        starSet = currentStarPackageNameSet,
+                                        showUsageCount = settingsState.showUsageCount,
+                                        onExtensionClick = { extension, isStar ->
+                                            onExtensionClick(extension, isStar)
+                                        },
+                                        settingsState.dominantHand == DominantHandDefaults.RIGHT,
+                                        settingsState.extensionGroupLayout
+                                    )
+                                }
+                            }
+                        } else {
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.TwoTone.Star,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = "Star",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacing(x = 1)
-                                    Text(
-                                        text = searchState.text,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacing(x = 1)
-                                    Text(
-                                        text = "to app",
-                                        color = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
+                                Image(
+                                    painter = painterResource(R.mipmap.ic_launcher_foreground),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(96.dp)
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.no_match_app),
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
                             }
                         }
-
-                        if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
-                            val hasApp = searchResult.any { it.isApp() }
-                            ExtensionList(
-                                searchResult = searchResult,
-                                listState = searchExtensionListState,
-                                starSet = currentStarPackageNameSet,
-                                showUsageCount = settingsState.showUsageCount,
-                                onExtensionClick = { extension, isStar ->
-                                    onExtensionClick(extension, isStar)
-                                },
-                                settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                                settingsState.extensionGroupLayout
-                            )
-                            AnimatedVisibility(visible = hasApp) {
-                                HorizontalDivider()
-                            }
-                        }
-
-                        MainList(
-                            searchResult = searchResult,
-                            listState = searchMainListState,
-                            starSet = currentStarPackageNameSet,
-                            settingsState = settingsState,
-                            onAppClick = { app, isStar ->
-                                onAppClick(app, isStar)
-                            },
-                            toAppDetail = { app ->
-                                toAppDetail(app)
-                            },
-                            reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                            onExtensionClick = { extension, isStar ->
-                                onExtensionClick(extension, isStar)
-                            }
-                        )
-
-                        if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
-                            val hasApp = searchResult.any { it.isApp() }
-                            AnimatedVisibility(visible = hasApp) {
-                                HorizontalDivider()
-                            }
-                            ExtensionList(
-                                searchResult = searchResult,
-                                listState = searchExtensionListState,
-                                starSet = currentStarPackageNameSet,
-                                showUsageCount = settingsState.showUsageCount,
-                                onExtensionClick = { extension, isStar ->
-                                    onExtensionClick(extension, isStar)
-                                },
-                                settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                                settingsState.extensionGroupLayout
-                            )
-                        }
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(R.mipmap.ic_launcher_foreground),
-                            contentDescription = null,
-                            modifier = Modifier.size(96.dp)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.no_match_app),
-                            color = MaterialTheme.colorScheme.secondary
-                        )
                     }
                 }
-            }
-        }
 
-        HorizontalDivider()
+                HorizontalDivider()
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = if (settingsState.dominantHand == DominantHandDefaults.LEFT) Arrangement.Center else Arrangement.Reverse
-        ) {
-            CloseBtn(visible = searchState.text.isNotEmpty()) {
-                clear()
-            }
-
-            CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
-                TextField(
-                    enabled = apps.isNotEmpty(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .focusRequester(focusRequester)
-                        .onFocusChanged {
-                            isFocused.value = it.isFocused
-                        },
-                    value = searchState,
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        unfocusedTextColor = MaterialTheme.colorScheme.secondary,
-                        focusedTextColor = MaterialTheme.colorScheme.primary,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = Color.Transparent,
-                        errorContainerColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
-                        focusedPlaceholderColor = MaterialTheme.colorScheme.primary
-                    ),
-                    onValueChange = {
-                        onTextChange(it)
-                    },
-                    placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
-                )
-            }
-
-            MoreBtns(
-                search = searchState.text,
-                searchResult = searchResult,
-                fuzzySearch = settingsState.fuzzySearch,
-                onStarIcon = {
-                    starMode = !starMode
-                },
-                onFuzzyIcon = {
-                    val nextFuzzy = !settingsState.fuzzySearch
-                    settingsViewModel.setFuzzySearch(nextFuzzy)
-                    refresh(nextFuzzy)
-                },
-                onMoreIcon = {
-                    mainViewModel.setShowMoreSheet(true)
-                },
-                dominantHand = settingsState.dominantHand
-            )
-        }
-
-        AnimatedVisibility(
-            visible = settingsState.useEmbedKeyboard && isFocused.value,
-            enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
-            exit = slideOutVertically() + shrinkVertically() + fadeOut()
-        ) {
-            SoftKeyboardView(
-                showLeftSideBackspace = settingsState.showLeftSideBackSpace,
-                scale = settingsState.customKeyboardScale,
-                offset = settingsState.customKeyboardOffset,
-                onBack = {
-                    isFocused.value = false
-                    focusManager.clearFocus()
-                }, onClick = { key, isDeleting ->
-                    val sb = StringBuilder(searchState.text)
-                    var range = searchState.selection
-                    if (isDeleting) {
-                        if (range.end > 0) {
-                            sb.deleteCharAt(range.end - 1)
-                            range = TextRange(range.end - 1)
-                        }
-                    } else {
-                        if (range.end < searchState.text.length)
-                            sb.insert(range.end, key)
-                        else
-                            sb.append(key)
-                        range = TextRange(range.end + 1)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = if (settingsState.dominantHand == DominantHandDefaults.LEFT) Arrangement.Center else Arrangement.Reverse
+                ) {
+                    CloseBtn(visible = searchState.text.isNotEmpty()) {
+                        clear()
                     }
-                    onTextChange(TextFieldValue(sb.toString(), selection = range))
-                }) {
-                AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0) {
-                    LazyRow(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        item {
-                            AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
-                                IconButton(
-                                    onClick = {
-                                        searchKeywordHistory.clear()
-                                    }) {
-                                    Icon(
-                                        Icons.TwoTone.Delete,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        contentDescription = "delete",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
+
+                    CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
+                        TextField(
+                            enabled = apps.isNotEmpty(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .focusRequester(focusRequester)
+                                .onFocusChanged {
+                                    isFocused.value = it.isFocused
+                                },
+                            value = searchState,
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                unfocusedTextColor = MaterialTheme.colorScheme.secondary,
+                                focusedTextColor = MaterialTheme.colorScheme.primary,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = Color.Transparent,
+                                errorContainerColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
+                                focusedPlaceholderColor = MaterialTheme.colorScheme.primary
+                            ),
+                            onValueChange = {
+                                onTextChange(it)
+                            },
+                            placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
+                        )
+                    }
+
+                    MoreBtns(
+                        search = searchState.text,
+                        searchResult = searchResult,
+                        fuzzySearch = settingsState.fuzzySearch,
+                        onStarIcon = {
+                            starMode = !starMode
+                        },
+                        onFuzzyIcon = {
+                            val nextFuzzy = !settingsState.fuzzySearch
+                            settingsViewModel.setFuzzySearch(nextFuzzy)
+                            refresh(nextFuzzy)
+                        },
+                        onMoreIcon = {
+                            mainViewModel.setShowMoreSheet(true)
+                        },
+                        dominantHand = settingsState.dominantHand
+                    )
+                }
+
+                AnimatedVisibility(
+                    visible = settingsState.useEmbedKeyboard && isFocused.value,
+                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
+                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                ) {
+                    SoftKeyboardView(
+                        showLeftSideBackspace = settingsState.showLeftSideBackSpace,
+                        scale = settingsState.customKeyboardScale,
+                        offset = settingsState.customKeyboardOffset,
+                        onBack = {
+                            isFocused.value = false
+                            focusManager.clearFocus()
+                        }, onClick = { key, isDeleting ->
+                            val sb = StringBuilder(searchState.text)
+                            var range = searchState.selection
+                            if (isDeleting) {
+                                if (range.end > 0) {
+                                    sb.deleteCharAt(range.end - 1)
+                                    range = TextRange(range.end - 1)
                                 }
+                            } else {
+                                if (range.end < searchState.text.length)
+                                    sb.insert(range.end, key)
+                                else
+                                    sb.append(key)
+                                range = TextRange(range.end + 1)
                             }
-                        }
-                        items(searchKeywordHistory, key = { it }) {
-                            TextButton(onClick = {
-                                onTextChange(TextFieldValue(it, TextRange(it.length)))
-                                insertSearchHistory(it)
-                            })
-                            {
-                                Text(
-                                    text = it,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                )
+                            onTextChange(TextFieldValue(sb.toString(), selection = range))
+                        }) {
+                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0) {
+                            LazyRow(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                item {
+                                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
+                                        IconButton(
+                                            onClick = {
+                                                searchKeywordHistory.clear()
+                                            }) {
+                                            Icon(
+                                                Icons.TwoTone.Delete,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                contentDescription = "delete",
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                        }
+                                    }
+                                }
+                                items(searchKeywordHistory, key = { it }) {
+                                    TextButton(onClick = {
+                                        onTextChange(TextFieldValue(it, TextRange(it.length)))
+                                        insertSearchHistory(it)
+                                    })
+                                    {
+                                        Text(
+                                            text = it,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -531,6 +516,12 @@ fun BottomSearchBar(
             }
         }
     }
+
+//    if (isSecondLevelExtension) {
+//
+//    } else {
+//
+//    }
 
     MoreModal(
         refresh = { refresh(settingsState.fuzzySearch) },

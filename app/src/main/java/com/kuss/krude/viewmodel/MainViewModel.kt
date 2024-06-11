@@ -82,8 +82,32 @@ class MainViewModel : ViewModel() {
 
     private var loadExtensionsJob: Job? = null
 
+    private fun parseExtension(it: Extension): Extension {
+        if (it.i18n != null) {
+            if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
+                overwriteI18nExtension(it, it.i18n.zh)
+            }
+            if (LocaleHelper.currentLocale == "en" &&it.i18n.en != null) {
+                overwriteI18nExtension(it, it.i18n.en)
+            }
+        }
+        it.filterTarget =
+            FilterHelper.toTarget(it)
+        if (!it.required.isNullOrEmpty()) {
+            it.required = it.required!!.sortedByDescending { re ->
+                packageNameSet.contains(re)
+            }
+            // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
+            it.name = if (it.name.contains("-")) it.name.split(
+                "-",
+                limit = 2
+            )[1] else it.name
+        }
+        return it
+    }
+
     private fun getExtensionsWithInternal(): List<Extension> {
-        return _state.value.extensionMap.values.toList().plus(FILES_EXTENSION)
+        return _state.value.extensionMap.values.toList().plus(parseExtension(FILES_EXTENSION))
     }
 
     private fun getExtensions(): List<Extension> {
