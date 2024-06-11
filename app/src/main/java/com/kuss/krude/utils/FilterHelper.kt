@@ -8,7 +8,7 @@ import java.util.Locale
 
 object FilterHelper {
     @JvmStatic
-    private fun toPinyinWithAbbr(label: String): String {
+    fun toPinyinWithAbbr(label: String, separator: String = ", "): String {
         val pinyin = Pinyin.toPinyin(label, "")
         val isChinese = pinyin != label
         var abbr = if (isChinese) {
@@ -19,12 +19,12 @@ object FilterHelper {
         if (abbr.contains(" ")) {
             abbr += toAbbr(abbr)
         }
-        return "$pinyin, $abbr"
+        return "$pinyin${separator}$abbr"
     }
 
     @JvmStatic
-    private fun toAbbr(str: String, delimiter: String = " "): String {
-        return str.split(delimiter).joinToString("") {
+    fun toAbbr(str: String, delimiter: String = " "): String {
+        return str.split(delimiter).filter { it.isNotEmpty() }.joinToString("") {
             it.substring(0, 1)
         }
     }
