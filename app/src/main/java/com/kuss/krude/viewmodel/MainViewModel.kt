@@ -14,6 +14,7 @@ import com.kuss.krude.db.Hidden
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
+import com.kuss.krude.extensions.FILES_EXTENSION
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
@@ -80,6 +81,10 @@ class MainViewModel : ViewModel() {
     private lateinit var settingsViewModel: SettingsViewModel
 
     private var loadExtensionsJob: Job? = null
+
+    private fun getExtensionsWithInternal(): List<Extension> {
+        return _state.value.extensionMap.values.toList().plus(FILES_EXTENSION)
+    }
 
     private fun getExtensions(): List<Extension> {
         return _state.value.extensionMap.values.toList()
@@ -572,7 +577,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val search = text.lowercase()
             val apps = _state.value.apps
-            val extensions = getExtensions()
+            val extensions = getExtensionsWithInternal()
 
             val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
 
@@ -595,8 +600,9 @@ class MainViewModel : ViewModel() {
                             )
                         } else if (it.isExtension()) {
                             val extension = it.asExtension()!!
+                            val filterTargetLower = extension.filterTarget?.lowercase() ?: ""
                             FuzzySearch.partialRatio(
-                                extension.name.lowercase() + " " + extension.filterTarget!!.lowercase(),
+                                extension.name.lowercase() + " " + filterTargetLower,
                                 search
                             )
                         } else 0
@@ -622,9 +628,9 @@ class MainViewModel : ViewModel() {
                             .contains(search)
                     } else if (it.isExtension()) {
                         val extension = it.asExtension()!!
-                        return@filter extension.name.lowercase()
-                            .contains(search) || extension.filterTarget!!.lowercase()
-                            .contains(search)
+                        val nameContains = extension.name.lowercase().contains(search)
+                        val filterTargetContains = extension.filterTarget?.lowercase()?.contains(search)
+                        return@filter  nameContains || filterTargetContains == true
                     }
                     return@filter true
                 }.sortedByDescending {
@@ -652,7 +658,7 @@ class MainViewModel : ViewModel() {
                 }
 
                 val apps = _state.value.apps
-                val extensions = getExtensions()
+                val extensions = getExtensionsWithInternal()
 
                 val starAppList = apps.filter { starSet.contains(it.packageName) }
                     .sortedByDescending { it.priority }.map {

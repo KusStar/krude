@@ -132,6 +132,8 @@ fun ExtensionItem(
             if (showIcon) {
                 if (!item.required.isNullOrEmpty()) {
                     AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE))
+                } else {
+                    ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
                 }
                 Spacing(x = 0.5f)
             }
