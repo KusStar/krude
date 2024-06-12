@@ -1,2 +1,2 @@
 ./gradlew clean
-./gradlew licenseDebugReport
+./gradlew licenseDebugReport --no-configuration-cache
