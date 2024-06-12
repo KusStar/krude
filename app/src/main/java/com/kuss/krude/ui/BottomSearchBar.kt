@@ -68,7 +68,7 @@ import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.ui.components.internal.SecondLevelExtensionArea
+import com.kuss.krude.ui.components.internal.SecondLevelArea
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
@@ -125,7 +125,7 @@ fun BottomSearchBar(
     var searchState by remember { mutableStateOf(TextFieldValue("")) }
 
     // second level extension
-    var isSecondLevelExtension by remember { mutableStateOf(false) }
+    var inSecondLevel by remember { mutableStateOf(false) }
     var secondLevelExtension by remember {
         mutableStateOf<Extension?>(null)
     }
@@ -177,7 +177,7 @@ fun BottomSearchBar(
             if (extension.type == ExtensionType.INTERNAL) {
                 when (extension.id) {
                     InternalExtensions.FILES_EXTENSION_ID -> {
-                        isSecondLevelExtension = true
+                        inSecondLevel = true
                         secondLevelExtension = extension
                     }
                 }
@@ -241,7 +241,7 @@ fun BottomSearchBar(
         }
     }
 
-    LaunchedEffect(isSecondLevelExtension) {
+    LaunchedEffect(inSecondLevel) {
         focusRequester.requestFocus()
     }
 
@@ -258,15 +258,15 @@ fun BottomSearchBar(
         }
     }
 
-    BackHandler(enabled = isSecondLevelExtension) {
-        isSecondLevelExtension = false
+    BackHandler(enabled = inSecondLevel) {
+        inSecondLevel = false
     }
 
-    AnimatedContent(targetState = isSecondLevelExtension, label = "level") { displayLevel ->
+    AnimatedContent(targetState = inSecondLevel, label = "level") { displayLevel ->
         if (displayLevel) {
-            SecondLevelExtensionArea(
-                onChange = {
-                    isSecondLevelExtension = it
+            SecondLevelArea(
+                onBack = {
+                    inSecondLevel = false
                 },
                 data = secondLevelExtension,
                 focusRequester = focusRequester

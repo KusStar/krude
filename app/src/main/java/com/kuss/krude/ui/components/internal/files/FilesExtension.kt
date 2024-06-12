@@ -5,25 +5,23 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedSuggestionChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.interfaces.Extension
@@ -59,10 +58,9 @@ import java.io.File
 
 val ROOT_PATH: String = Environment.getExternalStoragePublicDirectory("").absolutePath
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FilesExtension(
-    onChange: (Boolean) -> Unit,
+    onBack: () -> Unit,
     focusRequester: FocusRequester,
     data: Extension,
 ) {
@@ -94,7 +92,7 @@ fun FilesExtension(
     fun goBack() {
         text = ""
         if (searchPath == ROOT_PATH) {
-            onChange(false)
+            onBack()
         } else {
             searchPath = pathNavigator.goBack()
         }
@@ -153,60 +151,106 @@ fun FilesExtension(
         }
     }
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        Column {
-            val listData = if (text.isNotEmpty()) {
+    Column {
+        val listData = remember(text) {
+            if (text.isNotEmpty()) {
                 filteredList
             } else {
                 files
             }
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 400.dp)
-                    .animateContentSize(),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                state = listState
-            ) {
-                stickyHeader {
-                    Breadcrumbs(searchPath, onPath = {
-                        text = ""
-                        searchPath = it
-                    }, leftContent = {
+        }
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f),
+            contentPadding = PaddingValues(bottom = 16.dp),
+            state = listState
+        ) {
+            item {
+                FileItem(file = File(".."), onClick = {
+                    goBack()
+                })
+            }
+            items(listData) { file ->
+                FileItem(file = file, onClick = {
+                    onClick(file)
+                })
+            }
+        }
+        HorizontalDivider()
+        Breadcrumbs(
+            searchPath,
+            onPath = { nextPath ->
+                text = ""
+                pathNavigator.goTo(nextPath)
+            },
+            leftContent = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {
+                        goBack()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "back",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    if (pathNavigator.canForward) {
                         IconButton(onClick = {
-                            goBack()
+                            goForward()
                         }) {
                             Icon(
-                                Icons.AutoMirrored.Default.ArrowBack,
+                                Icons.AutoMirrored.Default.ArrowForward,
                                 contentDescription = "back",
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        if (pathNavigator.canForward) {
-                            IconButton(onClick = {
-                                goForward()
-                            }) {
-                                Icon(
-                                    Icons.AutoMirrored.Default.ArrowForward,
-                                    contentDescription = "back",
-                                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                                    tint = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                        }
-                    })
+                    }
                 }
-                item {
-                    FileItem(file = File(".."), onClick = {
-                        goBack()
+            })
+        HorizontalDivider()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = {
+                onBack()
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Default.ExitToApp,
+                    contentDescription = "Back to First Page",
+                    modifier = Modifier.size(ButtonDefaults.IconSize).graphicsLayer {
+                        rotationZ = 180f
+                    },
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            fun onChipClick(type: String) {
+                val nextPath = Environment.getExternalStoragePublicDirectory(type).absolutePath
+                text = ""
+                pathNavigator.goTo(nextPath)
+            }
+
+            val items = listOf<String>(
+                "",
+                Environment.DIRECTORY_DOWNLOADS,
+                Environment.DIRECTORY_DCIM,
+                Environment.DIRECTORY_DOCUMENTS,
+                Environment.DIRECTORY_MUSIC,
+                Environment.DIRECTORY_PICTURES
+            )
+
+            LazyRow(contentPadding = PaddingValues(end = 8.dp)) {
+                items(items) { item ->
+                    ElevatedSuggestionChip(onClick = {
+                        onChipClick(item)
+                    }, label = {
+                        Text(text = item.ifEmpty { "~" })
                     })
-                }
-                items(listData) { file ->
-                    FileItem(file = file, onClick = {
-                        onClick(file)
-                    })
+                    if (items.last() != item) {
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
                 }
             }
+
         }
         HorizontalDivider()
         Row(verticalAlignment = Alignment.CenterVertically) {
