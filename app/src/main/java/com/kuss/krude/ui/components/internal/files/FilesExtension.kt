@@ -22,12 +22,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedSuggestionChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -45,6 +45,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.search.CloseBtn
@@ -58,6 +61,15 @@ import java.io.File
 
 
 val ROOT_PATH: String = Environment.getExternalStoragePublicDirectory("").absolutePath
+
+val PATH_SUGGESTIONS = listOf<String>(
+    "",
+    Environment.DIRECTORY_DOWNLOADS,
+    Environment.DIRECTORY_DCIM,
+    Environment.DIRECTORY_DOCUMENTS,
+    Environment.DIRECTORY_MUSIC,
+    Environment.DIRECTORY_PICTURES
+)
 
 @Composable
 fun FilesExtension(
@@ -234,23 +246,17 @@ fun FilesExtension(
                 pathNavigator.goTo(nextPath)
             }
 
-            val items = listOf<String>(
-                "",
-                Environment.DIRECTORY_DOWNLOADS,
-                Environment.DIRECTORY_DCIM,
-                Environment.DIRECTORY_DOCUMENTS,
-                Environment.DIRECTORY_MUSIC,
-                Environment.DIRECTORY_PICTURES
-            )
-
             LazyRow(contentPadding = PaddingValues(end = 8.dp)) {
-                items(items) { item ->
-                    ElevatedSuggestionChip(onClick = {
+                items(PATH_SUGGESTIONS) { item ->
+                    TextButton(onClick = {
                         onChipClick(item)
-                    }, label = {
-                        Text(text = item.ifEmpty { "~" })
-                    })
-                    if (items.last() != item) {
+                    }) {
+                        Text(
+                            text = item.ifEmpty { "~" },
+                            style = TextStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Bold)
+                        )
+                    }
+                    if (PATH_SUGGESTIONS.last() != item) {
                         Spacer(modifier = Modifier.size(8.dp))
                     }
                 }
