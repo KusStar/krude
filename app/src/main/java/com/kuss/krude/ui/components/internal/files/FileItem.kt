@@ -23,17 +23,23 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Source
 import androidx.compose.material.icons.filled.VideoFile
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.ui.components.CustomButton
+import me.saket.cascade.CascadeDropdownMenu
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.ln
@@ -89,8 +95,7 @@ fun FileDetail(file: File) {
             }
             Text(
                 text = size,
-                color = MaterialTheme.colorScheme.secondary,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyLarge
             )
             VerticalDivider(
                 modifier = Modifier
@@ -100,19 +105,24 @@ fun FileDetail(file: File) {
         }
         Text(
             text = date,
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
 @Composable
 fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
+    var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     CustomButton(
         onClick = {
             onClick()
         },
-        modifier = modifier.fillMaxWidth(),
+        onLongClick = {
+            isMenuVisible = true
+        },
+        modifier = modifier
+            .fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
     ) {
         Row(
@@ -132,6 +142,37 @@ fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
                 Text(text = file.name, color = MaterialTheme.colorScheme.primary)
                 FileDetail(file)
             }
+        }
+
+        CascadeDropdownMenu(
+            expanded = isMenuVisible,
+            onDismissRequest = { isMenuVisible = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("Delete") },
+                onClick = { }
+            )
+            DropdownMenuItem(
+                text = { Text("Copy to") },
+                onClick = { }
+            )
+            DropdownMenuItem(
+                text = { Text("Move to") },
+                onClick = { }
+            )
+            DropdownMenuItem(
+                text = { Text("Horizon") },
+                children = {
+                    DropdownMenuItem(
+                        text = { Text("Zero Dawn") },
+                        onClick = { }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Forbidden West") },
+                        onClick = { }
+                    )
+                }
+            )
         }
     }
 }
