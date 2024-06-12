@@ -68,7 +68,8 @@ val PATH_SUGGESTIONS = listOf<String>(
     Environment.DIRECTORY_DCIM,
     Environment.DIRECTORY_DOCUMENTS,
     Environment.DIRECTORY_MUSIC,
-    Environment.DIRECTORY_PICTURES
+    Environment.DIRECTORY_PICTURES,
+    Environment.DIRECTORY_MOVIES,
 )
 
 @Composable
@@ -178,10 +179,12 @@ fun FilesExtension(
             contentPadding = PaddingValues(bottom = 16.dp),
             state = listState
         ) {
-            item {
-                FileItem(file = File(".."), onClick = {
-                    goBack()
-                })
+            if (pathNavigator.currentPath != ROOT_PATH) {
+                item {
+                    FileItem(file = File(".."), onClick = {
+                        goBack()
+                    })
+                }
             }
             items(listData) { file ->
                 FileItem(file = file, onClick = {
