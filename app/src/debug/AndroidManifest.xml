@@ -10,7 +10,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateAlwaysVisible"
+            android:windowSoftInputMode="adjustResize"
             tools:node="replace">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
