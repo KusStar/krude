@@ -8,16 +8,12 @@ import androidx.compose.runtime.setValue
 import java.util.Stack
 
 
-class PathNavigator(initialPage: String) {
+class PathNavigator() {
     private val backStack = Stack<String>()
     private val forwardStack = Stack<String>()
     var currentPath by mutableStateOf("")
-    private var canGoBack by mutableStateOf(false)
+    var canGoBack by mutableStateOf(false)
     var canForward by mutableStateOf(false)
-
-    init {
-        goTo(initialPage)
-    }
 
     private fun updateNavigationStates() {
         canForward = forwardStack.isNotEmpty()
@@ -51,6 +47,6 @@ class PathNavigator(initialPage: String) {
 }
 
 @Composable
-fun rememberPathNavigator(initialPage: String): PathNavigator {
-    return remember { PathNavigator(initialPage) }
+fun rememberPathNavigator(): PathNavigator {
+    return remember { PathNavigator() }
 }

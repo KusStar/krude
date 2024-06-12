@@ -5,6 +5,7 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -74,8 +75,8 @@ fun FilesExtension(
         mutableStateOf("")
     }
 
-    val pathNavigator = rememberPathNavigator(ROOT_PATH)
-    var searchPath = pathNavigator.currentPath
+    val pathNavigator = rememberPathNavigator()
+    var searchPath = pathNavigator.currentPath.ifEmpty { ROOT_PATH }
 
     val listState = rememberLazyListState()
 
@@ -185,23 +186,25 @@ fun FilesExtension(
             },
             leftContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = {
-                        goBack()
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "back",
-                            modifier = Modifier.size(ButtonDefaults.IconSize),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
+                    AnimatedVisibility(pathNavigator.canGoBack) {
+                        IconButton(onClick = {
+                            goBack()
+                        }) {
+                            Icon(
+                                Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = "back",
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
-                    if (pathNavigator.canForward) {
+                    AnimatedVisibility(pathNavigator.canForward) {
                         IconButton(onClick = {
                             goForward()
                         }) {
                             Icon(
                                 Icons.AutoMirrored.Default.ArrowForward,
-                                contentDescription = "back",
+                                contentDescription = "forward",
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.secondary
                             )
@@ -217,9 +220,11 @@ fun FilesExtension(
                 Icon(
                     Icons.AutoMirrored.Default.ExitToApp,
                     contentDescription = "Back to First Page",
-                    modifier = Modifier.size(ButtonDefaults.IconSize).graphicsLayer {
-                        rotationZ = 180f
-                    },
+                    modifier = Modifier
+                        .size(ButtonDefaults.IconSize)
+                        .graphicsLayer {
+                            rotationZ = 180f
+                        },
                     tint = MaterialTheme.colorScheme.secondary
                 )
             }
