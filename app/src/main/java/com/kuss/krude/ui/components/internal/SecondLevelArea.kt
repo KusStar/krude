@@ -8,15 +8,15 @@ import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.internal.files.FilesExtension
 
 @Composable
-fun SecondLevelExtensionArea(
-    onChange: (Boolean) -> Unit,
+fun SecondLevelArea(
+    onBack: () -> Unit,
     focusRequester: FocusRequester,
     data: Extension? = null,
 ) {
     if (data != null) {
         if (data.id == InternalExtensions.FILES_EXTENSION_ID) {
             HorizontalDivider()
-            FilesExtension(onChange, focusRequester, data)
+            FilesExtension(onBack = onBack, focusRequester, data)
         }
     }
 }

@@ -2,6 +2,8 @@ package com.kuss.krude.ui.components.internal.files
 
 import android.icu.text.DateFormat
 import android.webkit.MimeTypeMap
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.ui.components.CustomButton
-import com.kuss.krude.ui.components.Spacing
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.ln
@@ -77,18 +78,31 @@ fun formatFileSize(sizeInBytes: Long): String {
 }
 
 @Composable
-fun FileDesc(file: File) {
-    if (file.isFile) {
-        val size = remember {
-            formatFileSize(file.length())
+fun FileDetail(file: File) {
+    val date = remember {
+        DateFormat.getDateTimeInstance().format(file.lastModified())
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (file.isFile) {
+            val size = remember {
+                formatFileSize(file.length())
+            }
+            Text(
+                text = size,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+            VerticalDivider(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .height(8.dp)
+            )
         }
-        val date = remember {
-            DateFormat.getDateTimeInstance().format(file.lastModified())
-        }
-        Spacing(x = 1)
-        Text(text = size, color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.bodySmall)
-        VerticalDivider(modifier = Modifier.padding(8.dp).height(16.dp))
-        Text(text = date, color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = date,
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
 
@@ -114,8 +128,10 @@ fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = file.name, color = MaterialTheme.colorScheme.primary)
-            FileDesc(file)
+            Column(verticalArrangement = Arrangement.Center) {
+                Text(text = file.name, color = MaterialTheme.colorScheme.primary)
+                FileDetail(file)
+            }
         }
     }
 }
