@@ -222,7 +222,7 @@ fun FilesExtension(
                     }
                     items(listData) { file ->
                         FileItem(
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier,
                             file = file, onClick = {
                                 onClick(file)
                             })
