@@ -5,13 +5,16 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -49,6 +52,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.FilterHelper
@@ -140,7 +144,7 @@ fun FilesExtension(
                 if (list.isEmpty()) {
                     return@withContext
                 }
-                files.addAll(list)
+                files.addAll(list.sortedBy { FilterHelper.getAbbr(it.name) })
                 Timber.d("Path: $searchPath, Files: $files")
             }
         }
@@ -156,7 +160,7 @@ fun FilesExtension(
                     text, ignoreCase = true
                 )
             nameContains || pinyinContains
-        }.sortedBy { FilterHelper.toAbbr(it.name) }
+        }
         val beforeSet = files.toSet()
         val afterSet = filtered.toSet()
         if (beforeSet != afterSet) {
@@ -173,25 +177,60 @@ fun FilesExtension(
                 files
             }
         }
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f),
-            contentPadding = PaddingValues(bottom = 16.dp),
-            state = listState
-        ) {
-            if (pathNavigator.currentPath != ROOT_PATH) {
-                item {
-                    FileItem(file = File(".."), onClick = {
-                        goBack()
-                    })
+        val showGoToPreviousDir = remember(pathNavigator.currentPath) {
+            pathNavigator.currentPath != ROOT_PATH && pathNavigator.currentPath != ""
+        }
+        AnimatedContent(
+            text.isNotEmpty() && listData.isEmpty(),
+            label = "file list",
+            modifier = Modifier.weight(1f)
+        ) { isEmpty ->
+            if (isEmpty) {
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "(˚Δ˚)",
+                        fontSize = 96.sp,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = "No files found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                    state = listState
+                ) {
+                    if (showGoToPreviousDir) {
+                        item {
+                            FileItem(file = File(".."), onClick = {
+                                goBack()
+                            })
+                        }
+                    }
+                    items(listData) { file ->
+                        FileItem(
+                            modifier = Modifier.animateItem(),
+                            file = file, onClick = {
+                                onClick(file)
+                            })
+                    }
                 }
             }
-            items(listData) { file ->
-                FileItem(file = file, onClick = {
-                    onClick(file)
-                })
-            }
         }
+
         HorizontalDivider()
         Breadcrumbs(
             searchPath,
