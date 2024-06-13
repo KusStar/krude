@@ -203,7 +203,7 @@ fun ExtensionGroupList(
                         )
                         FVerticalWheelPicker(
                             state = state,
-                            modifier = Modifier.width(38.dp + maxTextWidth),
+                            modifier = Modifier.width(SizeConst.SEARCH_RESULT_WHEEL_PICK_EXTRA_WIDTH + maxTextWidth),
                             count = extensions.size,
                             focus = {},
                         ) { idx ->
