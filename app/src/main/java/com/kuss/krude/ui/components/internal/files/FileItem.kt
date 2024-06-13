@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.ui.components.CustomButton
 import me.saket.cascade.CascadeDropdownMenu
@@ -89,25 +90,26 @@ fun FileDetail(file: File) {
         DateFormat.getDateTimeInstance().format(file.lastModified())
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        if (file.isFile) {
-            val size = remember {
-                formatFileSize(file.length())
-            }
-            Text(
-                text = size,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            VerticalDivider(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .height(8.dp)
-            )
-        }
         Text(
             text = date,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        if (file.isFile) {
+            val size = remember {
+                formatFileSize(file.length())
+            }
+            VerticalDivider(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .height(8.dp)
+            )
+            Text(
+                text = size,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -139,14 +141,20 @@ fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(verticalArrangement = Arrangement.Center) {
-                Text(text = file.name, color = MaterialTheme.colorScheme.primary)
-                FileDetail(file)
+                val isPreviousDir = file.name == ".."
+                Text(text = file.name, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.let {
+                    if (isPreviousDir) it.titleLarge else it.bodyMedium
+                })
+                if (!isPreviousDir) {
+                    FileDetail(file)
+                }
             }
         }
 
         CascadeDropdownMenu(
             expanded = isMenuVisible,
             onDismissRequest = { isMenuVisible = false },
+            offset = DpOffset(128.dp, 0.dp)
         ) {
             DropdownMenuItem(
                 text = { Text("Delete") },
