@@ -41,3 +41,14 @@
 # Retain generic signatures of TypeToken and its subclasses with R8 version 3.0 and higher.
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+
+# https://developer.android.com/develop/ui/compose/tooling/tracing#apk_size_overhead
+-assumenosideeffects public class androidx.compose.runtime.ComposerKt {
+   boolean isTraceInProgress();
+
+   void traceEventStart(int,int,int,java.lang.String);
+
+   void traceEventStart(int,java.lang.String);
+
+   void traceEventEnd();
+}
