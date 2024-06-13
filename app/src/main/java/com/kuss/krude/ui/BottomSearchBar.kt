@@ -33,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,15 +43,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -80,11 +80,13 @@ import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BottomSearchBar(
     mainViewModel: MainViewModel,
@@ -394,8 +396,22 @@ fun BottomSearchBar(
                     CloseBtn(visible = searchState.text.isNotEmpty()) {
                         clear()
                     }
-
-                    CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
+                    InterceptPlatformTextInput(
+                        interceptor = { request, nextHandler ->
+                            // If this flag is changed while an input session is active, a new lambda instance
+                            // that captures the new value will be passed to InterceptPlatformTextInput, which
+                            // will automatically cancel the session upstream and restart it with this new
+                            // interceptor.
+                            if (settingsState.useEmbedKeyboard) {
+                                // This function has to return Nothing, and since we don't have any work to do
+                                // in this case, we just suspend until cancelled.
+                                awaitCancellation()
+                            } else {
+                                // Forward the request to the system.
+                                nextHandler.startInputMethod(request)
+                            }
+                        }
+                    ) {
                         TextField(
                             enabled = apps.isNotEmpty(),
                             modifier = Modifier
@@ -427,7 +443,6 @@ fun BottomSearchBar(
                             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
                         )
                     }
-
                     MoreBtns(
                         search = searchState.text,
                         searchResult = searchResult,
