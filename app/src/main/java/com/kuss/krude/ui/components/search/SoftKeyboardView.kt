@@ -34,9 +34,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,6 +48,13 @@ private fun getKeymaps(showLeftSideBackspace: Boolean): List<String> {
     val bottomKeys = if (showLeftSideBackspace) "~zxcvbnm-" else "zxcvbnm-"
     return listOf("qwertyuiop", "asdfghjkl", bottomKeys)
 }
+
+fun getKeyboardWidth(keyNum: Int, screenWidth: Dp, padding: Dp): Dp {
+    val keyWidth = (screenWidth - padding * (keyNum - 2)) / keyNum
+    return min(keyWidth, 56.dp)
+}
+
+val KEY_PADDING = 3.dp
 
 @Composable
 fun SoftKeyboardView(
@@ -59,6 +69,14 @@ fun SoftKeyboardView(
     val haptic = LocalHapticFeedback.current
     val keymaps = remember(showLeftSideBackspace) {
         getKeymaps(showLeftSideBackspace)
+    }
+
+    val configuration = LocalConfiguration.current
+
+    val screenWidth = configuration.screenWidthDp.dp
+
+    val keyWidth = remember(screenWidth, keymaps) {
+        getKeyboardWidth(keymaps[0].length, screenWidth, KEY_PADDING)
     }
 
     BackHandler(enabled = true, onBack = onBack)
@@ -87,11 +105,11 @@ fun SoftKeyboardView(
 
                     Column(
                         modifier = Modifier
-                            .height(56.dp)
-                            .width(if (isDeleting && showLeftSideBackspace) 48.dp else 40.dp)
+                            .height(keyWidth.times(1.33f))
+                            .width(keyWidth)
                             .padding(
-                                horizontal = if (isDeleting && showLeftSideBackspace) 6.dp else 3.dp,
-                                vertical = 6.dp
+                                horizontal = if (isDeleting && showLeftSideBackspace) KEY_PADDING * 2 else KEY_PADDING,
+                                vertical = KEY_PADDING * 2
                             )
                             .clip(RoundedCornerShape(8.dp))
                             .background(
