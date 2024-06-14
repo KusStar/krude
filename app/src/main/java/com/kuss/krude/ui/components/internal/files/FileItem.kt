@@ -1,7 +1,6 @@
 package com.kuss.krude.ui.components.internal.files
 
 import android.icu.text.DateFormat
-import android.webkit.MimeTypeMap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
-import androidx.compose.material.icons.filled.Android
-import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.AudioFile
-import androidx.compose.material.icons.filled.FileOpen
-import androidx.compose.material.icons.filled.FilePresent
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.Source
-import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -41,51 +30,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.ui.components.CustomButton
 import me.saket.cascade.CascadeDropdownMenu
 import java.io.File
-import java.text.DecimalFormat
-import kotlin.math.ln
-import kotlin.math.pow
 
-fun getFileTypeIcon(file: File): ImageVector {
-    val ext = MimeTypeMap.getFileExtensionFromUrl(file.name)
-    return when (".$ext") {
-        ".png", ".jpg", ".jpeg", ".gif", ".bmp" -> Icons.Default.Image
-        ".mp3", ".wav", ".ogg", "midi" -> Icons.Default.AudioFile
-        ".mp4", ".rmvb", ".avi", ".flv", ".3gp" -> Icons.Default.VideoFile
-        ".jsp", ".html", ".htm", ".js", ".php", ".txt", ".c", ".cpp", ".xml", ".py", ".json", ".log" -> Icons.Default.Source
-        ".doc", ".docx", ".xls", ".xlsx" -> Icons.AutoMirrored.Filled.Article
-        ".ppt", ".pptx" -> Icons.Default.FilePresent
-        ".pdf" -> Icons.Default.PictureAsPdf
-        ".jar", ".zip", ".rar", ".gz", "img" -> Icons.Default.Archive
-        ".apk" -> Icons.Default.Android
-        else -> Icons.Default.FileOpen
-    }
-}
 
 @Composable
 fun FileIcon(file: File) {
     val icon = remember {
-        getFileTypeIcon(file)
+        FileHelper.getFileTypeIcon(file)
     }
     Icon(
         imageVector = icon,
         contentDescription = "File Icon",
         tint = MaterialTheme.colorScheme.primary
     )
-}
-
-fun formatFileSize(sizeInBytes: Long): String {
-    if (sizeInBytes <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    val base = 1024.0
-    val exponent = (ln(sizeInBytes.toDouble()) / ln(base)).toInt()
-    val size = sizeInBytes / base.pow(exponent.toDouble())
-    val df = DecimalFormat("#.##")
-    return "${df.format(size)} ${units[exponent]}"
 }
 
 @Composable
@@ -101,7 +61,7 @@ fun FileDetail(file: File) {
         )
         if (file.isFile) {
             val size = remember {
-                formatFileSize(file.length())
+                FileHelper.formatFileSize(file.length())
             }
             VerticalDivider(
                 modifier = Modifier
@@ -117,8 +77,15 @@ fun FileDetail(file: File) {
     }
 }
 
+
 @Composable
-fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
+fun FileItem(
+    modifier: Modifier = Modifier,
+    file: File,
+    onClick: () -> Unit,
+    openedTabs: List<String> = emptyList(),
+    onDropdown: ((type: FileDropdownType, arg: String?) -> Unit)? = null
+) {
     var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     CustomButton(
         onClick = {
@@ -164,55 +131,56 @@ fun FileItem(modifier: Modifier = Modifier, file: File, onClick: () -> Unit) {
                         modifier = Modifier.size(ButtonDefaults.IconSize),
                     )
                 }
-                CascadeDropdownMenu(
-                    expanded = isMenuVisible,
-                    onDismissRequest = { isMenuVisible = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Open in new tab") },
-                        onClick = { }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Delete") },
-                        onClick = { }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Copy to") },
-                        children = {
-                            for (suggest in PATH_SUGGESTIONS) {
-                                if (suggest.isEmpty()) continue
-                                DropdownMenuItem(
-                                    text = { Text(suggest) },
-                                    onClick = { }
-                                )
+                if (onDropdown != null) {
+                    CascadeDropdownMenu(
+                        expanded = isMenuVisible,
+                        onDismissRequest = { isMenuVisible = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Open in new tab") },
+                            onClick = {
+                                onDropdown(FileDropdownType.OPEN_IN_NEW_TAB, null)
+                                isMenuVisible = false
                             }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Move to") },
-                        children = {
-                            for (suggest in PATH_SUGGESTIONS) {
-                                if (suggest.isEmpty()) continue
-                                DropdownMenuItem(
-                                    text = { Text(suggest) },
-                                    onClick = { }
-                                )
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                onDropdown(FileDropdownType.DELETE, null)
+                                isMenuVisible = false
                             }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Horizon") },
-                        children = {
-                            DropdownMenuItem(
-                                text = { Text("Zero Dawn") },
-                                onClick = { }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Forbidden West") },
-                                onClick = { }
-                            )
-                        }
-                    )
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Copy to") },
+                            children = {
+                                for (suggest in openedTabs) {
+                                    if (suggest.isEmpty()) continue
+                                    DropdownMenuItem(
+                                        text = { Text(FileHelper.formatPath(suggest)) },
+                                        onClick = {
+                                            onDropdown(FileDropdownType.COPY_TO, suggest)
+                                            isMenuVisible = false
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Move to") },
+                            children = {
+                                for (suggest in openedTabs) {
+                                    if (suggest.isEmpty()) continue
+                                    DropdownMenuItem(
+                                        text = { Text(FileHelper.formatPath(suggest)) },
+                                        onClick = {
+                                            onDropdown(FileDropdownType.MOVE_TO, suggest)
+                                            isMenuVisible = false
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
