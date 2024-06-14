@@ -105,8 +105,8 @@ fun SoftKeyboardView(
 
                     Column(
                         modifier = Modifier
-                            .height(keyWidth.times(1.33f))
-                            .width(keyWidth)
+                            .height(keyWidth.times(1.5f))
+                            .width(if (isDeleting && showLeftSideBackspace) keyWidth.times(1.33f) else keyWidth)
                             .padding(
                                 horizontal = if (isDeleting && showLeftSideBackspace) KEY_PADDING * 2 else KEY_PADDING,
                                 vertical = KEY_PADDING * 2
