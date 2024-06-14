@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -62,14 +63,21 @@ fun Breadcrumbs(path: String, onPath: (String) -> Unit, leftContent: @Composable
                 // /storage/emulated/0
                 val isRoot = index == 2
                 TextButton(onClick = {
-                    onPath(breadcrumbs.subList(0, index + 1).joinToString("/"))
+                    if (isRoot) {
+                        onPath(FileHelper.ROOT_PATH)
+                    } else {
+                        onPath("/" + breadcrumbs.subList(0, index + 1).joinToString("/"))
+                    }
                 }) {
                     Text(text = if (isRoot) "~" else breadcrumb,
                         style = if (isRoot) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.let {
                             if (index == breadcrumbs.lastIndex) it.primary else it.secondary
-                        })
+                        },
+                        modifier = Modifier.widthIn(max = 128.dp),
+                        maxLines = 2
+                    )
                 }
                 Text(
                     "/",

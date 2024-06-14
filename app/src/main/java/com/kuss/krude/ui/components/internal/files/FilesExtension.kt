@@ -24,19 +24,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.FilterHelper
+import com.kuss.krude.utils.ToastUtils
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -65,20 +71,95 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-
-val ROOT_PATH: String = Environment.getExternalStoragePublicDirectory("").absolutePath
-
-val PATH_SUGGESTIONS = listOf<String>(
-    "",
-    Environment.DIRECTORY_DOWNLOADS,
-    Environment.DIRECTORY_DCIM,
-    Environment.DIRECTORY_DOCUMENTS,
-    Environment.DIRECTORY_MUSIC,
-    Environment.DIRECTORY_PICTURES,
-    Environment.DIRECTORY_MOVIES,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopTab(
+    onBack: () -> Unit,
+    selectedTabIndex: Int,
+    changeTab: (Int) -> Unit,
+    openedTabs: List<String>,
+    goToPath: (String) -> Unit,
+    newTab: (String) -> Unit,
+    closeTab: (Int) -> Unit,
+    pathNavigator: PathNavigator
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = {
+            onBack()
+        }) {
+            Icon(
+                Icons.AutoMirrored.Default.ExitToApp,
+                contentDescription = "Back to First Page",
+                modifier = Modifier
+                    .size(ButtonDefaults.IconSize)
+                    .graphicsLayer {
+                        rotationZ = 180f
+                    },
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
+        ScrollableTabRow(
+            edgePadding = 0.dp,
+            selectedTabIndex = selectedTabIndex,
+            containerColor = Color.Transparent,
+            divider = {}) {
+            openedTabs.forEachIndexed { index, path ->
+                val active = selectedTabIndex == index
+                Tab(modifier = Modifier.padding(horizontal = 4.dp, vertical = 0.dp),
+                    selected = active,
+                    onClick = {
+                        changeTab(index)
+                        goToPath(path)
+                    },
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = if (path.startsWith(FileHelper.PATH_PREFIX)) FileHelper.formatPath(
+                                    path
+                                ) else path.ifEmpty { "~" },
+                                modifier = Modifier.widthIn(max = 128.dp),
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                            )
+                            if (index > 0 && active) {
+                                CompositionLocalProvider(
+                                    LocalMinimumInteractiveComponentEnforcement provides false,
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            closeTab(index)
+                                        }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Close",
+                                            tint = MaterialTheme.colorScheme.outline,
+                                            modifier = Modifier
+                                                .size(ButtonDefaults.IconSize)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    })
+            }
+        }
+        IconButton(onClick = {
+            newTab(pathNavigator.currentPath)
+        }) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "New Tab",
+                modifier = Modifier
+                    .size(ButtonDefaults.IconSize),
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
 @Composable
 fun FilesExtension(
     onBack: () -> Unit,
@@ -89,42 +170,80 @@ fun FilesExtension(
     val scope = rememberCoroutineScope()
     val files = remember { mutableStateListOf<File>() }
     val filteredList = remember { mutableStateListOf<File>() }
-    var job by remember { mutableStateOf<Job?>(null) }
+    var loadFilesJob by remember { mutableStateOf<Job?>(null) }
 
-    var text by remember {
+    var search by remember {
         mutableStateOf("")
     }
 
     val pathNavigator = rememberPathNavigator()
-    var searchPath = pathNavigator.currentPath.ifEmpty { ROOT_PATH }
+    val searchPath =
+        remember(pathNavigator.currentPath) { pathNavigator.currentPath.ifEmpty { FileHelper.ROOT_PATH } }
 
     val listState = rememberLazyListState()
 
-    fun onClick(file: File) {
+    val openedTabs = remember { mutableStateListOf(FileHelper.ROOT_PATH) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    var showDeleteAlertDialog by remember { mutableStateOf(false) }
+    var toDeleteFile by remember { mutableStateOf<File?>(null) }
+
+    fun updateCurrentTab() {
+        openedTabs[selectedTabIndex] = pathNavigator.currentPath
+    }
+
+    fun newTab(path: String) {
+        openedTabs.add(path)
+        selectedTabIndex = openedTabs.lastIndex
+    }
+
+    fun goToPath(path: String) {
+        search = ""
+        pathNavigator.goTo(path)
+        updateCurrentTab()
+    }
+
+    fun onFileItemClick(file: File) {
         if (file.isFile) {
             Timber.d("File: $file")
         } else {
-            text = ""
-            searchPath = file.absolutePath
-            pathNavigator.goTo(file.absolutePath)
+            goToPath(file.absolutePath)
         }
     }
 
     fun goBack() {
-        text = ""
-        if (searchPath == ROOT_PATH) {
-            onBack()
-        } else {
-            searchPath = pathNavigator.goBack()
-        }
+        search = ""
+        pathNavigator.goBack()
+        updateCurrentTab()
     }
 
     fun goForward() {
-        text = ""
-        searchPath = pathNavigator.goForward()
+        search = ""
+        pathNavigator.goForward()
+        updateCurrentTab()
     }
 
-    BackHandler(enabled = searchPath != ROOT_PATH) {
+    fun loadFiles() {
+        loadFilesJob?.cancel()
+        loadFilesJob = scope.launch {
+            withContext(IO) {
+                files.clear()
+                val list = File(searchPath).listFiles()?.toList() ?: emptyList()
+                if (list.isEmpty()) {
+                    return@withContext
+                }
+                files.addAll(list.sortedBy { FilterHelper.getAbbr(it.name.lowercase()) })
+                Timber.d("Path: $searchPath, Files: $files")
+            }
+        }
+    }
+
+    fun reload() {
+        search = ""
+        loadFiles()
+    }
+
+    BackHandler(enabled = searchPath != FileHelper.ROOT_PATH) {
         goBack()
     }
 
@@ -139,28 +258,17 @@ fun FilesExtension(
     }
 
     LaunchedEffect(searchPath) {
-        job?.cancel()
-        job = scope.launch {
-            withContext(IO) {
-                files.clear()
-                val list = File(searchPath).listFiles()?.toList() ?: emptyList()
-                if (list.isEmpty()) {
-                    return@withContext
-                }
-                files.addAll(list.sortedBy { FilterHelper.getAbbr(it.name.lowercase()) })
-                Timber.d("Path: $searchPath, Files: $files")
-            }
-        }
+        loadFiles()
     }
 
-    LaunchedEffect(text) {
+    LaunchedEffect(search) {
         val filtered = files.filter {
             val nameContains = it.name.contains(
-                text, ignoreCase = true
+                search, ignoreCase = true
             )
             val pinyinContains =
                 it.name.isNotEmpty() && FilterHelper.toPinyinWithAbbr(it.name).contains(
-                    text, ignoreCase = true
+                    search, ignoreCase = true
                 )
             nameContains || pinyinContains
         }
@@ -173,74 +281,38 @@ fun FilesExtension(
     }
 
     Column {
-        val listData = remember(text) {
-            if (text.isNotEmpty()) {
+        val listData = remember(search) {
+            if (search.isNotEmpty()) {
                 filteredList
             } else {
                 files
             }
         }
-        val showGoToPreviousDir = remember(pathNavigator.currentPath) {
-            pathNavigator.currentPath != ROOT_PATH && pathNavigator.currentPath != ""
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {
-                onBack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Default.ExitToApp,
-                    contentDescription = "Back to First Page",
-                    modifier = Modifier
-                        .size(ButtonDefaults.IconSize)
-                        .graphicsLayer {
-                            rotationZ = 180f
-                        },
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-            }
-            var state by remember { mutableIntStateOf(0) }
-            ScrollableTabRow(selectedTabIndex = state,
-                containerColor = Color.Transparent,
-                divider = {}) {
-                PATH_SUGGESTIONS.forEachIndexed { index, path ->
-                    Tab(modifier = Modifier.padding(horizontal = 4.dp, vertical = 0.dp),
-                        selected = state == index,
-                        onClick = {
-                            state = index
-                            val nextPath =
-                                Environment.getExternalStoragePublicDirectory(path).absolutePath
-                            text = ""
-                            pathNavigator.goTo(nextPath)
-                        },
-                        text = {
-                            Row(
-                                Modifier
-                                    .widthIn(min = 128.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(modifier = Modifier.weight(1f), onClick = { /*TODO*/ }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Close",
-                                        tint = MaterialTheme.colorScheme.outline,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                }
-                                Text(
-                                    text = path,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.weight(8f),
-                                    maxLines = 1
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        })
+        TopTab(
+            onBack = onBack,
+            selectedTabIndex = selectedTabIndex,
+            changeTab = { index ->
+                selectedTabIndex = index
+            },
+            openedTabs = openedTabs,
+            goToPath = { path ->
+                goToPath(path)
+            },
+            newTab = { path ->
+                newTab(path)
+            },
+            closeTab = { index ->
+                openedTabs.removeAt(index)
+                if (selectedTabIndex > 0) {
+                    selectedTabIndex--
+                    goToPath(openedTabs[selectedTabIndex])
                 }
-            }
-        }
+            },
+            pathNavigator = pathNavigator,
+        )
         HorizontalDivider()
         AnimatedContent(
-            text.isNotEmpty() && listData.isEmpty(),
+            search.isNotEmpty() && listData.isEmpty(),
             label = "file list",
             modifier = Modifier.weight(1f)
         ) { isEmpty ->
@@ -266,6 +338,9 @@ fun FilesExtension(
                     )
                 }
             } else {
+                val showGoToPreviousDir = remember(pathNavigator.currentPath) {
+                    pathNavigator.currentPath != FileHelper.PATH_PREFIX && pathNavigator.currentPath != ""
+                }
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 16.dp),
@@ -274,23 +349,75 @@ fun FilesExtension(
                     if (showGoToPreviousDir) {
                         item {
                             FileItem(file = File(".."), onClick = {
-                                goBack()
+                                val temp = File(pathNavigator.currentPath)
+                                goToPath(temp.parent ?: temp.absolutePath)
                             })
                         }
                     }
                     items(listData) { file ->
                         FileItem(modifier = Modifier, file = file, onClick = {
-                            onClick(file)
+                            onFileItemClick(file)
+                        },
+                            openedTabs = openedTabs,
+                            onDropdown = { type, arg ->
+                                when (type) {
+                                    FileDropdownType.OPEN_IN_NEW_TAB -> {
+                                        newTab(file.absolutePath)
+                                        goToPath(file.absolutePath)
+                                    }
+
+                                    FileDropdownType.DELETE -> {
+                                        showDeleteAlertDialog = true
+                                        toDeleteFile = file
+                                    }
+
+                                    FileDropdownType.COPY_TO -> {
+                                        val destDir = arg ?: ""
+                                        scope.launch {
+                                            withContext(IO) {
+                                                FileHelper.copyFileTo(file, destDir)
+                                                ToastUtils.show(
+                                                    context,
+                                                    "Copied ${file.name} to ${
+                                                        FileHelper.formatPath(
+                                                            destDir
+                                                        )
+                                                    }"
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    FileDropdownType.MOVE_TO -> {
+                                        val destDir = arg ?: ""
+                                        scope.launch {
+                                            withContext(IO) {
+                                                FileHelper.moveFileTo(file, destDir)
+                                                reload()
+                                                ToastUtils.show(
+                                                    context,
+                                                    "Moved ${file.name} to ${
+                                                        FileHelper.formatPath(
+                                                            destDir
+                                                        )
+                                                    }"
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    FileDropdownType.HORIZON -> {
+
+                                    }
+                                }
                         })
                     }
                 }
             }
         }
-
         HorizontalDivider()
         Breadcrumbs(searchPath, onPath = { nextPath ->
-            text = ""
-            pathNavigator.goTo(nextPath)
+            goToPath(nextPath)
         }, leftContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedVisibility(pathNavigator.canGoBack) {
@@ -321,15 +448,15 @@ fun FilesExtension(
         })
         HorizontalDivider()
         Row(verticalAlignment = Alignment.CenterVertically) {
-            CloseBtn(text.isNotEmpty()) {
-                text = ""
+            CloseBtn(search.isNotEmpty()) {
+                search = ""
             }
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
                     .weight(1f),
-                value = text,
+                value = search,
                 singleLine = true,
                 colors = TextFieldDefaults.colors(
                     unfocusedTextColor = MaterialTheme.colorScheme.secondary,
@@ -346,7 +473,7 @@ fun FilesExtension(
                     focusedPlaceholderColor = MaterialTheme.colorScheme.secondary,
                 ),
                 onValueChange = {
-                    text = it
+                    search = it
                 },
                 placeholder = {
                     Text(
@@ -356,5 +483,45 @@ fun FilesExtension(
             )
         }
         Spacer(modifier = Modifier.imePadding())
+    }
+
+    if (showDeleteAlertDialog && toDeleteFile != null) {
+        val file = toDeleteFile!!
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteAlertDialog = false
+            },
+            title = {
+                Text(text = "Delete ${file.name}?")
+            },
+            text = {
+                Text(text = "Are you sure you want to delete ${file.name}?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAlertDialog = false
+                        scope.launch {
+                            withContext(IO) {
+                                FileHelper.deleteFile(file)
+                                reload()
+                                ToastUtils.show(context, "Deleted ${file.name}")
+                                toDeleteFile = null
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = "Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAlertDialog = false
+                    }
+                ) {
+                    Text(text = "Cancel")
+                }
+            })
     }
 }

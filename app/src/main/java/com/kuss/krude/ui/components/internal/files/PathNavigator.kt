@@ -21,6 +21,7 @@ class PathNavigator() {
     }
 
     fun goTo(page: String) {
+        if (currentPath == page) return
         backStack.push(currentPath)
         currentPath = page
         forwardStack.clear()
