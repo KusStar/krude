@@ -16,26 +16,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,9 +52,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
@@ -76,6 +78,7 @@ val PATH_SUGGESTIONS = listOf<String>(
     Environment.DIRECTORY_MOVIES,
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilesExtension(
     onBack: () -> Unit,
@@ -144,7 +147,7 @@ fun FilesExtension(
                 if (list.isEmpty()) {
                     return@withContext
                 }
-                files.addAll(list.sortedBy { FilterHelper.getAbbr(it.name) })
+                files.addAll(list.sortedBy { FilterHelper.getAbbr(it.name.lowercase()) })
                 Timber.d("Path: $searchPath, Files: $files")
             }
         }
@@ -180,6 +183,62 @@ fun FilesExtension(
         val showGoToPreviousDir = remember(pathNavigator.currentPath) {
             pathNavigator.currentPath != ROOT_PATH && pathNavigator.currentPath != ""
         }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = {
+                onBack()
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Default.ExitToApp,
+                    contentDescription = "Back to First Page",
+                    modifier = Modifier
+                        .size(ButtonDefaults.IconSize)
+                        .graphicsLayer {
+                            rotationZ = 180f
+                        },
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            var state by remember { mutableIntStateOf(0) }
+            ScrollableTabRow(selectedTabIndex = state,
+                containerColor = Color.Transparent,
+                divider = {}) {
+                PATH_SUGGESTIONS.forEachIndexed { index, path ->
+                    Tab(modifier = Modifier.padding(horizontal = 4.dp, vertical = 0.dp),
+                        selected = state == index,
+                        onClick = {
+                            state = index
+                            val nextPath =
+                                Environment.getExternalStoragePublicDirectory(path).absolutePath
+                            text = ""
+                            pathNavigator.goTo(nextPath)
+                        },
+                        text = {
+                            Row(
+                                Modifier
+                                    .widthIn(min = 128.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(modifier = Modifier.weight(1f), onClick = { /*TODO*/ }) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Close",
+                                        tint = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                }
+                                Text(
+                                    text = path,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.weight(8f),
+                                    maxLines = 1
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        })
+                }
+            }
+        }
+        HorizontalDivider()
         AnimatedContent(
             text.isNotEmpty() && listData.isEmpty(),
             label = "file list",
@@ -208,8 +267,7 @@ fun FilesExtension(
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 16.dp),
                     state = listState
                 ) {
@@ -221,90 +279,46 @@ fun FilesExtension(
                         }
                     }
                     items(listData) { file ->
-                        FileItem(
-                            modifier = Modifier,
-                            file = file, onClick = {
-                                onClick(file)
-                            })
+                        FileItem(modifier = Modifier, file = file, onClick = {
+                            onClick(file)
+                        })
                     }
                 }
             }
         }
 
         HorizontalDivider()
-        Breadcrumbs(
-            searchPath,
-            onPath = { nextPath ->
-                text = ""
-                pathNavigator.goTo(nextPath)
-            },
-            leftContent = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AnimatedVisibility(pathNavigator.canGoBack) {
-                        IconButton(onClick = {
-                            goBack()
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = "back",
-                                modifier = Modifier.size(ButtonDefaults.IconSize),
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    }
-                    AnimatedVisibility(pathNavigator.canForward) {
-                        IconButton(onClick = {
-                            goForward()
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Default.ArrowForward,
-                                contentDescription = "forward",
-                                modifier = Modifier.size(ButtonDefaults.IconSize),
-                                tint = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    }
-                }
-            })
-        HorizontalDivider()
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {
-                onBack()
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Default.ExitToApp,
-                    contentDescription = "Back to First Page",
-                    modifier = Modifier
-                        .size(ButtonDefaults.IconSize)
-                        .graphicsLayer {
-                            rotationZ = 180f
-                        },
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-            }
-            fun onChipClick(type: String) {
-                val nextPath = Environment.getExternalStoragePublicDirectory(type).absolutePath
-                text = ""
-                pathNavigator.goTo(nextPath)
-            }
-
-            LazyRow(contentPadding = PaddingValues(end = 8.dp)) {
-                items(PATH_SUGGESTIONS) { item ->
-                    TextButton(onClick = {
-                        onChipClick(item)
+        Breadcrumbs(searchPath, onPath = { nextPath ->
+            text = ""
+            pathNavigator.goTo(nextPath)
+        }, leftContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AnimatedVisibility(pathNavigator.canGoBack) {
+                    IconButton(onClick = {
+                        goBack()
                     }) {
-                        Text(
-                            text = item.ifEmpty { "~" },
-                            style = TextStyle(textDecoration = TextDecoration.Underline, fontWeight = FontWeight.Bold)
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "back",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     }
-                    if (PATH_SUGGESTIONS.last() != item) {
-                        Spacer(modifier = Modifier.size(8.dp))
+                }
+                AnimatedVisibility(pathNavigator.canForward) {
+                    IconButton(onClick = {
+                        goForward()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowForward,
+                            contentDescription = "forward",
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
             }
-
-        }
+        })
         HorizontalDivider()
         Row(verticalAlignment = Alignment.CenterVertically) {
             CloseBtn(text.isNotEmpty()) {
