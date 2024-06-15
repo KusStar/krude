@@ -64,17 +64,17 @@ interface StarDao {
     @Query("SELECT * FROM star where keyword = :keyword")
     fun getKeywordStars(keyword: String): List<Star>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertStar(star: Star)
 
     @Query("DELETE FROM star")
     fun deleteAllStar()
 
-    @Delete
-    fun deleteStar(star: Star)
+    @Query("DELETE FROM star where key = :key")
+    fun deleteStar(key: String)
 
-    @Query("DELETE FROM star where packageName = :packageName and keyword = :keyword")
-    fun deleteStarPackage(packageName: String, keyword: String)
+    @Query("DELETE FROM star where key = :key and keyword = :keyword")
+    fun deleteStarPackage(key: String, keyword: String)
 }
 
 @Dao
@@ -82,7 +82,7 @@ interface HiddenDao {
     @Query("SELECT * FROM hidden ORDER BY createdAt DESC")
     fun getAll(): List<Hidden>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(hidden: Hidden)
 
     @Query("DELETE FROM hidden")

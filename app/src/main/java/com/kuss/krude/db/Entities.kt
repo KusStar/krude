@@ -32,10 +32,9 @@ data class Usage(
     tableName = "star"
 )
 data class Star(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey
+    val key: String,
     val keyword: String,
-    val packageName: String,
     val createdAt: Date = Date()
 )
 
