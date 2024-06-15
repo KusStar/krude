@@ -30,9 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Hidden
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
-import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +40,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HiddenTableModal(
+fun HiddenListModal(
     mainViewModel: MainViewModel,
     visible: Boolean,
     onDismiss: () -> Unit
@@ -79,7 +79,7 @@ fun HiddenTableModal(
                     columns = StaggeredGridCells.Fixed(3),
                     contentPadding = PaddingValues(12.dp)
                 ) {
-                    items(hiddenList) { hidden ->
+                    items(hiddenList, key = { it.key }) { hidden ->
                         Column(Modifier.padding(vertical = 6.dp)) {
                             val hasApp = remember {
                                 packageNameToNameMap.containsKey(hidden.key)
