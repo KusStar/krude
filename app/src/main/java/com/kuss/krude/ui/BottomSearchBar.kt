@@ -220,6 +220,7 @@ fun BottomSearchBar(
                     focusRequester.requestFocus()
                     isFocused.value = true
                 }
+                mainViewModel.reloadAppsFromSystem(context)
             }
         }
         lifeCycleOwner.lifecycle.addObserver(observer)
