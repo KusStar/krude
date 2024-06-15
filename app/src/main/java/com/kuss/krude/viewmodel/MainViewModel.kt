@@ -255,6 +255,17 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    // onResume - reload apps from system
+    fun reloadAppsFromSystem(context: Context) {
+        if (state.value.originalApps.isEmpty()) {
+            return
+        }
+        // load from packageManager
+        loadPackageNameSet(context)
+        loadFromPackageManger(context, null)
+        loadExtensions(context)
+    }
+
     private fun postLoadApps(context: Context, apps: List<AppInfo>) {
         loadHiddenSet(context, apps)
     }
