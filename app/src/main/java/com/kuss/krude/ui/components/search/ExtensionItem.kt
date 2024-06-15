@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.CustomButton
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.SizeConst
@@ -133,7 +134,11 @@ fun ExtensionItem(
                 if (!item.required.isNullOrEmpty()) {
                     AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE))
                 } else {
-                    ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                    if (item.type == ExtensionType.INTERNAL) {
+                        InternalExtensionIcon(item)
+                    } else {
+                        ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                    }
                 }
                 Spacing(x = 0.5f)
             }
