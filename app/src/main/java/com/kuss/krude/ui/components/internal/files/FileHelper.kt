@@ -20,11 +20,12 @@ import kotlin.math.ln
 import kotlin.math.pow
 
 enum class FileDropdownType {
+    OPEN_WITH,
     OPEN_IN_NEW_TAB,
+    JUMP_IN_NEW_TAB,
     DELETE,
     COPY_TO,
     MOVE_TO,
-    HORIZON,
 }
 
 object FileHelper {

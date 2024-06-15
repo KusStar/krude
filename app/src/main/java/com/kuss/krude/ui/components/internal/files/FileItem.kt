@@ -13,8 +13,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FileCopy
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Tab
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -77,6 +83,123 @@ fun FileDetail(file: File) {
     }
 }
 
+@Composable
+fun FileDropdownMenu(
+    visible: Boolean,
+    file: File,
+    onDismiss: () -> Unit,
+    openedTabs: List<String>,
+    onDropdown: ((type: FileDropdownType, arg: String?) -> Unit)? = null
+) {
+    if (onDropdown != null) {
+        val isFile = file.isFile
+        CascadeDropdownMenu(
+            expanded = visible,
+            onDismissRequest = { onDismiss() },
+        ) {
+//            DropdownMenuItem(
+//                text = { Text("Open with") },
+//                leadingIcon = {
+//                    Icon(
+//                        imageVector = Icons.Default.OpenWith,
+//                        contentDescription = "Open with Icon",
+//                    )
+//                },
+//                onClick = {
+//                    onDropdown(FileDropdownType.OPEN_WITH, null)
+//                    onDismiss()
+//                }
+//            )
+            DropdownMenuItem(
+                text = { Text("Open in new tab") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Tab,
+                        contentDescription = "New Tab Icon",
+                    )
+                },
+                onClick = {
+                    onDropdown(FileDropdownType.OPEN_IN_NEW_TAB, null)
+                    onDismiss()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Jump in new tab") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = "Jump Tab Icon",
+                    )
+                },
+                onClick = {
+                    onDropdown(FileDropdownType.JUMP_IN_NEW_TAB, null)
+                    onDismiss()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Delete") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete icon",
+                    )
+                },
+                onClick = {
+                    onDropdown(FileDropdownType.DELETE, null)
+                    onDismiss()
+                })
+            if (openedTabs.isNotEmpty()) {
+                DropdownMenuItem(
+                    text = { Text("Copy to") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (isFile) Icons.Default.FileCopy else Icons.Default.FolderCopy,
+                            contentDescription = "File Icon",
+                        )
+                    },
+                    children = {
+                        for (suggest in openedTabs) {
+                            if (suggest.isEmpty()) continue
+                            DropdownMenuItem(text = {
+                                Text(
+                                    FileHelper.formatPath(
+                                        suggest
+                                    )
+                                )
+                            }, onClick = {
+                                onDropdown(FileDropdownType.COPY_TO, suggest)
+                                onDismiss()
+                            })
+                        }
+                    })
+                DropdownMenuItem(
+                    text = { Text("Move to") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.DriveFileMove,
+                            contentDescription = "Move Icon",
+                        )
+                    },
+                    children = {
+                        for (suggest in openedTabs) {
+                            if (suggest.isEmpty()) continue
+                            DropdownMenuItem(text = {
+                                Text(
+                                    FileHelper.formatPath(
+                                        suggest
+                                    )
+                                )
+                            }, onClick = {
+                                onDropdown(FileDropdownType.MOVE_TO, suggest)
+                                onDismiss()
+                            })
+                        }
+                    })
+            }
+        }
+    }
+}
+
 
 @Composable
 fun FileItem(
@@ -107,7 +230,7 @@ fun FileItem(
                 Icon(
                     imageVector = Icons.Default.Folder,
                     contentDescription = "Folder Icon",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.secondary
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -131,57 +254,13 @@ fun FileItem(
                         modifier = Modifier.size(ButtonDefaults.IconSize),
                     )
                 }
-                if (onDropdown != null) {
-                    CascadeDropdownMenu(
-                        expanded = isMenuVisible,
-                        onDismissRequest = { isMenuVisible = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Open in new tab") },
-                            onClick = {
-                                onDropdown(FileDropdownType.OPEN_IN_NEW_TAB, null)
-                                isMenuVisible = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Delete") },
-                            onClick = {
-                                onDropdown(FileDropdownType.DELETE, null)
-                                isMenuVisible = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Copy to") },
-                            children = {
-                                for (suggest in openedTabs) {
-                                    if (suggest.isEmpty()) continue
-                                    DropdownMenuItem(
-                                        text = { Text(FileHelper.formatPath(suggest)) },
-                                        onClick = {
-                                            onDropdown(FileDropdownType.COPY_TO, suggest)
-                                            isMenuVisible = false
-                                        }
-                                    )
-                                }
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Move to") },
-                            children = {
-                                for (suggest in openedTabs) {
-                                    if (suggest.isEmpty()) continue
-                                    DropdownMenuItem(
-                                        text = { Text(FileHelper.formatPath(suggest)) },
-                                        onClick = {
-                                            onDropdown(FileDropdownType.MOVE_TO, suggest)
-                                            isMenuVisible = false
-                                        }
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
+                FileDropdownMenu(
+                    visible = isMenuVisible,
+                    file = file,
+                    onDismiss = { isMenuVisible = false },
+                    openedTabs = openedTabs,
+                    onDropdown = onDropdown
+                )
             }
         }
     }
