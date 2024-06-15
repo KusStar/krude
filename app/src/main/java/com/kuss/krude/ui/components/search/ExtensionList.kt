@@ -88,7 +88,7 @@ fun ExtensionFlatList(
         ) {
             itemsIndexed(extensions, key = { _, item -> item.key() }) { index, item ->
                 val extension = item.asExtension()!!
-                val isStar = starSet.contains(extension.name)
+                val isStar = starSet.contains(extension.id)
                 ExtensionItem(
                     modifier = Modifier,
                     item = extension,
@@ -115,7 +115,7 @@ const val STANDALONE_GROUP = "##standalone##"
 
 data class IExtensionGroupItem(val extensions: List<Extension>, val key: String)
 
-fun getExtensionGroup(searchResult: List<SearchResultItem>): List<IExtensionGroupItem> {
+fun getExtensionGroup(starSet: Set<String>, searchResult: List<SearchResultItem>): List<IExtensionGroupItem> {
     val searchResultExtensions = searchResult.filter { it.isExtension() }
     val group = searchResultExtensions.map { it.asExtension()!! }.groupBy {
         if (it.required != null) {
@@ -137,7 +137,7 @@ fun getExtensionGroup(searchResult: List<SearchResultItem>): List<IExtensionGrou
             IExtensionGroupItem(extensions = listOf(it), key = it.id)
         })
     }
-    return extensionGroups
+    return extensionGroups.sortedByDescending { starSet.contains(it.extensions[0].id) }
 }
 
 @Composable
@@ -150,7 +150,7 @@ fun ExtensionGroupList(
     reverseLayout: Boolean
 ) {
     val extensionGroups = remember(searchResult) {
-        getExtensionGroup(searchResult)
+        getExtensionGroup(starSet, searchResult)
     }
     AnimatedVisibility(visible = extensionGroups.isNotEmpty()) {
         val density = LocalDensity.current
@@ -208,7 +208,7 @@ fun ExtensionGroupList(
                             focus = {},
                         ) { idx ->
                             val extension = extensions[idx]
-                            val isStar = starSet.contains(extension.name)
+                            val isStar = starSet.contains(extension.id)
                             ExtensionItem(
                                 modifier = Modifier,
                                 item = extension,
@@ -228,7 +228,7 @@ fun ExtensionGroupList(
                     }
                 } else {
                     val extension = extensions[0]
-                    val isStar = starSet.contains(extension.name)
+                    val isStar = starSet.contains(extension.id)
                     ExtensionItem(
                         modifier = Modifier,
                         item = extension,

@@ -166,13 +166,14 @@ fun BottomSearchBar(
     fun onExtensionClick(extension: Extension, isStar: Boolean) {
         if (starMode) {
             Timber.d("star $extension")
-            mainViewModel.starApp(
+            mainViewModel.insertStar(
                 context,
                 settingsState.enableExtension,
                 extension.id,
                 keyword = searchState.text,
                 isStar
             )
+            starMode = !starMode
         } else {
             if (extension.type == ExtensionType.INTERNAL) {
                 when (extension.id) {
@@ -192,7 +193,7 @@ fun BottomSearchBar(
     fun onAppClick(app: AppInfo, isStar: Boolean) {
         if (starMode) {
             Timber.d("star $app")
-            mainViewModel.starApp(
+            mainViewModel.insertStar(
                 context,
                 settingsState.enableExtension,
                 app.packageName,

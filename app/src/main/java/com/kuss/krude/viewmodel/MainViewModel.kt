@@ -106,7 +106,7 @@ class MainViewModel : ViewModel() {
         return it
     }
 
-    private fun getExtensionsWithInternal(): List<Extension> {
+    fun getExtensionsWithInternal(): List<Extension> {
         return _state.value.extensionMap.values.toList().plus(parseExtension(FILES_EXTENSION))
     }
 
@@ -685,11 +685,11 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 val stars = db.starDao().getKeywordStars(keyword)
-                Timber.d("filterKeywordStars: ${stars.joinToString { it.packageName }}")
+                Timber.d("filterKeywordStars: ${stars.joinToString { it.key }}")
                 val starSet = HashSet<String>()
 
                 stars.forEach {
-                    starSet.add(it.packageName)
+                    starSet.add(it.key)
                 }
 
                 val apps = _state.value.apps
@@ -700,18 +700,23 @@ class MainViewModel : ViewModel() {
                         SearchResultItem(it)
                     }
 
-                val starExtensionList = if (enableExtension && extensions.isNotEmpty())
-                    extensions.filter { starSet.contains(it.name) }
-                        .sortedByDescending { it.priority }.map {
-                            SearchResultItem(it)
-                        }
+                val starExtensionList =
+                    if (enableExtension && extensions.isNotEmpty())
+                        extensions
+                            .filter { extension ->
+                                starSet.contains(extension.id)
+                            }
+                            .sortedByDescending { it.priority }
+                            .map {
+                                SearchResultItem(it)
+                            }
                 else listOf()
 
                 val restList = _state.value.searchResult.filter {
                     if (it.isApp()) {
                         return@filter !starSet.contains(it.asApp()!!.packageName)
                     }
-                    return@filter !starSet.contains(it.asExtension()!!.name)
+                    return@filter !starSet.contains(it.asExtension()!!.id)
                 }
 
                 _state.update { mainState ->
@@ -724,10 +729,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun starApp(
+    fun insertStar(
         context: Context,
         enableExtension: Boolean,
-        packageName: String,
+        key: String,
         keyword: String,
         isStar: Boolean
     ) {
@@ -735,9 +740,9 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 if (!isStar) {
-                    db.starDao().insertStar(Star(packageName = packageName, keyword = keyword))
+                    db.starDao().insertStar(Star(key = key, keyword = keyword))
                 } else {
-                    db.starDao().deleteStarPackage(packageName, keyword)
+                    db.starDao().deleteStarPackage(key, keyword)
                 }
                 filterKeywordStars(context, enableExtension, keyword = keyword)
             }
@@ -753,7 +758,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             withContext(IO) {
                 val db = getDatabase(context)
-                db.starDao().deleteStar(star)
+                db.starDao().deleteStar(star.key)
             }
         }
     }

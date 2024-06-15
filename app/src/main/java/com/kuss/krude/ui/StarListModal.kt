@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,23 +32,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Star
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
-import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StarTableModal(
+fun StarListModal(
     mainViewModel: MainViewModel,
     visible: Boolean, onDismiss: () -> Unit
 ) {
 
     if (visible) {
+        val scope = rememberCoroutineScope()
         val context = LocalContext.current
         val sheetState = rememberModalBottomSheetState()
 
@@ -57,15 +60,27 @@ fun StarTableModal(
         val packageNameLabelMap = remember {
             mutableStateMapOf<String, String>()
         }
-        LaunchedEffect(true) {
-            withContext(IO) {
-                val allStars = mainViewModel.getAllStars(context)
-                Timber.d("getAllStars, ${allStars.size}")
-                stars.addAll(allStars)
-                mainViewModel.state.value.originalApps.forEach {
-                    packageNameLabelMap[it.packageName] = it.label
+        val extensionIdNameMap = remember {
+            mutableStateMapOf<String, String>()
+        }
+
+        fun loadStars() {
+            scope.launch {
+                withContext(IO) {
+                    val allStars = mainViewModel.getAllStars(context)
+                    Timber.d("getAllStars, ${allStars.size}")
+                    stars.addAll(allStars)
+                    mainViewModel.state.value.originalApps.forEach {
+                        packageNameLabelMap[it.packageName] = it.label
+                    }
+                    mainViewModel.getExtensionsWithInternal().forEach {
+                        extensionIdNameMap[it.id] = it.name
+                    }
                 }
             }
+        }
+        LaunchedEffect(true) {
+            loadStars()
         }
         ModalBottomSheet(
             onDismissRequest = {
@@ -81,18 +96,18 @@ fun StarTableModal(
                 )
                 Spacing(x = 1)
                 LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(3),
+                    columns = StaggeredGridCells.Fixed(2),
                     contentPadding = PaddingValues(12.dp)
                 ) {
-                    items(stars) { star ->
+                    items(stars, key = { it.key }) { star ->
                         Column(modifier = Modifier.padding(vertical = 6.dp)) {
                             val hasApp = remember {
-                                packageNameLabelMap.containsKey(star.packageName)
+                                packageNameLabelMap.containsKey(star.key)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (hasApp) {
                                     AsyncAppIcon(
-                                        packageName = star.packageName, modifier = Modifier
+                                        packageName = star.key, modifier = Modifier
                                             .size(48.dp)
                                     )
                                 } else {
@@ -113,13 +128,21 @@ fun StarTableModal(
                             }
                             if (hasApp) {
                                 Text(
-                                    text = packageNameLabelMap[star.packageName]!!,
+                                    text = packageNameLabelMap[star.key]!!,
                                     color = MaterialTheme.colorScheme.primary,
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
+                            } else {
+                                extensionIdNameMap[star.key]?.let {
+                                    Text(
+                                        text = it,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
                             }
                             Text(
-                                text = star.packageName,
+                                text = star.key,
                                 color = MaterialTheme.colorScheme.let {
                                     if (hasApp) it.secondary else it.primary
                                 },

@@ -180,11 +180,11 @@ fun MoreModal(
         }
     }
 
-    StarTableModal(mainViewModel, visible = showStarTable) {
+    StarListModal(mainViewModel, visible = showStarTable) {
         showStarTable = false
     }
 
-    HiddenTableModal(mainViewModel, visible = showHiddenTable) {
+    HiddenListModal(mainViewModel, visible = showHiddenTable) {
         showHiddenTable = false
     }
 }
