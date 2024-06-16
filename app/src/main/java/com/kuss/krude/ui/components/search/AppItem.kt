@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -94,7 +91,6 @@ fun AsyncAppIcon(packageName: String, modifier: Modifier) {
 @Composable
 fun AppItemContent(
     item: AppInfo,
-    showStar: Boolean = false,
     showSubtitle: Boolean = true,
     titleSingleLine: Boolean = false,
     titleFontSize: TextUnit = 16.sp,
@@ -102,14 +98,6 @@ fun AppItemContent(
     showTimes: Boolean = false
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        if (showStar) {
-            Icon(
-                Icons.Filled.Star,
-                tint = MaterialTheme.colorScheme.primary,
-                contentDescription = "Star",
-                modifier = Modifier.size(12.dp)
-            )
-        }
         Text(
             text = item.label,
             textAlign = TextAlign.Center,
@@ -180,15 +168,16 @@ fun AppItem(
                 horizontalArrangement = Arrangement.Center
             ) {
                 if (showIcon) {
-                    AsyncAppIcon(
-                        packageName = item.packageName, modifier = Modifier
-                            .size(iconSize)
-                    )
+                    StarBox(showStar) {
+                        AsyncAppIcon(
+                            packageName = item.packageName, modifier = Modifier
+                                .size(iconSize)
+                        )
+                    }
                     Spacing(1)
                 }
                 AppItemContent(
                     item = item,
-                    showStar = showStar,
                     showSubtitle = showSubtitle,
                     titleSingleLine = true,
                     titleFontSize = titleFontSize,
@@ -201,14 +190,15 @@ fun AppItem(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                AsyncAppIcon(
-                    packageName = item.packageName, modifier = Modifier
-                        .size(iconSize)
-                )
+                StarBox(showStar) {
+                    AsyncAppIcon(
+                        packageName = item.packageName, modifier = Modifier
+                            .size(iconSize)
+                    )
+                }
                 Spacing(1)
                 AppItemContent(
                     item = item,
-                    showStar = showStar,
                     showSubtitle = showSubtitle,
                     titleSingleLine = titleSingleLine,
                     titleFontSize = titleFontSize,

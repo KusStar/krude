@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,7 +45,6 @@ fun ExtensionIcon(iconSize: Dp) {
 @Composable
 fun ExtensionContent(
     item: Extension,
-    showStar: Boolean = false,
     showSubtitle: Boolean = true,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
@@ -56,23 +54,12 @@ fun ExtensionContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (showStar) {
-                Icon(
-                    Icons.Filled.Star,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = "Star",
-                    modifier = Modifier.size(12.dp)
-                )
-            }
-            Text(
-                text = item.name,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = titleFontSize,
-            )
-        }
-
+        Text(
+            text = item.name,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = titleFontSize,
+        )
         AnimatedVisibility(visible = showTimes) {
             Spacing(1, 4)
             Text(
@@ -131,20 +118,24 @@ fun ExtensionItem(
             modifier = Modifier.padding(padding)
         ) {
             if (showIcon) {
-                if (!item.required.isNullOrEmpty()) {
-                    AsyncAppIcon(packageName = item.required!![0], modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE))
-                } else {
-                    if (item.type == ExtensionType.INTERNAL) {
-                        InternalExtensionIcon(item)
+                StarBox(showStar) {
+                    if (!item.required.isNullOrEmpty()) {
+                        AsyncAppIcon(
+                            packageName = item.required!![0],
+                            modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                        )
                     } else {
-                        ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                        if (item.type == ExtensionType.INTERNAL) {
+                            InternalExtensionIcon(item)
+                        } else {
+                            ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                        }
                     }
                 }
-                Spacing(x = 0.5f)
             }
+            Spacing(x = 0.5f)
             ExtensionContent(
                 item = item,
-                showStar = showStar,
                 showTimes = showTimes,
                 showSubtitle = showSubtitle,
                 titleFontSize = titleFontSize,
