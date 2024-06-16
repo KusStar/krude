@@ -299,14 +299,23 @@ fun BottomSearchBar(
                                             )
                                             Spacing(x = 1)
                                             Text(
+                                                text = "\"",
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
+                                            Text(
                                                 text = searchState.text,
                                                 color = MaterialTheme.colorScheme.primary,
                                                 fontWeight = FontWeight.Bold
                                             )
+                                            Text(
+                                                text = "\"",
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
                                             Spacing(x = 1)
                                             Text(
-                                                text = "to app",
-                                                color = MaterialTheme.colorScheme.secondary
+                                                text = "to",
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
                                             )
                                         }
                                     }
