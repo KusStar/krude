@@ -5,7 +5,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -90,9 +89,11 @@ fun ExtensionItem(
     item: Extension,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
+    showContent: Boolean = true,
     enabled: Boolean = true,
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
+    iconSize: Dp = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE,
     showTimes: Boolean = false,
     padding: Dp = 4.dp,
     showIcon: Boolean
@@ -101,7 +102,6 @@ fun ExtensionItem(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = modifier
-            .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
@@ -122,25 +122,27 @@ fun ExtensionItem(
                     if (!item.required.isNullOrEmpty()) {
                         AsyncAppIcon(
                             packageName = item.required!![0],
-                            modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                            modifier = Modifier.size(iconSize)
                         )
                     } else {
                         if (item.type == ExtensionType.INTERNAL) {
-                            InternalExtensionIcon(item)
+                            InternalExtensionIcon(item, size = iconSize)
                         } else {
-                            ExtensionIcon(iconSize = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                            ExtensionIcon(iconSize = iconSize)
                         }
                     }
                 }
             }
-            Spacing(x = 0.5f)
-            ExtensionContent(
-                item = item,
-                showTimes = showTimes,
-                showSubtitle = showSubtitle,
-                titleFontSize = titleFontSize,
-                subtitleFontSize = subtitleFontSize
-            )
+            if (showContent) {
+                Spacing(x = 0.5f)
+                ExtensionContent(
+                    item = item,
+                    showTimes = showTimes,
+                    showSubtitle = showSubtitle,
+                    titleFontSize = titleFontSize,
+                    subtitleFontSize = subtitleFontSize
+                )
+            }
         }
     }
 }
