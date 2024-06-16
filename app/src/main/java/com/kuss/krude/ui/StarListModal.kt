@@ -32,9 +32,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.R
 import com.kuss.krude.db.Star
+import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
+import com.kuss.krude.ui.components.search.InternalExtensionIcon
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -60,8 +63,8 @@ fun StarListModal(
         val packageNameLabelMap = remember {
             mutableStateMapOf<String, String>()
         }
-        val extensionIdNameMap = remember {
-            mutableStateMapOf<String, String>()
+        val extensionIdMap = remember {
+            mutableStateMapOf<String, Extension>()
         }
 
         fun loadStars() {
@@ -74,7 +77,7 @@ fun StarListModal(
                         packageNameLabelMap[it.packageName] = it.label
                     }
                     mainViewModel.getExtensionsWithInternal().forEach {
-                        extensionIdNameMap[it.id] = it.name
+                        extensionIdMap[it.id] = it
                     }
                 }
             }
@@ -111,7 +114,14 @@ fun StarListModal(
                                             .size(48.dp)
                                     )
                                 } else {
-                                    ExtensionIcon(48.dp)
+                                    if (extensionIdMap.containsKey(star.key)) {
+                                        val extension = extensionIdMap[star.key]!!
+                                        if (extension.type == ExtensionType.INTERNAL) {
+                                            InternalExtensionIcon(extension, 48.dp)
+                                        } else {
+                                            ExtensionIcon(48.dp)
+                                        }
+                                    }
                                 }
                                 Spacing(x = 1)
                                 IconButton(onClick = {
@@ -133,9 +143,9 @@ fun StarListModal(
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             } else {
-                                extensionIdNameMap[star.key]?.let {
+                                extensionIdMap[star.key]?.let {
                                     Text(
-                                        text = it,
+                                        text = it.name,
                                         color = MaterialTheme.colorScheme.primary,
                                         style = MaterialTheme.typography.bodyLarge,
                                     )
