@@ -169,6 +169,9 @@ fun ExtensionGroupList(
                 if (extensions.size > 1) {
                     val state = rememberFWheelPickerState()
                     var hapticFeedbackEnable by remember { mutableStateOf(false) }
+                    val isStar = remember(starSet, state.currentIndex, extensions) {
+                        if (state.currentIndex >= 0) starSet.contains(extensions[state.currentIndex].id) else false
+                    }
                     LaunchedEffect(state) {
                         snapshotFlow { state.currentIndexSnapshot }
                             .collect {
@@ -197,10 +200,14 @@ fun ExtensionGroupList(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
-                        AsyncAppIcon(
-                            packageName = extensions[0].required!![0],
-                            modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
-                        )
+                        StarBox(
+                            showStar = isStar,
+                        ) {
+                            AsyncAppIcon(
+                                packageName = extensions[0].required!![0],
+                                modifier = Modifier.size(SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE)
+                            )
+                        }
                         FVerticalWheelPicker(
                             state = state,
                             modifier = Modifier.width(SizeConst.SEARCH_RESULT_WHEEL_PICK_EXTRA_WIDTH + maxTextWidth),
@@ -208,7 +215,6 @@ fun ExtensionGroupList(
                             focus = {},
                         ) { idx ->
                             val extension = extensions[idx]
-                            val isStar = starSet.contains(extension.id)
                             ExtensionItem(
                                 modifier = Modifier,
                                 item = extension,

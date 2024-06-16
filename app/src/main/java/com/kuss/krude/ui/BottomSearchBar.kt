@@ -98,7 +98,7 @@ fun BottomSearchBar(
     val uiState by mainViewModel.state.collectAsState()
     val settingsState by settingsViewModel.state.collectAsState()
 
-    val currentStarPackageNameSet = uiState.currentStarPackageNameSet
+    val starSet = uiState.currentStarPackageNameSet
     val apps = uiState.apps
     val searchResult = uiState.searchResult
 
@@ -326,7 +326,7 @@ fun BottomSearchBar(
                                     ExtensionList(
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
-                                        starSet = currentStarPackageNameSet,
+                                        starSet = starSet,
                                         showUsageCount = settingsState.showUsageCount,
                                         onExtensionClick = { extension, isStar ->
                                             onExtensionClick(extension, isStar)
@@ -342,7 +342,7 @@ fun BottomSearchBar(
                                 MainList(
                                     searchResult = searchResult,
                                     listState = searchMainListState,
-                                    starSet = currentStarPackageNameSet,
+                                    starSet = starSet,
                                     settingsState = settingsState,
                                     onAppClick = { app, isStar ->
                                         onAppClick(app, isStar)
@@ -364,7 +364,7 @@ fun BottomSearchBar(
                                     ExtensionList(
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
-                                        starSet = currentStarPackageNameSet,
+                                        starSet = starSet,
                                         showUsageCount = settingsState.showUsageCount,
                                         onExtensionClick = { extension, isStar ->
                                             onExtensionClick(extension, isStar)
@@ -405,7 +405,6 @@ fun BottomSearchBar(
                     CloseBtn(visible = searchState.text.isNotEmpty()) {
                         clear()
                     }
-
                     CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
                         TextField(
                             enabled = apps.isNotEmpty(),
@@ -438,7 +437,6 @@ fun BottomSearchBar(
                             placeholder = { Text(text = stringResource(id = R.string.search_placeholder)) },
                         )
                     }
-
                     MoreBtns(
                         search = searchState.text,
                         searchResult = searchResult,
@@ -454,7 +452,14 @@ fun BottomSearchBar(
                         onMoreIcon = {
                             mainViewModel.setShowMoreSheet(true)
                         },
-                        dominantHand = settingsState.dominantHand
+                        dominantHand = settingsState.dominantHand,
+                        onExtensionClick = { extension, isStar ->
+                            onExtensionClick(extension, isStar)
+                        },
+                        onAppClick = { app, isStar ->
+                            onAppClick(app, isStar)
+                        },
+                        starSet = starSet,
                     )
                 }
 

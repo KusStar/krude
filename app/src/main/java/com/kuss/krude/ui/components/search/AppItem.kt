@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -138,6 +137,7 @@ fun AppItem(
     item: AppInfo,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
+    showContent: Boolean = true,
     titleSingleLine: Boolean = false,
     enabled: Boolean = true,
     iconSize: Dp = 48.dp,
@@ -151,7 +151,6 @@ fun AppItem(
         onClick = onClick,
         onLongClick = onLongClick,
         modifier = modifier
-            .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
@@ -174,16 +173,20 @@ fun AppItem(
                                 .size(iconSize)
                         )
                     }
-                    Spacing(1)
+                    if (showContent) {
+                        Spacing(1)
+                    }
                 }
-                AppItemContent(
-                    item = item,
-                    showSubtitle = showSubtitle,
-                    titleSingleLine = true,
-                    titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize,
-                    showTimes = showTimes
-                )
+                if (showContent) {
+                    AppItemContent(
+                        item = item,
+                        showSubtitle = showSubtitle,
+                        titleSingleLine = true,
+                        titleFontSize = titleFontSize,
+                        subtitleFontSize = subtitleFontSize,
+                        showTimes = showTimes
+                    )
+                }
             }
         } else {
             Column(
@@ -196,15 +199,17 @@ fun AppItem(
                             .size(iconSize)
                     )
                 }
-                Spacing(1)
-                AppItemContent(
-                    item = item,
-                    showSubtitle = showSubtitle,
-                    titleSingleLine = titleSingleLine,
-                    titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize,
-                    showTimes = showTimes
-                )
+                if (showContent) {
+                    Spacing(1)
+                    AppItemContent(
+                        item = item,
+                        showSubtitle = showSubtitle,
+                        titleSingleLine = titleSingleLine,
+                        titleFontSize = titleFontSize,
+                        subtitleFontSize = subtitleFontSize,
+                        showTimes = showTimes
+                    )
+                }
             }
         }
     }
