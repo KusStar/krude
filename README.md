@@ -19,6 +19,18 @@
 
 - [promeG/TinyPinyin](https://github.com/promeG/TinyPinyin)
 
+## Building
+
+- Clone the repository
+
+```shell
+git clone https://github.com/KusStar/krude
+```
+
+- Open the project in Android Studio, wait for the IDE to sync the project
+
+- Build and run
+
 ## LICENSE
 
 [MIT](LICENSE)
