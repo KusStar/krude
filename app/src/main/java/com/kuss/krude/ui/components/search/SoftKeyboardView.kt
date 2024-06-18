@@ -51,7 +51,7 @@ private fun getKeymaps(showLeftSideBackspace: Boolean): List<String> {
 
 fun getKeyboardWidth(keyNum: Int, screenWidth: Dp, padding: Dp): Dp {
     val keyWidth = (screenWidth - padding * (keyNum - 2)) / keyNum
-    return min(keyWidth, 56.dp)
+    return min(keyWidth, 42.dp)
 }
 
 val KEY_PADDING = 3.dp
