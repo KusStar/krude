@@ -34,6 +34,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -269,9 +270,11 @@ fun FilesExtension(
                         }
                     }
                     items(listData) { file ->
-                        val targetTabs = remember(openedTabs, pathNavigator.currentPath) {
-                            openedTabs.filterIndexed { index, _ ->
-                                index != selectedTabIndex
+                        val targetTabs by remember {
+                            derivedStateOf {
+                                openedTabs.filterIndexed { index, _ ->
+                                    index != selectedTabIndex
+                                }
                             }
                         }
                         FileItem(modifier = Modifier, file = file, onClick = {
@@ -297,7 +300,10 @@ fun FilesExtension(
 
                                     FileDropdownType.JUMP_IN_NEW_TAB -> {
                                         newTab(file.absolutePath, true)
-                                        goToPath(file.absolutePath)
+                                        scope.launch {
+                                            delay(150)
+                                            goToPath(file.absolutePath)
+                                        }
                                     }
 
                                     FileDropdownType.DELETE -> {
@@ -340,7 +346,7 @@ fun FilesExtension(
                                         }
                                     }
                                 }
-                        })
+                            })
                     }
                 }
             }

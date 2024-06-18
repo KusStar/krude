@@ -159,11 +159,10 @@ fun FileDropdownMenu(
                     },
                     children = {
                         for (suggest in openedTabs) {
-                            if (suggest.isEmpty()) continue
                             DropdownMenuItem(text = {
                                 Text(
                                     FileHelper.formatPath(
-                                        suggest
+                                        suggest.ifEmpty { "~" }
                                     )
                                 )
                             }, onClick = {
@@ -182,11 +181,10 @@ fun FileDropdownMenu(
                     },
                     children = {
                         for (suggest in openedTabs) {
-                            if (suggest.isEmpty()) continue
                             DropdownMenuItem(text = {
                                 Text(
                                     FileHelper.formatPath(
-                                        suggest
+                                        suggest.ifEmpty { "~" }
                                     )
                                 )
                             }, onClick = {
