@@ -94,13 +94,14 @@ fun FilesExtension(
         openedTabs[selectedTabIndex] = pathNavigator.currentPath
     }
 
-    fun newTab(path: String, jump: Boolean) {
+    fun newTab(path: String, jump: Boolean, jumpedCallback: (() -> Unit)? = null) {
         openedTabs.add(path)
         if (jump) {
             // stupid workaround for IndexOutOfBoundsException
             scope.launch {
                 delay(100)
                 selectedTabIndex = openedTabs.lastIndex
+                jumpedCallback?.invoke()
             }
         }
     }
@@ -151,8 +152,20 @@ fun FilesExtension(
         loadFiles()
     }
 
-    BackHandler(enabled = searchPath != FileHelper.ROOT_PATH) {
-        goBack()
+    fun closeTab(index: Int) {
+        openedTabs.removeAt(index)
+        if (selectedTabIndex > 0) {
+            selectedTabIndex--
+            goToPath(openedTabs[selectedTabIndex])
+        }
+    }
+
+    BackHandler(enabled = searchPath != FileHelper.ROOT_PATH || selectedTabIndex != 0) {
+        if (selectedTabIndex != 0 && searchPath == FileHelper.ROOT_PATH) {
+            closeTab(selectedTabIndex)
+        } else {
+            goBack()
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -211,11 +224,7 @@ fun FilesExtension(
                 goToPath(pathNavigator.currentPath)
             },
             closeTab = { index ->
-                openedTabs.removeAt(index)
-                if (selectedTabIndex > 0) {
-                    selectedTabIndex--
-                    goToPath(openedTabs[selectedTabIndex])
-                }
+                closeTab(index)
             },
             pathNavigator = pathNavigator,
             closeAllTabs = {
@@ -280,73 +289,71 @@ fun FilesExtension(
                         FileItem(modifier = Modifier, file = file, onClick = {
                             onFileItemClick(file)
                         },
-                            openedTabs = targetTabs,
-                            onDropdown = { type, arg ->
-                                when (type) {
-                                    FileDropdownType.OPEN_WITH -> {
-                                        // TODO: Open with
-                                        val intent =
-                                            Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                                                // Optionally, specify a starting directory.
-                                                // For example, to open the Downloads folder, you might use "Downloads/" as the URI.
-                                                // Note: Not all URIs will work on all devices because the path structure can vary.
-                                            }
-                                        context.startActivity(intent)
-                                    }
-
-                                    FileDropdownType.OPEN_IN_NEW_TAB -> {
-                                        newTab(file.absolutePath, false)
-                                    }
-
-                                    FileDropdownType.JUMP_IN_NEW_TAB -> {
-                                        newTab(file.absolutePath, true)
-                                        scope.launch {
-                                            delay(150)
-                                            goToPath(file.absolutePath)
+                            openedTabs = targetTabs
+                        ) { type, arg ->
+                            when (type) {
+                                FileDropdownType.OPEN_WITH -> {
+                                    // TODO: Open with
+                                    val intent =
+                                        Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                                            // Optionally, specify a starting directory.
+                                            // For example, to open the Downloads folder, you might use "Downloads/" as the URI.
+                                            // Note: Not all URIs will work on all devices because the path structure can vary.
                                         }
-                                    }
+                                    context.startActivity(intent)
+                                }
 
-                                    FileDropdownType.DELETE -> {
-                                        showDeleteAlertDialog = true
-                                        toDeleteFile = file
-                                    }
+                                FileDropdownType.OPEN_IN_NEW_TAB -> {
+                                    newTab(file.absolutePath, false)
+                                }
 
-                                    FileDropdownType.COPY_TO -> {
-                                        val destDir = arg ?: ""
-                                        scope.launch {
-                                            withContext(IO) {
-                                                FileHelper.copyFileTo(file, destDir)
-                                                ToastUtils.show(
-                                                    context,
-                                                    "Copied ${file.name} to ${
-                                                        FileHelper.formatPath(
-                                                            destDir
-                                                        )
-                                                    }"
-                                                )
-                                            }
-                                        }
+                                FileDropdownType.JUMP_IN_NEW_TAB -> {
+                                    newTab(file.absolutePath, true) {
+                                        goToPath(file.absolutePath)
                                     }
+                                }
 
-                                    FileDropdownType.MOVE_TO -> {
-                                        val destDir = arg ?: ""
-                                        scope.launch {
-                                            withContext(IO) {
-                                                FileHelper.moveFileTo(file, destDir)
-                                                reload()
-                                                ToastUtils.show(
-                                                    context,
-                                                    "Moved ${file.name} to ${
-                                                        FileHelper.formatPath(
-                                                            destDir
-                                                        )
-                                                    }"
-                                                )
-                                            }
+                                FileDropdownType.DELETE -> {
+                                    showDeleteAlertDialog = true
+                                    toDeleteFile = file
+                                }
+
+                                FileDropdownType.COPY_TO -> {
+                                    val destDir = arg ?: ""
+                                    scope.launch {
+                                        withContext(IO) {
+                                            FileHelper.copyFileTo(file, destDir)
+                                            ToastUtils.show(
+                                                context,
+                                                "Copied ${file.name} to ${
+                                                    FileHelper.formatPath(
+                                                        destDir
+                                                    )
+                                                }"
+                                            )
                                         }
                                     }
                                 }
-                            })
+
+                                FileDropdownType.MOVE_TO -> {
+                                    val destDir = arg ?: ""
+                                    scope.launch {
+                                        withContext(IO) {
+                                            FileHelper.moveFileTo(file, destDir)
+                                            reload()
+                                            ToastUtils.show(
+                                                context,
+                                                "Moved ${file.name} to ${
+                                                    FileHelper.formatPath(
+                                                        destDir
+                                                    )
+                                                }"
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
