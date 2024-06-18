@@ -1,10 +1,10 @@
 package com.kuss.krude.utils
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
@@ -13,16 +13,14 @@ import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
+import java.lang.ref.WeakReference
 
 object ActivityHelper {
+    private var activity: WeakReference<Activity>? = null
+
     @JvmStatic
-    fun reloadApp(context: Context) {
-        val packageManager: PackageManager = context.packageManager
-        val intent: Intent = packageManager.getLaunchIntentForPackage(context.packageName)!!
-        val componentName: ComponentName = intent.component!!
-        val restartIntent: Intent = Intent.makeRestartActivityTask(componentName)
-        context.startActivity(restartIntent)
-        Runtime.getRuntime().exit(0)
+    fun initActivity(activity: Activity) {
+        this.activity = WeakReference(activity)
     }
 
     @JvmStatic
@@ -30,7 +28,12 @@ object ActivityHelper {
         val intent = context
             .packageManager.getLaunchIntentForPackage(packageName)
             ?: return
+        startIntentWithTransition(context, intent, view)
+    }
 
+    @JvmStatic
+    fun startIntentWithTransition(context: Context, intent: Intent, argView: View? = null) {
+        val view = argView ?: activity?.get()?.window?.decorView
         var bundle: Bundle? = null
         if (view != null) {
             val w = view.measuredWidth
@@ -60,18 +63,6 @@ object ActivityHelper {
     }
 
     @JvmStatic
-    fun startWithRevealAnimation(context: Context, view: View, intent: Intent) {
-        val compat = ActivityOptionsCompat.makeClipRevealAnimation(
-            view, 0, 0, view.width, view.height
-        )
-        ActivityCompat.startActivity(
-            context,
-            intent,
-            compat.toBundle()
-        )
-    }
-
-    @JvmStatic
     fun findActivitiesForPackage(context: Context, packageName: String): List<ResolveInfo?>? {
         val packageManager = context.packageManager
         val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
@@ -84,25 +75,12 @@ object ActivityHelper {
     }
 
     @JvmStatic
-    fun startDefaultHome(activity: Activity) {
-        startWithRevealAnimation(
-            activity,
-            activity.window.decorView,
-            Intent(Settings.ACTION_HOME_SETTINGS)
-        )
-    }
-
-    @JvmStatic
     fun toDetail(context: Context, packageName: String) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             data = Uri.parse("package:$packageName")
         }
-        ActivityCompat.startActivity(
-            context,
-            intent,
-            null
-        )
+        startIntentWithTransition(context, intent)
     }
 
     @JvmStatic
@@ -110,10 +88,23 @@ object ActivityHelper {
         val intent = Intent(Intent.ACTION_UNINSTALL_PACKAGE).apply {
             data = Uri.parse("package:$packageName")
         }
-        ActivityCompat.startActivity(
-            context,
-            intent,
-            null
-        )
+        startIntentWithTransition(context, intent)
+    }
+
+    @SuppressLint("WrongConstant")
+    @JvmStatic
+    fun openWechatScan(context: Context): Boolean {
+        try {
+            val intent = Intent()
+            intent.setComponent(ComponentName("com.tencent.mm", "com.tencent.mm.ui.LauncherUI"))
+            intent.putExtra("LauncherUI.From.Scaner.Shortcut", true)
+            intent.setFlags(335544320)
+            intent.setAction("android.intent.action.VIEW")
+            startIntentWithTransition(context, intent)
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
     }
 }

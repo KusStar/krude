@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
@@ -240,10 +240,10 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                                         try {
                                             intent.component =
                                                 ComponentName(it.packageName, it.name)
-                                            context.startActivity(intent)
+                                            ActivityHelper.startIntentWithTransition(context, intent)
                                         } catch (e: Exception) {
                                             intent.component = null
-                                            context.startActivity(intent)
+                                            ActivityHelper.startIntentWithTransition(context, intent)
                                         }
 
                                     }

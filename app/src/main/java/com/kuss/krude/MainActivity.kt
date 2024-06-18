@@ -1,5 +1,6 @@
 package com.kuss.krude
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.kuss.krude.ui.AppEntry
 import com.kuss.krude.ui.theme.AppTheme
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.LocaleHelper
 import com.kuss.krude.utils.PinyinHelper
 import com.kuss.krude.utils.Umami
@@ -30,6 +32,8 @@ class MainActivity : ComponentActivity() {
 
         PinyinHelper.initDict()
 
+        ActivityHelper.initActivity(this)
+
         Umami.trackInit()
 
         setContent {
@@ -39,6 +43,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        ActivityHelper.initActivity(this)
     }
 
 }

@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.search.CloseBtn
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
 import kotlinx.coroutines.Dispatchers.IO
@@ -173,7 +174,7 @@ fun FilesExtension(
             if (!Environment.isExternalStorageManager()) {
                 val intent = Intent()
                 intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                context.startActivity(intent);
+                ActivityHelper.startIntentWithTransition(context, intent)
             }
         }
     }
@@ -300,7 +301,7 @@ fun FilesExtension(
                                             // For example, to open the Downloads folder, you might use "Downloads/" as the URI.
                                             // Note: Not all URIs will work on all devices because the path structure can vary.
                                         }
-                                    context.startActivity(intent)
+                                    ActivityHelper.startIntentWithTransition(context, intent)
                                 }
 
                                 FileDropdownType.OPEN_IN_NEW_TAB -> {

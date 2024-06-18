@@ -51,7 +51,7 @@ object ExtensionHelper {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
-                context.startActivity(intent)
+                ActivityHelper.startIntentWithTransition(context, intent)
             }
             ExtensionType.ACTION -> {
                 val intent = Intent(extension.uri)
@@ -62,7 +62,7 @@ object ExtensionHelper {
                         intent.setFlags(data.flags.toInt())
                     }
                 }
-                context.startActivity(intent)
+                ActivityHelper.startIntentWithTransition(context, intent)
             }
             ExtensionType.INTENT -> launchExtensionIntent(
                 context,
@@ -70,7 +70,6 @@ object ExtensionHelper {
             )
         }
     }
-
 
     private fun launchExtensionIntent(context: Context, extension: Extension) {
         try {
@@ -91,7 +90,7 @@ object ExtensionHelper {
             if (data.action != null) {
                 intent.setAction(data.action)
             }
-            context.startActivity(intent)
+            ActivityHelper.startIntentWithTransition(context, intent)
         } catch (e: Exception) {
             e.printStackTrace()
         }
