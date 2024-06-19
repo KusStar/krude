@@ -24,7 +24,6 @@ import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.ExtensionHelper.overwriteI18nExtension
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.LocaleHelper
-import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.viewmodel.settings.SettingsState
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
@@ -263,7 +262,6 @@ class MainViewModel : ViewModel() {
         // load from packageManager
         loadPackageNameSet(context)
         loadFromPackageManger(context, null)
-        loadExtensions(context)
     }
 
     private fun postLoadApps(context: Context, apps: List<AppInfo>) {
@@ -298,27 +296,42 @@ class MainViewModel : ViewModel() {
                 } else {
                     ExtensionHelper.EXTENSIONS_REPO
                 }
-                Timber.i("loadExtensions: $repoUrl")
-                val (exception, extensionUrls) = ExtensionHelper.fetchExtensionsFromRepo(
+                Timber.i("loadExtensions from repo")
+//                val toast = toaster.show(
+//                    message = "Loading extensions from repo",
+//                    id = ToastUtils.Type.LOADING,
+//                    duration = Duration.INFINITE
+//                )
+                val (exception, extensionRepos) = ExtensionHelper.fetchExtensionsFromRepo(
                     context,
                     repoUrl
                 )
                 if (exception != null) {
                     Timber.e("loadExtensions: error, $exception")
-                    ToastUtils.show(
-                        context,
-                        "Load extensions error, please check the repo url."
-                    )
+//                    toaster.show(
+//                        "Load extensions error, please check the repo url.",
+//                        type = ToastType.Error
+//                    )
                     return@withContext
                 }
-                extensionUrls?.forEach { url ->
-                    ExtensionHelper.fetchExtension(context, url) { appExtensionGroup ->
-                        if (appExtensionGroup != null) {
-                            Timber.d("loadExtensions: ${appExtensionGroup.name}, ${appExtensionGroup.description}, ${appExtensionGroup.main.size}")
-                        } else {
-                            Timber.d("loadExtensions: null for $url")
+                if (extensionRepos != null) {
+                    var loaded = 0
+                    for ((index, extensionRepo) in extensionRepos.withIndex()) {
+//                        toaster.show(
+//                            message = "(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}",
+//                            id = ToastUtils.Type.LOADING
+//                        )
+
+                        val appExtensionGroup =
+                            ExtensionHelper.fetchExtension(context, extensionRepo.url)
+                        if (appExtensionGroup == null) {
+//                            toaster.show(
+//                                "Cannot load ${extensionRepo.name}",
+//                                type = ToastType.Error
+//                            )
+                            continue
                         }
-                        if (appExtensionGroup != null && appExtensionGroup.main.isNotEmpty()) {
+                        if (appExtensionGroup.main.isNotEmpty()) {
                             val nextExtensions = appExtensionGroup.main.filter { extension ->
                                 if (extension.type == ExtensionType.ALIAS) {
                                     return@filter false
@@ -336,7 +349,7 @@ class MainViewModel : ViewModel() {
                                     if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
                                         overwriteI18nExtension(it, it.i18n.zh)
                                     }
-                                    if (LocaleHelper.currentLocale == "en" &&it.i18n.en != null) {
+                                    if (LocaleHelper.currentLocale == "en" && it.i18n.en != null) {
                                         overwriteI18nExtension(it, it.i18n.en)
                                     }
                                 }
@@ -366,13 +379,22 @@ class MainViewModel : ViewModel() {
                                 }
                                 saveExtensionsIntoCache(context, nextExtensions)
                             }
-                            val aliasExtensions = appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
+                            val aliasExtensions =
+                                appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
                             if (aliasExtensions.isNotEmpty()) {
                                 Timber.d("loadExtensions: aliasExtensions ${aliasExtensions.size}")
                                 bindAliasFilterTarget(aliasExtensions)
                             }
+                            loaded += 1
                         }
                     }
+//                    toaster.dismiss(toast)
+//                    val type =
+//                        if (loaded == 0) ToastType.Error else if (loaded < extensionRepos.size) ToastType.Warning else ToastType.Success
+//                    toaster.show(
+//                        message = "Loaded from $loaded extension repo",
+//                        type = type
+//                    )
                 }
             }
         }

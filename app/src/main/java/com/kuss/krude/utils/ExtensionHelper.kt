@@ -20,6 +20,8 @@ import okio.IOException
 import timber.log.Timber
 import java.io.File
 
+data class ExtensionRepo(val name: String, val url: String)
+
 object ExtensionHelper {
     const val EXTENSIONS_REPO =
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
@@ -115,7 +117,7 @@ object ExtensionHelper {
     fun fetchExtensionsFromRepo(
         context: Context,
         repoUrl: String
-    ): Pair<Exception?, List<String>?> {
+    ): Pair<Exception?, List<ExtensionRepo>?> {
         if (client == null) {
             initClient(context)
         }
@@ -131,16 +133,16 @@ object ExtensionHelper {
                 if (!it.isSuccessful) throw IOException("Unexpected code $response")
                 val body = it.body?.string()
                 val gson = Gson()
-                val extensionUrls: MutableList<String> = mutableListOf()
+                val extensionRepos: MutableList<ExtensionRepo> = mutableListOf()
                 try {
                     gson.fromJson(body, JsonArray::class.java)?.forEach { data ->
                         val name = data.asJsonObject.get("name").asString
                         Timber.d("fetchExtensionsFromRepo: extension = $name")
                         val url = data.asJsonObject.get("download_url").asString
-                        extensionUrls.add(url)
+                        extensionRepos.add(ExtensionRepo(name, url))
                     }
-                    Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionUrls")
-                    return Pair(null, extensionUrls)
+                    Timber.d("fetchExtensionsFromRepo: extensionUrls = $extensionRepos")
+                    return Pair(null, extensionRepos)
                 } catch (e: Exception) {
                     e.printStackTrace()
                     return Pair(e, null)
@@ -160,8 +162,7 @@ object ExtensionHelper {
     fun fetchExtension(
         context: Context,
         url: String,
-        onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit
-    ) {
+    ): AppExtensionGroup? {
         Timber.d("fetchExtension url = $url")
         if (client == null) {
             initClient(context)
@@ -171,41 +172,37 @@ object ExtensionHelper {
             .url(url)
             .build()
 
-        client!!.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                e.printStackTrace()
-                if (url.startsWith("https://raw.githubusercontent.com")) {
-                    Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
-                    fetchExtension(context, "$GH_RAW_PROXY/$url", onResult)
-                }
-            }
+        try {
+            val response = client!!.newCall(request).execute()
+            response.use {
+                if (!it.isSuccessful) throw IOException("Unexpected code $response")
 
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!it.isSuccessful) throw IOException("Unexpected code $response")
-
-                    val body = it.body?.string()
-                    val gson = Gson()
-                    val appExtensionGroup = try {
-                        val appExtensionGroup = gson.fromJson(body, AppExtensionGroup::class.java)
-                        Timber.d("fetchExtension: group = ${appExtensionGroup.main}")
-                        appExtensionGroup
+                val body = it.body?.string()
+                val gson = Gson()
+                return try {
+                    val appExtensionGroup = gson.fromJson(body, AppExtensionGroup::class.java)
+                    Timber.d("fetchExtension: group = ${appExtensionGroup.main}")
+                    appExtensionGroup
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    try {
+                        val appExtensionSingle = gson.fromJson(body, AppExtensionSingle::class.java)
+                        Timber.d("fetchExtension: single = ${appExtensionSingle.main}")
+                        AppExtensionGroup(appExtensionSingle)
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        try {
-                            val appExtensionSingle =
-                                gson.fromJson(body, AppExtensionSingle::class.java)
-                            Timber.d("fetchExtension: single = ${appExtensionSingle.main}")
-                            AppExtensionGroup(appExtensionSingle)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            null
-                        }
+                        null
                     }
-                    onResult(appExtensionGroup)
                 }
             }
-        })
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (url.startsWith("https://raw.githubusercontent.com")) {
+                Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
+                return fetchExtension(context, "$GH_RAW_PROXY/$url")
+            }
+            return null
+        }
     }
 
     fun overwriteI18nExtension(target: Extension, from: I18NExtension) {
