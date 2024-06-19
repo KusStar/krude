@@ -68,7 +68,7 @@ fun MoreModal(
         }
 
         LaunchedEffect(settingsState.devExtension, settingsState.devExtensionRepo) {
-            if (settingsState.enableExtension) {
+            if (settingsState.devExtension && settingsState.devExtensionRepo.isNotEmpty() && settingsState.enableExtension) {
                 mainViewModel.loadExtensions(context)
             }
         }
