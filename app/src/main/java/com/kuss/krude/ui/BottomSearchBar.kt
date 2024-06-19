@@ -67,8 +67,10 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
+import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.SecondLevelArea
+import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
@@ -128,6 +130,12 @@ fun BottomSearchBar(
     var inSecondLevel by remember { mutableStateOf(false) }
     var secondLevelExtension by remember {
         mutableStateOf<Extension?>(null)
+    }
+
+    val messageBarState = rememberMessageBarState()
+
+    LaunchedEffect(Unit) {
+        mainViewModel.initMessageBarState(messageBarState)
     }
 
     fun insertSearchHistory(text: String) {
@@ -263,6 +271,8 @@ fun BottomSearchBar(
     BackHandler(enabled = inSecondLevel) {
         inSecondLevel = false
     }
+
+    MessageBar(state = messageBarState)
 
     AnimatedContent(targetState = inSecondLevel, label = "level") { displayLevel ->
         if (displayLevel) {

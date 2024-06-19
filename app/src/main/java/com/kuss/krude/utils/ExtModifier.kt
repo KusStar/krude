@@ -1,5 +1,6 @@
 package com.kuss.krude.utils
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -7,11 +8,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 
-fun Modifier.applyIf(condition : Boolean, trueModifier : Modifier.() -> Modifier) : Modifier {
+@Composable
+fun Modifier.applyIf(condition : Boolean, trueModifier : @Composable Modifier.() -> Modifier) : Modifier {
     return applyIfElse(condition, trueModifier) { this }
 }
 
-fun Modifier.applyIfElse(condition : Boolean, trueModifier : Modifier.() -> Modifier, falseModifier: Modifier.() -> Modifier): Modifier {
+@Composable
+fun Modifier.applyIfElse(condition : Boolean, trueModifier : @Composable Modifier.() -> Modifier, falseModifier: Modifier.() -> Modifier): Modifier {
     return if (condition) {
         then(trueModifier(Modifier))
     } else {

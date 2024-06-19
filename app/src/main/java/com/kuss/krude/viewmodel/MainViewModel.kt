@@ -18,6 +18,7 @@ import com.kuss.krude.extensions.FILES_EXTENSION
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.components.MessageBarState
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.ExtensionHelper
@@ -35,6 +36,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import timber.log.Timber
+import kotlin.time.Duration
 
 data class MainState(
     val missingPermission: Boolean = false,
@@ -71,6 +73,8 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private lateinit var messageBarState: MessageBarState
+
     private val _state = MutableStateFlow(MainState())
 
     private var filterKeywordJob: Job? = null
@@ -80,6 +84,10 @@ class MainViewModel : ViewModel() {
     private lateinit var settingsViewModel: SettingsViewModel
 
     private var loadExtensionsJob: Job? = null
+
+    fun initMessageBarState(messageBarState: MessageBarState) {
+        this.messageBarState = messageBarState
+    }
 
     private fun parseExtension(it: Extension): Extension {
         if (it.i18n != null) {
@@ -297,38 +305,25 @@ class MainViewModel : ViewModel() {
                     ExtensionHelper.EXTENSIONS_REPO
                 }
                 Timber.i("loadExtensions from repo")
-//                val toast = toaster.show(
-//                    message = "Loading extensions from repo",
-//                    id = ToastUtils.Type.LOADING,
-//                    duration = Duration.INFINITE
-//                )
+                messageBarState.showLoading("Loading extensions from repo")
                 val (exception, extensionRepos) = ExtensionHelper.fetchExtensionsFromRepo(
                     context,
                     repoUrl
                 )
                 if (exception != null) {
                     Timber.e("loadExtensions: error, $exception")
-//                    toaster.show(
-//                        "Load extensions error, please check the repo url.",
-//                        type = ToastType.Error
-//                    )
+                    messageBarState.showError("Load extensions error, please check the repo url.")
                     return@withContext
                 }
                 if (extensionRepos != null) {
                     var loaded = 0
                     for ((index, extensionRepo) in extensionRepos.withIndex()) {
-//                        toaster.show(
-//                            message = "(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}",
-//                            id = ToastUtils.Type.LOADING
-//                        )
+                        messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
 
                         val appExtensionGroup =
                             ExtensionHelper.fetchExtension(context, extensionRepo.url)
                         if (appExtensionGroup == null) {
-//                            toaster.show(
-//                                "Cannot load ${extensionRepo.name}",
-//                                type = ToastType.Error
-//                            )
+                            messageBarState.showError("Cannot load ${extensionRepo.name}")
                             continue
                         }
                         if (appExtensionGroup.main.isNotEmpty()) {
@@ -388,13 +383,10 @@ class MainViewModel : ViewModel() {
                             loaded += 1
                         }
                     }
-//                    toaster.dismiss(toast)
-//                    val type =
-//                        if (loaded == 0) ToastType.Error else if (loaded < extensionRepos.size) ToastType.Warning else ToastType.Success
-//                    toaster.show(
-//                        message = "Loaded from $loaded extension repo",
-//                        type = type
-//                    )
+                    messageBarState.showSuccess(
+                        message = "Loaded from $loaded extension repo",
+                        duration = Duration.parse("2s")
+                    )
                 }
             }
         }
