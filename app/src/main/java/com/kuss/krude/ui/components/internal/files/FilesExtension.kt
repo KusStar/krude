@@ -63,6 +63,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
+val WAIT_TIME: Long = 1000 / 30
+
 @Composable
 fun FilesExtension(
     onBack: () -> Unit,
@@ -91,6 +93,25 @@ fun FilesExtension(
     var showDeleteAlertDialog by remember { mutableStateOf(false) }
     var toDeleteFile by remember { mutableStateOf<File?>(null) }
 
+    var needScrollBack by remember {
+        mutableStateOf(false)
+    }
+    val prevScroll = remember {
+        mutableStateListOf<Int>()
+    }
+
+    LaunchedEffect(key1 = needScrollBack) {
+        if (needScrollBack) {
+            scope.launch {
+                delay(WAIT_TIME)
+                if (prevScroll.size > 0) {
+                    listState.scrollToItem(prevScroll.removeLast())
+                    needScrollBack = false
+                }
+            }
+        }
+    }
+
     fun updateCurrentTab() {
         openedTabs[selectedTabIndex] = pathNavigator.currentPath
     }
@@ -100,7 +121,7 @@ fun FilesExtension(
         if (jump) {
             // stupid workaround for IndexOutOfBoundsException
             scope.launch {
-                delay(100)
+                delay(WAIT_TIME)
                 selectedTabIndex = openedTabs.lastIndex
                 jumpedCallback?.invoke()
             }
@@ -114,6 +135,8 @@ fun FilesExtension(
     }
 
     fun onFileItemClick(file: File) {
+        prevScroll.add(listState.firstVisibleItemIndex)
+        needScrollBack = false
         if (file.isFile) {
             Timber.d("File: $file")
         } else {
@@ -125,6 +148,8 @@ fun FilesExtension(
         search = ""
         pathNavigator.goBack()
         updateCurrentTab()
+
+        needScrollBack = true
     }
 
     fun goForward() {
@@ -184,6 +209,9 @@ fun FilesExtension(
     }
 
     LaunchedEffect(search) {
+        if (search.isEmpty()) {
+            return@LaunchedEffect
+        }
         val filtered = files.filter {
             val nameContains = it.name.contains(
                 search, ignoreCase = true
@@ -200,6 +228,11 @@ fun FilesExtension(
             filteredList.clear()
             filteredList.addAll(filtered)
         }
+    }
+
+    LaunchedEffect(selectedTabIndex) {
+        prevScroll.clear()
+        needScrollBack = false
     }
 
     Column {
@@ -269,7 +302,7 @@ fun FilesExtension(
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 16.dp),
-                    state = listState
+                    state = listState,
                 ) {
                     if (showGoToPreviousDir) {
                         item {
@@ -287,9 +320,10 @@ fun FilesExtension(
                                 }
                             }
                         }
-                        FileItem(modifier = Modifier, file = file, onClick = {
-                            onFileItemClick(file)
-                        },
+                        FileItem(
+                            modifier = Modifier, file = file, onClick = {
+                                onFileItemClick(file)
+                            },
                             openedTabs = targetTabs
                         ) { type, arg ->
                             when (type) {
