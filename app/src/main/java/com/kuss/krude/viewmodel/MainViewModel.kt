@@ -321,77 +321,83 @@ class MainViewModel : ViewModel() {
                     return@withContext
                 }
                 if (extensionRepos != null) {
-                    var loaded = 0
+                    var success = 0
+                    var failed = 0
                     for ((index, extensionRepo) in extensionRepos.withIndex()) {
                         messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
+                        ExtensionHelper.fetchExtension(context, extensionRepo.url) { appExtensionGroup ->
+                            if (appExtensionGroup == null) {
+                                messageBarState.showError("Cannot load ${extensionRepo.name}")
+                                failed += 1
+                            } else {
+                                if (appExtensionGroup.main.isNotEmpty()) {
+                                    val nextExtensions =
+                                        appExtensionGroup.main.filter { extension ->
+                                            if (extension.type == ExtensionType.ALIAS) {
+                                                return@filter false
+                                            }
+                                            if (!extension.required.isNullOrEmpty()) {
+                                                return@filter extension.required!!.any { required ->
+                                                    packageNameSet.contains(
+                                                        required
+                                                    )
+                                                }
+                                            }
+                                            true
+                                        }.map {
+                                            if (it.i18n != null) {
+                                                if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
+                                                    overwriteI18nExtension(it, it.i18n.zh)
+                                                }
+                                                if (LocaleHelper.currentLocale == "en" && it.i18n.en != null) {
+                                                    overwriteI18nExtension(it, it.i18n.en)
+                                                }
+                                            }
+                                            it.filterTarget =
+                                                FilterHelper.toTarget(it)
+                                            if (!it.required.isNullOrEmpty()) {
+                                                it.required =
+                                                    it.required!!.sortedByDescending { re ->
+                                                        packageNameSet.contains(re)
+                                                    }
+                                                // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
+                                                it.name = if (it.name.contains("-")) it.name.split(
+                                                    "-",
+                                                    limit = 2
+                                                )[1] else it.name
+                                            }
 
-                        val appExtensionGroup =
-                            ExtensionHelper.fetchExtension(context, extensionRepo.url)
-                        if (appExtensionGroup == null) {
-                            messageBarState.showError("Cannot load ${extensionRepo.name}")
-                            continue
-                        }
-                        if (appExtensionGroup.main.isNotEmpty()) {
-                            val nextExtensions = appExtensionGroup.main.filter { extension ->
-                                if (extension.type == ExtensionType.ALIAS) {
-                                    return@filter false
-                                }
-                                if (!extension.required.isNullOrEmpty()) {
-                                    return@filter extension.required!!.any { required ->
-                                        packageNameSet.contains(
-                                            required
-                                        )
+                                            it
+                                        }
+                                    // bind alias extensions to apps
+                                    if (nextExtensions.isNotEmpty()) {
+                                        val tempMap = _state.value.extensionMap.toMutableMap()
+                                        nextExtensions.forEach {
+                                            tempMap[it.id] = it
+                                        }
+                                        _state.update {
+                                            it.copy(extensionMap = tempMap)
+                                        }
+                                        saveExtensionsIntoCache(context, nextExtensions)
                                     }
-                                }
-                                true
-                            }.map {
-                                if (it.i18n != null) {
-                                    if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
-                                        overwriteI18nExtension(it, it.i18n.zh)
+                                    val aliasExtensions =
+                                        appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
+                                    if (aliasExtensions.isNotEmpty()) {
+                                        Timber.d("loadExtensions: aliasExtensions ${aliasExtensions.size}")
+                                        setAlias(aliasExtensions)
                                     }
-                                    if (LocaleHelper.currentLocale == "en" && it.i18n.en != null) {
-                                        overwriteI18nExtension(it, it.i18n.en)
-                                    }
+                                    success += 1
                                 }
-                                it.filterTarget =
-                                    FilterHelper.toTarget(it)
-                                if (!it.required.isNullOrEmpty()) {
-                                    it.required = it.required!!.sortedByDescending { re ->
-                                        packageNameSet.contains(re)
-                                    }
-                                    // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
-                                    it.name = if (it.name.contains("-")) it.name.split(
-                                        "-",
-                                        limit = 2
-                                    )[1] else it.name
-                                }
-
-                                it
                             }
-                            // bind alias extensions to apps
-                            if (nextExtensions.isNotEmpty()) {
-                                val tempMap = _state.value.extensionMap.toMutableMap()
-                                nextExtensions.forEach {
-                                    tempMap[it.id] = it
-                                }
-                                _state.update {
-                                    it.copy(extensionMap = tempMap)
-                                }
-                                saveExtensionsIntoCache(context, nextExtensions)
+                            if (success + failed == extensionRepos.size) {
+                                messageBarState.showSuccess(
+                                    message = "Loaded from $success extension repo",
+                                    duration = Duration.parse("2s")
+                                )
                             }
-                            val aliasExtensions =
-                                appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
-                            if (aliasExtensions.isNotEmpty()) {
-                                Timber.d("loadExtensions: aliasExtensions ${aliasExtensions.size}")
-                                setAlias(aliasExtensions)
-                            }
-                            loaded += 1
                         }
                     }
-                    messageBarState.showSuccess(
-                        message = "Loaded from $loaded extension repo",
-                        duration = Duration.parse("2s")
-                    )
+
                 }
             }
         }

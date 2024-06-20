@@ -162,7 +162,8 @@ object ExtensionHelper {
     fun fetchExtension(
         context: Context,
         url: String,
-    ): AppExtensionGroup? {
+        onResult: (appExtensionGroup: AppExtensionGroup?) -> Unit
+    ) {
         Timber.d("fetchExtension url = $url")
         if (client == null) {
             initClient(context)
@@ -172,37 +173,41 @@ object ExtensionHelper {
             .url(url)
             .build()
 
-        try {
-            val response = client!!.newCall(request).execute()
-            response.use {
-                if (!it.isSuccessful) throw IOException("Unexpected code $response")
-
-                val body = it.body?.string()
-                val gson = Gson()
-                return try {
-                    val appExtensionGroup = gson.fromJson(body, AppExtensionGroup::class.java)
-                    Timber.d("fetchExtension: group = ${appExtensionGroup.main}")
-                    appExtensionGroup
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    try {
-                        val appExtensionSingle = gson.fromJson(body, AppExtensionSingle::class.java)
-                        Timber.d("fetchExtension: single = ${appExtensionSingle.main}")
-                        AppExtensionGroup(appExtensionSingle)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        null
-                    }
+        client!!.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                e.printStackTrace()
+                if (url.startsWith("https://raw.githubusercontent.com")) {
+                    Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
+                    fetchExtension(context, "$GH_RAW_PROXY/$url", onResult)
                 }
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            if (url.startsWith("https://raw.githubusercontent.com")) {
-                Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
-                return fetchExtension(context, "$GH_RAW_PROXY/$url")
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                response.use {
+                    if (!it.isSuccessful) throw IOException("Unexpected code $response")
+
+                    val body = it.body?.string()
+                    val gson = Gson()
+                    val appExtensionGroup = try {
+                        val appExtensionGroup = gson.fromJson(body, AppExtensionGroup::class.java)
+                        Timber.d("fetchExtension: group = ${appExtensionGroup.main}")
+                        appExtensionGroup
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        try {
+                            val appExtensionSingle =
+                                gson.fromJson(body, AppExtensionSingle::class.java)
+                            Timber.d("fetchExtension: single = ${appExtensionSingle.main}")
+                            AppExtensionGroup(appExtensionSingle)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            null
+                        }
+                    }
+                    onResult(appExtensionGroup)
+                }
             }
-            return null
-        }
+        })
     }
 
     fun overwriteI18nExtension(target: Extension, from: I18NExtension) {
