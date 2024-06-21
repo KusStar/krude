@@ -23,11 +23,12 @@ import java.io.File
 data class ExtensionRepo(val name: String, val url: String)
 
 object ExtensionHelper {
-    const val EXTENSIONS_REPO =
+    const val EXTENSIONS_REPO = "https://kexts.uselessthing.top"
+    private const val BACKUP_EXTENSIONS_REPO =
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
-    private val FALLBACK_REPO = EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
+    private val BACKUP_EXTENSIONS_REPO2 = BACKUP_EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
 
-    const val GH_RAW_PROXY = "https://mirror.ghproxy.com"
+    private const val GH_RAW_PROXY = "https://mirror.ghproxy.com"
 
     private var client: OkHttpClient? = null
 
@@ -150,9 +151,13 @@ object ExtensionHelper {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            if (repoUrl == EXTENSIONS_REPO) {
+                Timber.d("fetchExtensionsFromRepo: fallback to BACKUP_EXTENSIONS_REPO")
+                return fetchExtensionsFromRepo(context, BACKUP_EXTENSIONS_REPO)
+            }
             if (repoUrl.startsWith("https://api.github.com")) {
-                Timber.d("fetchExtensionsFromRepo: fallback to FALLBACK_REPO")
-                return fetchExtensionsFromRepo(context, FALLBACK_REPO)
+                Timber.d("fetchExtensionsFromRepo: fallback to BACKUP_EXTENSIONS_REPO2")
+                return fetchExtensionsFromRepo(context, BACKUP_EXTENSIONS_REPO2)
             } else {
                 return Pair(e, null)
             }
@@ -176,10 +181,7 @@ object ExtensionHelper {
         client!!.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 e.printStackTrace()
-                if (url.startsWith("https://raw.githubusercontent.com")) {
-                    Timber.d("fetchExtension: fallback to GH_RAW_PROXY")
-                    fetchExtension(context, "$GH_RAW_PROXY/$url", onResult)
-                }
+                Timber.e("fetchExtension: cannot fetch extension from $url")
             }
 
             override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
