@@ -24,11 +24,10 @@ data class ExtensionRepo(val name: String, val url: String)
 
 object ExtensionHelper {
     const val EXTENSIONS_REPO = "https://kexts.uselessthing.top"
-    private const val BACKUP_EXTENSIONS_REPO =
+    private const val DENO_EXTENSIONS_REPO = "https://krude-extensions.deno.dev"
+    private const val GITHUB_EXTENSIONS_REPO =
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
-    private val BACKUP_EXTENSIONS_REPO2 = BACKUP_EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
-
-    private const val GH_RAW_PROXY = "https://mirror.ghproxy.com"
+    private val GITHUB_PROXY_EXTENSIONS_REPO = GITHUB_EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
 
     private var client: OkHttpClient? = null
 
@@ -152,12 +151,16 @@ object ExtensionHelper {
         } catch (e: Exception) {
             e.printStackTrace()
             if (repoUrl == EXTENSIONS_REPO) {
-                Timber.d("fetchExtensionsFromRepo: fallback to BACKUP_EXTENSIONS_REPO")
-                return fetchExtensionsFromRepo(context, BACKUP_EXTENSIONS_REPO)
+                Timber.d("fetchExtensionsFromRepo: fallback to $DENO_EXTENSIONS_REPO")
+                return fetchExtensionsFromRepo(context, DENO_EXTENSIONS_REPO)
             }
-            if (repoUrl.startsWith("https://api.github.com")) {
-                Timber.d("fetchExtensionsFromRepo: fallback to BACKUP_EXTENSIONS_REPO2")
-                return fetchExtensionsFromRepo(context, BACKUP_EXTENSIONS_REPO2)
+            if (repoUrl == DENO_EXTENSIONS_REPO) {
+                Timber.d("fetchExtensionsFromRepo: fallback to $GITHUB_EXTENSIONS_REPO")
+                return fetchExtensionsFromRepo(context, GITHUB_EXTENSIONS_REPO)
+            }
+            if (repoUrl == GITHUB_EXTENSIONS_REPO) {
+                Timber.d("fetchExtensionsFromRepo: fallback to $GITHUB_PROXY_EXTENSIONS_REPO")
+                return fetchExtensionsFromRepo(context, GITHUB_PROXY_EXTENSIONS_REPO)
             } else {
                 return Pair(e, null)
             }
