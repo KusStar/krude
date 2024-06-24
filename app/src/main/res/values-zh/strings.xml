@@ -46,4 +46,7 @@
     <string name="extension_group_layout">扩展合并显示</string>
     <string name="embed_keyboard_settings">自定义键盘设置</string>
     <string name="app_item_horizontal">AppItem 横向布局</string>
+    <string name="star">星标</string>
+    <string name="dismiss">返回</string>
+    <string name="star_keyword_hint">星标关键字</string>
 </resources>

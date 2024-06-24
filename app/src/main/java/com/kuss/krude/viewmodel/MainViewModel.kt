@@ -88,6 +88,10 @@ class MainViewModel : ViewModel() {
     // every required id to keyword
     private val aliasKeywordMap = mutableMapOf<String, String>()
 
+    fun getMessageBarState(): MessageBarState {
+       return messageBarState
+    }
+
     fun initMessageBarState(messageBarState: MessageBarState) {
         this.messageBarState = messageBarState
     }
@@ -124,7 +128,7 @@ class MainViewModel : ViewModel() {
         return _state.value.extensionMap.values.toList()
     }
 
-    private fun getSettingsState(): SettingsState {
+    fun getSettingsState(): SettingsState {
         return settingsViewModel.state.value
     }
 
