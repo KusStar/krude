@@ -134,4 +134,5 @@ dependencies {
     implementation 'me.zhanghai.compose.preference:library:1.0.0'
     implementation 'com.github.zj565061763:compose-wheel-picker:1.0.0-beta05'
     implementation "me.saket.cascade:cascade-compose:2.3.0"
+    implementation 'com.github.nanihadesuka:LazyColumnScrollbar:2.1.0'
 }

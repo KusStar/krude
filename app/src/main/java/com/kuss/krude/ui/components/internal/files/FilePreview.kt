@@ -1,5 +1,6 @@
 package com.kuss.krude.ui.components.internal.files
 
+import android.content.ActivityNotFoundException
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -9,7 +10,6 @@ import android.graphics.pdf.PdfRenderer
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import android.widget.MediaController
 import android.widget.VideoView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +30,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -60,8 +61,8 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ActivityHelper
-import com.kuss.krude.utils.simpleVerticalScrollbar
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -69,10 +70,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
+import java.io.IOException
 import java.io.InputStreamReader
 import kotlin.math.sqrt
 
@@ -148,27 +152,45 @@ private fun readTextFileFromUri(context: Context, uri: Uri): List<String> {
     return list
 }
 
-fun isPlainTextContent(file: File, sampleSize: Int = 1024): Boolean {
-    // 定义可接受字符的范围
-    val printableCharRange = 0x20..0x7E
-    val controlCharSet = setOf(0x09, 0x0A, 0x0D) // Tab, LineFeed, CarriageReturn
+fun isBinaryFile(file: File): Boolean {
+    // Maximum bytes to read to determine if the file is binary
+    val maxCheckBytes = 4096
 
-    if (!file.exists() || !file.isFile) return false
+    var fis: FileInputStream? = null
+    try {
+        fis = FileInputStream(file)
+        val buffer = ByteArray(maxCheckBytes)
+        val bytesRead = fis.read(buffer, 0, maxCheckBytes)
 
-    FileInputStream(file).use { inputStream ->
-        val buffer = ByteArray(sampleSize)
-        val bytesRead = inputStream.read(buffer)
+        if (bytesRead == -1) {
+            // File is empty
+            return false
+        }
 
-        if (bytesRead < 1) return false
-
+        // Analyze bytes to determine if they are binary
         for (i in 0 until bytesRead) {
-            val byteValue = buffer[i].toInt() and 0xFF
-            if (byteValue !in printableCharRange && byteValue !in controlCharSet) {
-                return false
+            val b = buffer[i].toInt() and 0xFF
+            if (b == 0) {
+                // Null byte found, likely binary
+                return true
+            } else if (b < 7 || b == 11 || b == 12 || b == 14 || b == 15 || (b >= 16 && b <= 31)) {
+                // Control characters found, likely binary
+                return true
+            } else if (b == 127) {
+                // DEL character found, likely binary
+                return true
             }
         }
+
+        // No binary indicators found
+        return false
+
+    } catch (e: IOException) {
+        e.printStackTrace()
+        return true // Treat IOException as binary (conservative approach)
+    } finally {
+        fis?.close()
     }
-    return true
 }
 
 @Composable
@@ -209,7 +231,33 @@ fun AudioFilePreview(file: File) {
             mediaPlayer?.release()
         }
     }
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Slider(
+            value = progress,
+            onValueChange = { newValue ->
+                progress = newValue
+                mediaPlayer?.let { player ->
+                    val newPosition = (newValue * player.duration).toInt()
+                    player.seekTo(newPosition)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.secondary
+            )
+        )
+        mediaPlayer?.let {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = formatDuration(currentPosition))
+                Text(formatDuration(it.duration))
+            }
+        }
         if (mediaPlayer != null && mediaPlayer!!.isPlaying.not()) {
             Button(onClick = {
                 isPlaying = true
@@ -224,19 +272,6 @@ fun AudioFilePreview(file: File) {
             }) {
                 Text("Pause")
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Slider(
-            value = progress, onValueChange = { newValue ->
-                progress = newValue
-                mediaPlayer?.let { player ->
-                    val newPosition = (newValue * player.duration).toInt()
-                    player.seekTo(newPosition)
-                }
-            }, modifier = Modifier.fillMaxWidth()
-        )
-        mediaPlayer?.let {
-            Text(text = "${formatDuration(currentPosition)} / ${formatDuration(it.duration)}")
         }
     }
 }
@@ -270,7 +305,7 @@ fun VideoFilePreview(file: File) {
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column {
         AndroidView(factory = { ctx ->
             VideoView(ctx).apply {
                 setVideoURI(uri)
@@ -278,33 +313,43 @@ fun VideoFilePreview(file: File) {
                     videoDuration = mediaPlayer.duration
                     mediaPlayerController = MediaPlayerController(this, mediaPlayer)
                 }
-                setMediaController(MediaController(ctx).apply {
-                    setAnchorView(this)
-                })
+//                setMediaController(MediaController(ctx).apply {
+//                    setAnchorView(this)
+//                })
                 requestFocus()
             }
         }, update = { videoView ->
             videoView.setVideoURI(uri)
             videoView.requestFocus()
         }, modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+            .fillMaxSize()
+            .heightIn(max = 512.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Slider(
-            value = progress, onValueChange = { newValue ->
+            value = progress,
+            onValueChange = { newValue ->
                 progress = newValue
                 mediaPlayerController?.seekTo((newValue * videoDuration).toInt())
-            }, modifier = Modifier.fillMaxWidth()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.secondary
+            )
         )
         mediaPlayerController?.let {
-            Text(text = "${formatDuration(currentPosition)} / ${formatDuration(it.duration)}")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = formatDuration(currentPosition))
+                Text(formatDuration(it.duration))
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row {
+        Spacing(1)
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             Button(onClick = {
                 if (isPlaying) {
                     mediaPlayerController?.pause()
@@ -350,12 +395,10 @@ fun TextFilePreview(file: File) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var textLines by remember { mutableStateOf<List<String>?>(null) }
-    val uri = remember {
-        getUriFromFile(context, file)
-    }
-    LaunchedEffect(key1 = uri) {
+    LaunchedEffect(file) {
         scope.launch {
             withContext(IO) {
+                val uri = getUriFromFile(context, file)
                 textLines = readTextFileFromUri(context, uri)
             }
         }
@@ -363,15 +406,31 @@ fun TextFilePreview(file: File) {
 
     val listState = rememberLazyListState()
 
+    if (textLines == null) {
+        CircularProgressIndicator()
+    }
+
     textLines?.let {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .heightIn(max = 512.dp)
         ) {
-            LazyColumn(state = listState, modifier = Modifier.simpleVerticalScrollbar(listState)) {
-                items(it) { line ->
-                    BasicText(text = line, modifier = Modifier.fillMaxWidth())
+            LazyColumnScrollbar(
+                listState, settings = ScrollbarSettings(
+                    thumbUnselectedColor = MaterialTheme.colorScheme.secondary,
+                    thumbSelectedColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                LazyColumn(state = listState) {
+                    items(it) { line ->
+                        BasicText(
+                            text = line,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.bodyMedium
+                                .copy(color = MaterialTheme.colorScheme.secondary)
+                        )
+                    }
                 }
             }
         }
@@ -478,24 +537,33 @@ fun PdfPreview(
                             contentDescription = "Page ${index + 1} of $pageCount"
                         )
                     }
+                    }
                 }
             }
-        }
     }
 }
 
-const val MAX_FILE_SIZE = 1024 * 1024 * 50;
+const val MAX_READABLE_SIZE = 1024 * 1024 * 50;
+
+fun openFile(context: Context, file: File) {
+    val uri = getUriFromFile(context, file)
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, getFileMimeType(context, uri))
+        flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    try {
+        ActivityHelper.startIntentWithTransition(context, intent)
+    } catch (e: ActivityNotFoundException) {
+        Timber.e("OpenFile", "No activity found to handle file type for $uri")
+    }
+}
 
 @Composable
 fun Unsupported(file: File) {
     val context = LocalContext.current
-    Text(text = "Unsupported file type, ${file.name}")
     Button(onClick = {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setData(getUriFromFile(context, file))
-            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-        }
-        ActivityHelper.startIntentWithTransition(context, intent)
+        openFile(context, file)
     }) {
         Text(text = "Open with")
     }
@@ -512,12 +580,20 @@ fun FilePreview(file: File) {
     }
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(8.dp)
             .heightIn(min = 128.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = file.name, style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Spacing(0.5f)
         if (mimeType.startsWith("image")) {
             ImageFilePreview(file = file)
         } else if (mimeType.startsWith("audio")) {
@@ -531,10 +607,10 @@ fun FilePreview(file: File) {
         } else if (mimeType.startsWith("text")) {
             TextFilePreview(file = file)
         } else {
-            val isPlainText = remember {
-                isPlainTextContent(file)
+            val isBinary = remember {
+                isBinaryFile(file)
             }
-            if (file.length() < MAX_FILE_SIZE && isPlainText) {
+            if (file.length() < MAX_READABLE_SIZE && !isBinary) {
                 TextFilePreview(file = file)
             } else {
                 Unsupported(file = file)
