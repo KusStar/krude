@@ -308,6 +308,7 @@ fun FilesExtension(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(bottom = 16.dp),
                     state = listState,
+                    verticalArrangement = Arrangement.Bottom
                 ) {
                     if (showGoToPreviousDir) {
                         item {
