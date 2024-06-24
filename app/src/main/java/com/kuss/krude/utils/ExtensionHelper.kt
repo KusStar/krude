@@ -27,7 +27,8 @@ object ExtensionHelper {
     private const val DENO_EXTENSIONS_REPO = "https://krude-extensions.deno.dev"
     private const val GITHUB_EXTENSIONS_REPO =
         "https://api.github.com/repos/kusstar/krude-extensions/contents/extensions"
-    private val GITHUB_PROXY_EXTENSIONS_REPO = GITHUB_EXTENSIONS_REPO.replace("api.github.com", "github-api-proxy.deno.dev")
+    private val GITHUB_PROXY_EXTENSIONS_REPO = GITHUB_EXTENSIONS_REPO
+        .replace("api.github.com", "github-api-proxy.deno.dev")
 
     private var client: OkHttpClient? = null
 
