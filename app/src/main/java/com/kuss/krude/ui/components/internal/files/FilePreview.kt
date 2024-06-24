@@ -2,6 +2,7 @@ package com.kuss.krude.ui.components.internal.files
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
@@ -59,6 +60,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
+import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.simpleVerticalScrollbar
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
@@ -70,6 +72,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
 import kotlin.math.sqrt
 
@@ -143,6 +146,29 @@ private fun readTextFileFromUri(context: Context, uri: Uri): List<String> {
         }
     }
     return list
+}
+
+fun isPlainTextContent(file: File, sampleSize: Int = 1024): Boolean {
+    // 定义可接受字符的范围
+    val printableCharRange = 0x20..0x7E
+    val controlCharSet = setOf(0x09, 0x0A, 0x0D) // Tab, LineFeed, CarriageReturn
+
+    if (!file.exists() || !file.isFile) return false
+
+    FileInputStream(file).use { inputStream ->
+        val buffer = ByteArray(sampleSize)
+        val bytesRead = inputStream.read(buffer)
+
+        if (bytesRead < 1) return false
+
+        for (i in 0 until bytesRead) {
+            val byteValue = buffer[i].toInt() and 0xFF
+            if (byteValue !in printableCharRange && byteValue !in controlCharSet) {
+                return false
+            }
+        }
+    }
+    return true
 }
 
 @Composable
@@ -461,6 +487,21 @@ fun PdfPreview(
 const val MAX_FILE_SIZE = 1024 * 1024 * 50;
 
 @Composable
+fun Unsupported(file: File) {
+    val context = LocalContext.current
+    Text(text = "Unsupported file type, ${file.name}")
+    Button(onClick = {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setData(getUriFromFile(context, file))
+            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+        }
+        ActivityHelper.startIntentWithTransition(context, intent)
+    }) {
+        Text(text = "Open with")
+    }
+}
+
+@Composable
 fun FilePreview(file: File) {
     val context = LocalContext.current
     val mimeType = remember(file) {
@@ -485,11 +526,18 @@ fun FilePreview(file: File) {
             VideoFilePreview(file)
         } else if (mimeType.startsWith("application/pdf")) {
             PdfPreview(file = file)
+        } else if (mimeType.startsWith("application/octet-stream")) {
+            TextFilePreview(file = file)
+        } else if (mimeType.startsWith("text")) {
+            TextFilePreview(file = file)
         } else {
-            if (file.length() > MAX_FILE_SIZE) {
-                Text(text = "Unsupported file type, ${file.name}")
-            } else {
+            val isPlainText = remember {
+                isPlainTextContent(file)
+            }
+            if (file.length() < MAX_FILE_SIZE && isPlainText) {
                 TextFilePreview(file = file)
+            } else {
+                Unsupported(file = file)
             }
         }
     }
