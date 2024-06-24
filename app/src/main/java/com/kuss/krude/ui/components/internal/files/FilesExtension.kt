@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.ActivityHelper
@@ -99,6 +101,8 @@ fun FilesExtension(
     val prevScroll = remember {
         mutableStateListOf<Int>()
     }
+    
+    val filePreviewState = rememberFilePreviewState()
 
     LaunchedEffect(key1 = needScrollBack) {
         if (needScrollBack) {
@@ -139,6 +143,7 @@ fun FilesExtension(
         needScrollBack = false
         if (file.isFile) {
             Timber.d("File: $file")
+            filePreviewState.show(file)
         } else {
             goToPath(file.absolutePath)
         }
@@ -501,5 +506,13 @@ fun FilesExtension(
                     Text(text = "Cancel")
                 }
             })
+    }
+    
+    if (filePreviewState.previewing) {
+        Dialog(onDismissRequest = { filePreviewState.dismiss() }) {
+            Card {
+                FilePreview(file = filePreviewState.file!!)
+            }
+        }
     }
 }
