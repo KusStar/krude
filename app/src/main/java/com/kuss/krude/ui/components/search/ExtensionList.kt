@@ -15,6 +15,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.components.JoystickDirection
 import com.kuss.krude.ui.components.JoystickOffsetState
 import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.measureMaxWidthOfTexts
@@ -161,17 +163,20 @@ fun ExtensionGroupList(
         getExtensionGroup(starSet, searchResult)
     }
     val levelOffset = joystickOffsetState.offset
+    val wheelIndexIdxMap = remember(extensionGroups) {
+        mutableMapOf<Int, Int>()
+    }
     LaunchedEffect(levelOffset.x) {
         if (levelOffset.x >= 0 && levelOffset.x < extensionGroups.size) {
             listState.animateScrollToItem(levelOffset.x)
         } else {
             if (levelOffset.x < 0) {
                 listState.animateScrollToItem(extensionGroups.size - 1)
-                joystickOffsetState.changeOffset(IntOffset(extensionGroups.size - 1, levelOffset.y))
+                joystickOffsetState.changeOffset(IntOffset(extensionGroups.size - 1, 0))
             }
             if (levelOffset.x >= extensionGroups.size) {
                 listState.animateScrollToItem(0)
-                joystickOffsetState.changeOffset(IntOffset(0, levelOffset.y))
+                joystickOffsetState.changeOffset(IntOffset(0, 0))
             }
         }
     }
@@ -195,6 +200,9 @@ fun ExtensionGroupList(
                     val isStar = remember(starSet, state.currentIndex, extensions) {
                         if (state.currentIndex >= 0) starSet.contains(extensions[state.currentIndex].id) else false
                     }
+                    var levelY by remember {
+                        mutableIntStateOf(wheelIndexIdxMap.getOrPut(index) { 0 })
+                    }
                     LaunchedEffect(state) {
                         snapshotFlow { state.currentIndexSnapshot }
                             .collect {
@@ -208,8 +216,17 @@ fun ExtensionGroupList(
                     }
                     LaunchedEffect(key1 = levelOffset.y) {
                         if (index == levelOffset.x) {
-                            state.animateScrollToIndex(levelOffset.y)
+                            if (joystickOffsetState.direction == JoystickDirection.UP) {
+                                levelY += -1
+                            } else if (joystickOffsetState.direction == JoystickDirection.DOWN) {
+                                levelY += 1
+                            }
                         }
+                        levelY = levelY.coerceIn(0, extensions.size - 1)
+                    }
+                    LaunchedEffect(levelY) {
+                        state.animateScrollToIndex(levelY)
+                        wheelIndexIdxMap[index] = levelY
                     }
                     val allTexts = remember {
                         extensions.map { it.name }
@@ -256,8 +273,7 @@ fun ExtensionGroupList(
                                 },
                                 showTimes = showUsageCount,
                                 padding = 0.dp,
-                                showIcon = false,
-                                active = index == levelOffset.x && idx == levelOffset.y
+                                showIcon = false, active = index == levelOffset.x && idx == levelY
                             )
                         }
                     }

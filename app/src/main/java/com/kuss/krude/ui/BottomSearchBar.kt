@@ -17,19 +17,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -62,7 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.R
@@ -515,43 +509,44 @@ fun BottomSearchBar(
                             }
                             onTextChange(TextFieldValue(sb.toString(), selection = range))
                         }) {
-                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0 && searchState.text.isEmpty()) {
-                            LazyRow(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(top = 8.dp)
-                            ) {
-                                item {
-                                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
-                                        IconButton(
-                                            onClick = {
-                                                searchKeywordHistory.clear()
-                                            }) {
-                                            Icon(
-                                                Icons.TwoTone.Delete,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                contentDescription = "delete",
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                                            )
-                                        }
-                                    }
-                                }
-                                items(searchKeywordHistory, key = { it }) {
-                                    TextButton(onClick = {
-                                        onTextChange(TextFieldValue(it, TextRange(it.length)))
-                                        insertSearchHistory(it)
-                                    })
-                                    {
-                                        Text(
-                                            text = it,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp,
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        // TODO: remade
+//                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0 && searchState.text.isEmpty()) {
+//                            LazyRow(
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                modifier = Modifier.padding(top = 8.dp)
+//                            ) {
+//                                item {
+//                                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
+//                                        IconButton(
+//                                            onClick = {
+//                                                searchKeywordHistory.clear()
+//                                            }) {
+//                                            Icon(
+//                                                Icons.TwoTone.Delete,
+//                                                tint = MaterialTheme.colorScheme.primary,
+//                                                contentDescription = "delete",
+//                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+//                                            )
+//                                        }
+//                                    }
+//                                }
+//                                items(searchKeywordHistory, key = { it }) {
+//                                    TextButton(onClick = {
+//                                        onTextChange(TextFieldValue(it, TextRange(it.length)))
+//                                        insertSearchHistory(it)
+//                                    })
+//                                    {
+//                                        Text(
+//                                            text = it,
+//                                            fontWeight = FontWeight.Bold,
+//                                            fontSize = 14.sp,
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        }
                         val hapticFeedback = LocalHapticFeedback.current
-                        Spacing(x = 1)
+                        Spacing(x = 2)
                         JoyStick(
                             onTap = {
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -586,6 +581,7 @@ fun BottomSearchBar(
                                     }
                                 }
                                 joystickOffsetState.changeOffset(levelOffset)
+                                joystickOffsetState.changeDirection(direction)
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 messageBarState.show(
                                     "offset: $levelOffset",
@@ -593,11 +589,7 @@ fun BottomSearchBar(
                                 )
                             }
                         )
-//                        AnimatedVisibility(visible = searchState.text.isNotEmpty()) {
-//                            Joystick { _, direction ->
-//
-//                            }
-//                        }
+                        Spacing(x = 1)
                     }
                 }
             }
