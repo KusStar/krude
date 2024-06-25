@@ -49,8 +49,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
@@ -58,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -67,9 +70,12 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
+import com.kuss.krude.ui.components.JoyStick
+import com.kuss.krude.ui.components.JoystickDirection
 import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.SecondLevelArea
+import com.kuss.krude.ui.components.rememberJoystickOffsetState
 import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionList
@@ -85,6 +91,7 @@ import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.time.Duration
 
 
 @Composable
@@ -133,6 +140,8 @@ fun BottomSearchBar(
     }
 
     val messageBarState = rememberMessageBarState()
+
+    val joystickOffsetState = rememberJoystickOffsetState()
 
     LaunchedEffect(Unit) {
         mainViewModel.initMessageBarState(messageBarState)
@@ -289,7 +298,10 @@ fun BottomSearchBar(
                     visible = searchState.text.isNotEmpty(),
                 ) {
                     HorizontalDivider()
-                    Crossfade(targetState = searchResult.isNotEmpty(), label = "searchList") { show ->
+                    Crossfade(
+                        targetState = searchResult.isNotEmpty(),
+                        label = "searchList"
+                    ) { show ->
                         if (show) {
                             Column {
                                 AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
@@ -334,6 +346,7 @@ fun BottomSearchBar(
                                 if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
                                     val hasApp = searchResult.any { it.isApp() }
                                     ExtensionList(
+                                        joystickOffsetState = joystickOffsetState,
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
                                         starSet = starSet,
@@ -372,6 +385,7 @@ fun BottomSearchBar(
                                         HorizontalDivider()
                                     }
                                     ExtensionList(
+                                        joystickOffsetState = joystickOffsetState,
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
                                         starSet = starSet,
@@ -472,7 +486,6 @@ fun BottomSearchBar(
                         starSet = starSet,
                     )
                 }
-
                 AnimatedVisibility(
                     visible = settingsState.useEmbedKeyboard && isFocused.value,
                     enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
@@ -502,7 +515,7 @@ fun BottomSearchBar(
                             }
                             onTextChange(TextFieldValue(sb.toString(), selection = range))
                         }) {
-                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0) {
+                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0 && searchState.text.isEmpty()) {
                             LazyRow(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(top = 8.dp)
@@ -537,17 +550,59 @@ fun BottomSearchBar(
                                 }
                             }
                         }
+                        val hapticFeedback = LocalHapticFeedback.current
+                        Spacing(x = 1)
+                        JoyStick(
+                            onTap = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            },
+                            onPositionChange = { direction ->
+                                val prevLevelOffset = joystickOffsetState.offset
+                                val levelOffset = if (prevLevelOffset == IntOffset(-1, -1)) {
+                                    IntOffset(0, 0)
+                                } else {
+                                    when (direction) {
+                                        JoystickDirection.UP -> IntOffset(
+                                            prevLevelOffset.x,
+                                            prevLevelOffset.y - 1
+                                        )
+
+                                        JoystickDirection.DOWN -> IntOffset(
+                                            prevLevelOffset.x,
+                                            prevLevelOffset.y + 1
+                                        )
+
+                                        JoystickDirection.LEFT -> IntOffset(
+                                            prevLevelOffset.x - 1, prevLevelOffset.y
+                                        )
+
+                                        JoystickDirection.RIGHT -> IntOffset(
+                                            prevLevelOffset.x + 1, prevLevelOffset.y
+                                        )
+
+                                        JoystickDirection.CENTER -> {
+                                            prevLevelOffset
+                                        }
+                                    }
+                                }
+                                joystickOffsetState.changeOffset(levelOffset)
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                messageBarState.show(
+                                    "offset: $levelOffset",
+                                    duration = Duration.parse("1s")
+                                )
+                            }
+                        )
+//                        AnimatedVisibility(visible = searchState.text.isNotEmpty()) {
+//                            Joystick { _, direction ->
+//
+//                            }
+//                        }
                     }
                 }
             }
         }
     }
-
-//    if (isSecondLevelExtension) {
-//
-//    } else {
-//
-//    }
 
     MoreModal(
         refresh = { refresh(settingsState.fuzzySearch) },

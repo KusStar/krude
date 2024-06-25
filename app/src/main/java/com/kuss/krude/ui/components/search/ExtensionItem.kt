@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,7 @@ fun ExtensionContent(
     titleFontSize: TextUnit = 16.sp,
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false,
+    active: Boolean = false,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,6 +60,7 @@ fun ExtensionContent(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             fontSize = titleFontSize,
+            textDecoration = if (active) TextDecoration.Underline else null
         )
         AnimatedVisibility(visible = showTimes) {
             Spacing(1, 4)
@@ -96,7 +99,8 @@ fun ExtensionItem(
     iconSize: Dp = SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE,
     showTimes: Boolean = false,
     padding: Dp = 4.dp,
-    showIcon: Boolean
+    showIcon: Boolean,
+    active: Boolean = false
 ) {
     CustomButton(
         onClick = onClick,
@@ -140,7 +144,8 @@ fun ExtensionItem(
                     showTimes = showTimes,
                     showSubtitle = showSubtitle,
                     titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize
+                    subtitleFontSize = subtitleFontSize,
+                    active = active
                 )
             }
         }
