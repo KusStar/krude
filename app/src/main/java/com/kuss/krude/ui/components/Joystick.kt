@@ -70,9 +70,14 @@ fun getDirection(offset: Offset): JoystickDirection {
 
 class JoystickOffsetState {
     var offset by mutableStateOf(IntOffset.Zero)
+    var direction by mutableStateOf(JoystickDirection.CENTER)
 
     fun changeOffset(offset: IntOffset) {
         this.offset = offset
+    }
+
+    fun changeDirection(direction: JoystickDirection) {
+        this.direction = direction
     }
 }
 
@@ -89,8 +94,8 @@ fun rememberJoystickOffsetState(): JoystickOffsetState {
 @Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
-    size: Dp = 24.dp,
-    dotSize: Dp = 14.dp,
+    size: Dp = 28.dp,
+    dotSize: Dp = 18.dp,
     interval: Long = 200,
     onTap: () -> Unit = {},
     moved: (x: Float, y: Float) -> Unit = { _, _ -> },
@@ -101,7 +106,7 @@ fun JoyStick(
     Box(
         modifier = modifier
             .size(size)
-            .background(MaterialTheme.colorScheme.secondary, CircleShape)
+            .background(MaterialTheme.colorScheme.onSecondary, CircleShape)
     ) {
         val maxRadius = with(LocalDensity.current) { (size / 2).toPx() }
         val centerX = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
@@ -223,7 +228,7 @@ fun JoyStick(
                     .align(Alignment.Center)
                     .shadow(elevation = 1.dp, shape = CircleShape)
                     .background(
-                        MaterialTheme.colorScheme.onSecondary,
+                        MaterialTheme.colorScheme.secondary,
                         CircleShape
                     )
             )
