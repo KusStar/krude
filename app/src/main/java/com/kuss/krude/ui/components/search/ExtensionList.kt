@@ -26,10 +26,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.components.JoystickOffsetState
 import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.measureMaxWidthOfTexts
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
@@ -37,16 +39,18 @@ import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 
 @Composable
 fun ExtensionList(
+    joystickOffsetState: JoystickOffsetState,
     searchResult: List<SearchResultItem>,
     listState: LazyListState,
     starSet: Set<String>,
     showUsageCount: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean,
-    groupLayout: Boolean
+    groupLayout: Boolean,
 ) {
     if (groupLayout) {
         ExtensionGroupList(
+            joystickOffsetState = joystickOffsetState,
             searchResult = searchResult,
             listState = listState,
             starSet = starSet,
@@ -115,7 +119,10 @@ const val STANDALONE_GROUP = "##standalone##"
 
 data class IExtensionGroupItem(val extensions: List<Extension>, val key: String)
 
-fun getExtensionGroup(starSet: Set<String>, searchResult: List<SearchResultItem>): List<IExtensionGroupItem> {
+fun getExtensionGroup(
+    starSet: Set<String>,
+    searchResult: List<SearchResultItem>
+): List<IExtensionGroupItem> {
     val searchResultExtensions = searchResult.filter { it.isExtension() }
     val group = searchResultExtensions.map { it.asExtension()!! }.groupBy {
         if (it.required != null) {
@@ -142,6 +149,7 @@ fun getExtensionGroup(starSet: Set<String>, searchResult: List<SearchResultItem>
 
 @Composable
 fun ExtensionGroupList(
+    joystickOffsetState: JoystickOffsetState,
     searchResult: List<SearchResultItem>,
     listState: LazyListState,
     starSet: Set<String>,
@@ -151,6 +159,21 @@ fun ExtensionGroupList(
 ) {
     val extensionGroups = remember(searchResult) {
         getExtensionGroup(starSet, searchResult)
+    }
+    val levelOffset = joystickOffsetState.offset
+    LaunchedEffect(levelOffset.x) {
+        if (levelOffset.x >= 0 && levelOffset.x < extensionGroups.size) {
+            listState.animateScrollToItem(levelOffset.x)
+        } else {
+            if (levelOffset.x < 0) {
+                listState.animateScrollToItem(extensionGroups.size - 1)
+                joystickOffsetState.changeOffset(IntOffset(extensionGroups.size - 1, levelOffset.y))
+            }
+            if (levelOffset.x >= extensionGroups.size) {
+                listState.animateScrollToItem(0)
+                joystickOffsetState.changeOffset(IntOffset(0, levelOffset.y))
+            }
+        }
     }
     AnimatedVisibility(visible = extensionGroups.isNotEmpty()) {
         val density = LocalDensity.current
@@ -182,6 +205,11 @@ fun ExtensionGroupList(
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 }
                             }
+                    }
+                    LaunchedEffect(key1 = levelOffset.y) {
+                        if (index == levelOffset.x) {
+                            state.animateScrollToIndex(levelOffset.y)
+                        }
                     }
                     val allTexts = remember {
                         extensions.map { it.name }
@@ -229,6 +257,7 @@ fun ExtensionGroupList(
                                 showTimes = showUsageCount,
                                 padding = 0.dp,
                                 showIcon = false,
+                                active = index == levelOffset.x && idx == levelOffset.y
                             )
                         }
                     }
@@ -247,7 +276,8 @@ fun ExtensionGroupList(
                         onLongClick = {
                         },
                         showTimes = showUsageCount,
-                        showIcon = true
+                        showIcon = true,
+                        active = index == levelOffset.x
                     )
                 }
 
