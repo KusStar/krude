@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -63,7 +64,11 @@ fun SoftKeyboardView(
     onClick: (key: Char, isDeleting: Boolean) -> Unit,
     offset: Int = 0,
     scale: Float = 1f,
-    bottomContent: @Composable () -> Unit,
+    keyBackground: Color = MaterialTheme.colorScheme.secondary,
+    keyColor: Color = MaterialTheme.colorScheme.onSecondary,
+    deleteKeyBackground: Color = MaterialTheme.colorScheme.secondaryContainer,
+    deleteKeyColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    bottomContent: @Composable () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -114,9 +119,9 @@ fun SoftKeyboardView(
                             .clip(RoundedCornerShape(8.dp))
                             .background(
                                 if (isDeleting)
-                                    MaterialTheme.colorScheme.secondaryContainer
+                                    deleteKeyBackground
                                 else
-                                    MaterialTheme.colorScheme.secondary
+                                    keyBackground
                             )
                             .indication(
                                 interactionSource = interactionSource,
@@ -153,14 +158,14 @@ fun SoftKeyboardView(
                                 Icons.Filled.Clear,
                                 contentDescription = "Delete",
                                 modifier = Modifier.size(ButtonDefaults.IconSize),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                tint = deleteKeyColor
                             )
                         } else {
                             Text(
                                 text = "$it",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.onSecondary
+                                color = keyColor
                             )
                         }
                     }
