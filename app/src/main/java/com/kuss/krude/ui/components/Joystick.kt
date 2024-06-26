@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -145,7 +144,6 @@ fun JoyStick(
     ) {
         val offsetX by remember { derivedStateOf { (animPos.value.x + centerX) } }
         val offsetY by remember { derivedStateOf { (animPos.value.y + centerY) } }
-
         Box(
             modifier = Modifier
                 .offset {
@@ -158,19 +156,6 @@ fun JoyStick(
                 modifier = Modifier
                     .size(touchSize)
                     .align(Alignment.Center)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onPress = {
-                            if (dragging) {
-                                isTapped = false
-                                return@detectTapGestures
-                            }
-                            isTapped = true
-                            onTap()
-                            tryAwaitRelease()
-                            isTapped = false
-                            dragging = false
-                        })
-                    }
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragEnd = {
@@ -230,6 +215,7 @@ fun JoyStick(
         }
     }
 }
+
 
 private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> =
     Pair(radius * cos(theta), radius * sin(theta))
