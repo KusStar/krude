@@ -16,18 +16,32 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sd.lib.compose.wheel_picker.FHorizontalWheelPicker
+import com.sd.lib.compose.wheel_picker.FWheelPickerState
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 
+class ScrollWheelState(val wheelPickerState: FWheelPickerState)
 
 @Composable
-fun ScrollWheel(count: Int) {
+fun rememberScrollWheelState(): ScrollWheelState {
+    val wheelState = rememberFWheelPickerState()
+    val state = ScrollWheelState(wheelState)
+    return state
+}
+
+@Composable
+fun ScrollWheel(count: Int, state: ScrollWheelState) {
     val hapticFeedback = LocalHapticFeedback.current
-    val state = rememberFWheelPickerState()
+    val wheelPickerState = state.wheelPickerState
     var hapticFeedbackEnable by remember { mutableStateOf(false) }
-    LaunchedEffect(state) {
-        snapshotFlow { state.currentIndexSnapshot }
+    LaunchedEffect(count) {
+        if (count > 0) {
+            wheelPickerState.animateScrollToIndex(0)
+        }
+    }
+    LaunchedEffect(wheelPickerState) {
+        snapshotFlow { wheelPickerState.currentIndexSnapshot }
             .collect {
-                if (state.currentIndexSnapshot > 0) {
+                if (wheelPickerState.currentIndexSnapshot > 0) {
                     hapticFeedbackEnable = true
                 }
                 if (hapticFeedbackEnable) {
@@ -36,7 +50,7 @@ fun ScrollWheel(count: Int) {
             }
     }
     FHorizontalWheelPicker(
-        state = state,
+        state = wheelPickerState,
         unfocusedCount = 4,
         modifier = Modifier.height(24.dp),
         count = count,
@@ -51,5 +65,5 @@ fun ScrollWheel(count: Int) {
 @Preview
 @Composable
 fun PreviewScrollWheel() {
-    ScrollWheel(count = 20)
+    ScrollWheel(count = 20, state = rememberScrollWheelState())
 }

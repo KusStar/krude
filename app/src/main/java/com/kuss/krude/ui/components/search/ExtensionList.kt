@@ -15,7 +15,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,21 +26,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
-import com.kuss.krude.ui.components.JoystickDirection
-import com.kuss.krude.ui.components.JoystickOffsetState
+import com.kuss.krude.ui.components.ScrollWheelState
 import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.measureMaxWidthOfTexts
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
+import timber.log.Timber
 
 @Composable
 fun ExtensionList(
-    joystickOffsetState: JoystickOffsetState,
+    scrollWheelState: ScrollWheelState,
     searchResult: List<SearchResultItem>,
     listState: LazyListState,
     starSet: Set<String>,
@@ -52,7 +50,7 @@ fun ExtensionList(
 ) {
     if (groupLayout) {
         ExtensionGroupList(
-            joystickOffsetState = joystickOffsetState,
+            scrollWheelState = scrollWheelState,
             searchResult = searchResult,
             listState = listState,
             starSet = starSet,
@@ -151,7 +149,7 @@ fun getExtensionGroup(
 
 @Composable
 fun ExtensionGroupList(
-    joystickOffsetState: JoystickOffsetState,
+    scrollWheelState: ScrollWheelState,
     searchResult: List<SearchResultItem>,
     listState: LazyListState,
     starSet: Set<String>,
@@ -159,24 +157,39 @@ fun ExtensionGroupList(
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean
 ) {
+    val extensionsCount = remember(searchResult) {
+        searchResult.filter { it.isExtension() }.size
+    }
     val extensionGroups = remember(searchResult) {
         getExtensionGroup(starSet, searchResult)
     }
-    val levelOffset = joystickOffsetState.offset
-    val wheelIndexIdxMap = remember(extensionGroups) {
-        mutableMapOf<Int, Int>()
-    }
-    LaunchedEffect(levelOffset.x) {
-        if (levelOffset.x >= 0 && levelOffset.x < extensionGroups.size) {
-            listState.animateScrollToItem(levelOffset.x)
-        } else {
-            if (levelOffset.x < 0) {
-                listState.animateScrollToItem(extensionGroups.size - 1)
-                joystickOffsetState.changeOffset(IntOffset(extensionGroups.size - 1, 0))
+    val wheelPickerState = scrollWheelState.wheelPickerState
+    val wheelIndexToExtension = remember(extensionGroups) {
+        // wheelPickerState.currentIndex -> (groupIndex, extensionIndex)
+        // 0 -> (0, 0)
+        // 1 -> (0, 1)
+        // 2 -> (0, 2)
+        // 3 -> (1, 0)
+        val out = mutableListOf<Pair<Int, Int>>()
+        extensionGroups.forEachIndexed { index, group ->
+            group.extensions.forEachIndexed { extensionIndex, _ ->
+                out.add(Pair(index, extensionIndex))
             }
-            if (levelOffset.x >= extensionGroups.size) {
-                listState.animateScrollToItem(0)
-                joystickOffsetState.changeOffset(IntOffset(0, 0))
+        }
+        Timber.d("wheelIndexExtensionGroupMap: $out")
+        out
+    }
+    var pair by remember { mutableStateOf(Pair(0, 0)) }
+    LaunchedEffect(wheelPickerState) {
+        snapshotFlow {
+            wheelPickerState.currentIndexSnapshot
+        }.collect {
+            if (wheelPickerState.currentIndexSnapshot in 0..<extensionsCount) {
+                wheelIndexToExtension[wheelPickerState.currentIndexSnapshot].let {
+                    pair = it
+                    listState.animateScrollToItem(pair.first)
+                    Timber.d("pair: $pair")
+                }
             }
         }
     }
@@ -200,9 +213,6 @@ fun ExtensionGroupList(
                     val isStar = remember(starSet, state.currentIndex, extensions) {
                         if (state.currentIndex >= 0) starSet.contains(extensions[state.currentIndex].id) else false
                     }
-                    var levelY by remember {
-                        mutableIntStateOf(wheelIndexIdxMap.getOrPut(index) { 0 })
-                    }
                     LaunchedEffect(state) {
                         snapshotFlow { state.currentIndexSnapshot }
                             .collect {
@@ -214,19 +224,10 @@ fun ExtensionGroupList(
                                 }
                             }
                     }
-                    LaunchedEffect(key1 = levelOffset.y) {
-                        if (index == levelOffset.x) {
-                            if (joystickOffsetState.direction == JoystickDirection.UP) {
-                                levelY += -1
-                            } else if (joystickOffsetState.direction == JoystickDirection.DOWN) {
-                                levelY += 1
-                            }
+                    LaunchedEffect(pair) {
+                        if (pair.first == index) {
+                            state.animateScrollToIndex(pair.second)
                         }
-                        levelY = levelY.coerceIn(0, extensions.size - 1)
-                    }
-                    LaunchedEffect(levelY) {
-                        state.animateScrollToIndex(levelY)
-                        wheelIndexIdxMap[index] = levelY
                     }
                     val allTexts = remember {
                         extensions.map { it.name }
@@ -273,7 +274,8 @@ fun ExtensionGroupList(
                                 },
                                 showTimes = showUsageCount,
                                 padding = 0.dp,
-                                showIcon = false, active = index == levelOffset.x && idx == levelY
+                                showIcon = false,
+                                active = index == pair.first && idx == pair.second
                             )
                         }
                     }
@@ -293,7 +295,7 @@ fun ExtensionGroupList(
                         },
                         showTimes = showUsageCount,
                         showIcon = true,
-                        active = index == levelOffset.x
+                        active = index == pair.first
                     )
                 }
 
