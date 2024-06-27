@@ -631,6 +631,12 @@ class MainViewModel : ViewModel() {
 
     fun onSearch(text: String, enableExtension: Boolean, fuzzy: Boolean) {
         viewModelScope.launch {
+            if (text.isEmpty()) {
+                _state.update { mainState ->
+                    mainState.copy(searchResult = listOf())
+                }
+                return@launch
+            }
             val search = text.lowercase()
             val apps = _state.value.apps
             val extensions = getExtensionsWithInternal()

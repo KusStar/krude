@@ -66,8 +66,8 @@ import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.ScrollWheel
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.SecondLevelArea
-import com.kuss.krude.ui.components.rememberJoystickOffsetState
 import com.kuss.krude.ui.components.rememberMessageBarState
+import com.kuss.krude.ui.components.rememberScrollWheelState
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
@@ -131,7 +131,7 @@ fun BottomSearchBar(
 
     val messageBarState = rememberMessageBarState()
 
-    val joystickOffsetState = rememberJoystickOffsetState()
+    val scrollWheelState = rememberScrollWheelState()
 
     LaunchedEffect(Unit) {
         mainViewModel.initMessageBarState(messageBarState)
@@ -336,7 +336,7 @@ fun BottomSearchBar(
                                 if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
                                     val hasApp = searchResult.any { it.isApp() }
                                     ExtensionList(
-                                        joystickOffsetState = joystickOffsetState,
+                                        scrollWheelState = scrollWheelState,
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
                                         starSet = starSet,
@@ -375,7 +375,7 @@ fun BottomSearchBar(
                                         HorizontalDivider()
                                     }
                                     ExtensionList(
-                                        joystickOffsetState = joystickOffsetState,
+                                        scrollWheelState = scrollWheelState,
                                         searchResult = searchResult,
                                         listState = searchExtensionListState,
                                         starSet = starSet,
@@ -543,49 +543,7 @@ fun BottomSearchBar(
 //                        }
                         val hapticFeedback = LocalHapticFeedback.current
                         Spacing(x = 2)
-                        ScrollWheel(count = searchResult.size)
-//                        JoyStick(
-//                            onTap = {
-//                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-//                            },
-//                            onPositionChange = { direction ->
-//                                val prevLevelOffset = joystickOffsetState.offset
-//                                val levelOffset = if (prevLevelOffset == IntOffset(-1, -1)) {
-//                                    IntOffset(0, 0)
-//                                } else {
-//                                    when (direction) {
-//                                        JoystickDirection.UP -> IntOffset(
-//                                            prevLevelOffset.x,
-//                                            prevLevelOffset.y - 1
-//                                        )
-//
-//                                        JoystickDirection.DOWN -> IntOffset(
-//                                            prevLevelOffset.x,
-//                                            prevLevelOffset.y + 1
-//                                        )
-//
-//                                        JoystickDirection.LEFT -> IntOffset(
-//                                            prevLevelOffset.x - 1, prevLevelOffset.y
-//                                        )
-//
-//                                        JoystickDirection.RIGHT -> IntOffset(
-//                                            prevLevelOffset.x + 1, prevLevelOffset.y
-//                                        )
-//
-//                                        JoystickDirection.CENTER -> {
-//                                            prevLevelOffset
-//                                        }
-//                                    }
-//                                }
-//                                joystickOffsetState.changeOffset(levelOffset)
-//                                joystickOffsetState.changeDirection(direction)
-//                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-//                                messageBarState.show(
-//                                    "offset: $levelOffset",
-//                                    duration = Duration.parse("1s")
-//                                )
-//                            }
-//                        )
+                        ScrollWheel(count = searchResult.size, state = scrollWheelState)
                         Spacing(x = 1)
                     }
                 }
