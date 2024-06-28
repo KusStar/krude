@@ -157,14 +157,18 @@ fun ExtensionGroupList(
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean
 ) {
-    val extensionsCount = remember(searchResult) {
-        searchResult.filter { it.isExtension() }.size
-    }
     val extensionGroups = remember(searchResult) {
         getExtensionGroup(starSet, searchResult)
     }
     val wheelPickerState = scrollWheelState.wheelPickerState
-    val wheelIndexToExtension = remember(extensionGroups) {
+    val wheelIndexToExtension = remember {
+        mutableListOf<Pair<Int, Int>>()
+    }
+    LaunchedEffect(extensionGroups) {
+        if (extensionGroups.isEmpty()) {
+            return@LaunchedEffect
+        }
+        wheelIndexToExtension.clear()
         // wheelPickerState.currentIndex -> (groupIndex, extensionIndex)
         // 0 -> (0, 0)
         // 1 -> (0, 1)
@@ -176,20 +180,27 @@ fun ExtensionGroupList(
                 out.add(Pair(index, extensionIndex))
             }
         }
-        Timber.d("wheelIndexExtensionGroupMap: $out")
-        out
+        Timber.d(
+            "ExtensionsList: wheelIndexToExtension: ${
+                out.mapIndexed { index, pair -> "$index-${pair.first}-${pair.second}" }
+                    .joinToString(", ")
+            }, extensionGroups: ${extensionGroups.joinToString { groupItem -> groupItem.extensions.joinToString { it.name } }}"
+        )
+        wheelIndexToExtension.addAll(out)
     }
-    var pair by remember { mutableStateOf(Pair(0, 0)) }
+    var pair by remember { mutableStateOf(Pair(-1, -1)) }
     LaunchedEffect(wheelPickerState) {
         snapshotFlow {
             wheelPickerState.currentIndexSnapshot
-        }.collect {
-            if (wheelPickerState.currentIndexSnapshot in 0..<extensionsCount) {
-                wheelIndexToExtension[wheelPickerState.currentIndexSnapshot].let {
+        }.collect { currentIndexSnapshot ->
+            if (currentIndexSnapshot in wheelIndexToExtension.indices) {
+                Timber.d("ExtensionsList: wheelPickerState: currentIndexSnapshot: $currentIndexSnapshot, pair: ${wheelIndexToExtension[currentIndexSnapshot]}, $wheelIndexToExtension")
+                wheelIndexToExtension[currentIndexSnapshot].let {
                     pair = it
                     listState.animateScrollToItem(pair.first)
-                    Timber.d("pair: $pair")
                 }
+            } else {
+                pair = Pair(-1, -1)
             }
         }
     }
@@ -215,8 +226,8 @@ fun ExtensionGroupList(
                     }
                     LaunchedEffect(state) {
                         snapshotFlow { state.currentIndexSnapshot }
-                            .collect {
-                                if (state.currentIndexSnapshot > 0) {
+                            .collect { currentIndexSnapshot ->
+                                if (currentIndexSnapshot > 0) {
                                     hapticFeedbackEnable = true
                                 }
                                 if (hapticFeedbackEnable) {

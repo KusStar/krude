@@ -168,6 +168,7 @@ fun BottomSearchBar(
 
     fun clear() {
         searchState = TextFieldValue("")
+        mainViewModel.clearSearch()
     }
 
     fun onExtensionClick(extension: Extension, isStar: Boolean) {
