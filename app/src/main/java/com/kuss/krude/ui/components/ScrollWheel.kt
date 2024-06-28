@@ -39,26 +39,22 @@ fun ScrollWheel(count: Int, state: ScrollWheelState) {
         }
     }
     LaunchedEffect(wheelPickerState) {
-        snapshotFlow { wheelPickerState.currentIndexSnapshot }
-            .collect {
-                if (wheelPickerState.currentIndexSnapshot > 0) {
-                    hapticFeedbackEnable = true
-                }
-                if (hapticFeedbackEnable) {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                }
+        snapshotFlow { wheelPickerState.currentIndexSnapshot }.collect {
+            if (wheelPickerState.currentIndexSnapshot > 0) {
+                hapticFeedbackEnable = true
             }
+            if (hapticFeedbackEnable) {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+        }
     }
-    FHorizontalWheelPicker(
-        state = wheelPickerState,
+    FHorizontalWheelPicker(state = wheelPickerState,
         unfocusedCount = 4,
         modifier = Modifier.height(24.dp),
         count = count,
-        focus = {
-
-        }
+        focus = {}
     ) { index ->
-        VerticalDivider(color = MaterialTheme.colorScheme.primary)
+        VerticalDivider(color = MaterialTheme.colorScheme.primary, thickness = 2.dp)
     }
 }
 

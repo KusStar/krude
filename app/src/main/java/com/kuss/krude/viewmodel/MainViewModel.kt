@@ -89,7 +89,7 @@ class MainViewModel : ViewModel() {
     private val aliasKeywordMap = mutableMapOf<String, String>()
 
     fun getMessageBarState(): MessageBarState {
-       return messageBarState
+        return messageBarState
     }
 
     fun initMessageBarState(messageBarState: MessageBarState) {
@@ -329,7 +329,10 @@ class MainViewModel : ViewModel() {
                     var failed = 0
                     for ((index, extensionRepo) in extensionRepos.withIndex()) {
                         messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
-                        ExtensionHelper.fetchExtension(context, extensionRepo.url) { appExtensionGroup ->
+                        ExtensionHelper.fetchExtension(
+                            context,
+                            extensionRepo.url
+                        ) { appExtensionGroup ->
                             if (appExtensionGroup == null) {
                                 messageBarState.showError("Cannot load ${extensionRepo.name}")
                                 failed += 1
@@ -629,12 +632,16 @@ class MainViewModel : ViewModel() {
         } else ""
     }
 
+    fun clearSearch() {
+        _state.update { mainState ->
+            mainState.copy(searchResult = listOf())
+        }
+    }
+
     fun onSearch(text: String, enableExtension: Boolean, fuzzy: Boolean) {
         viewModelScope.launch {
             if (text.isEmpty()) {
-                _state.update { mainState ->
-                    mainState.copy(searchResult = listOf())
-                }
+                clearSearch()
                 return@launch
             }
             val search = text.lowercase()
