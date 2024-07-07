@@ -2,6 +2,8 @@ package com.kuss.krude.ui.components.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -72,7 +74,7 @@ fun MainList(
             onExtensionClick = onExtensionClick
         )
     } else {
-        AnimatedVisibility(visible = mainData.isNotEmpty()) {
+        AnimatedVisibility(visible = mainData.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
             LazyRow(
                 modifier = Modifier
                     .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
@@ -161,7 +163,7 @@ fun MainGroupList(
     val textMeasurer = rememberTextMeasurer()
 
     val groupList = getMainGroupList(data)
-    AnimatedVisibility(visible = groupList.isNotEmpty()) {
+    AnimatedVisibility(visible = groupList.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
         LazyRow(
             modifier = Modifier
                 .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
