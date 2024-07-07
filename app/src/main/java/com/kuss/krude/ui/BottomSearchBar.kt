@@ -14,7 +14,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -46,7 +48,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.painterResource
@@ -295,7 +296,9 @@ fun BottomSearchBar(
                     ) { show ->
                         if (show) {
                             Column {
-                                AnimatedVisibility(visible = starMode && searchResult.isNotEmpty()) {
+                                AnimatedVisibility(
+                                    visible = starMode && searchResult.isNotEmpty()
+                                ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -506,43 +509,6 @@ fun BottomSearchBar(
                             }
                             onTextChange(TextFieldValue(sb.toString(), selection = range))
                         }) {
-                        // TODO: remade
-//                        AnimatedVisibility(visible = settingsState.showSearchHistory && searchKeywordHistory.size > 0 && searchState.text.isEmpty()) {
-//                            LazyRow(
-//                                verticalAlignment = Alignment.CenterVertically,
-//                                modifier = Modifier.padding(top = 8.dp)
-//                            ) {
-//                                item {
-//                                    AnimatedVisibility(visible = searchKeywordHistory.isNotEmpty()) {
-//                                        IconButton(
-//                                            onClick = {
-//                                                searchKeywordHistory.clear()
-//                                            }) {
-//                                            Icon(
-//                                                Icons.TwoTone.Delete,
-//                                                tint = MaterialTheme.colorScheme.primary,
-//                                                contentDescription = "delete",
-//                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-//                                            )
-//                                        }
-//                                    }
-//                                }
-//                                items(searchKeywordHistory, key = { it }) {
-//                                    TextButton(onClick = {
-//                                        onTextChange(TextFieldValue(it, TextRange(it.length)))
-//                                        insertSearchHistory(it)
-//                                    })
-//                                    {
-//                                        Text(
-//                                            text = it,
-//                                            fontWeight = FontWeight.Bold,
-//                                            fontSize = 14.sp,
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                        }
-                        val hapticFeedback = LocalHapticFeedback.current
                         Spacing(x = 2)
                         val wheelCount = remember(searchResult) {
                             searchResult.filter { it.isExtension() }.size
