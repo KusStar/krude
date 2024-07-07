@@ -544,7 +544,14 @@ fun BottomSearchBar(
 //                        }
                         val hapticFeedback = LocalHapticFeedback.current
                         Spacing(x = 2)
-                        ScrollWheel(count = searchResult.size, state = scrollWheelState)
+                        val wheelCount = remember(searchResult) {
+                            searchResult.filter { it.isExtension() }.size
+                        }
+                        if (wheelCount > 0) {
+                            ScrollWheel(count = wheelCount, state = scrollWheelState)
+                        } else {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
                         Spacing(x = 1)
                     }
                 }
