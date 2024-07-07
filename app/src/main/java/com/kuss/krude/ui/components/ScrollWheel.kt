@@ -33,10 +33,8 @@ fun ScrollWheel(count: Int, state: ScrollWheelState) {
     val hapticFeedback = LocalHapticFeedback.current
     val wheelPickerState = state.wheelPickerState
     var hapticFeedbackEnable by remember { mutableStateOf(false) }
-    LaunchedEffect(count) {
-        if (count > 0) {
-            wheelPickerState.animateScrollToIndex(0)
-        }
+    LaunchedEffect(count, state) {
+        wheelPickerState.animateScrollToIndex(0)
     }
     LaunchedEffect(wheelPickerState) {
         snapshotFlow { wheelPickerState.currentIndexSnapshot }.collect {
@@ -53,7 +51,7 @@ fun ScrollWheel(count: Int, state: ScrollWheelState) {
         modifier = Modifier.height(24.dp),
         count = count,
         focus = {}
-    ) { index ->
+    ) {
         VerticalDivider(color = MaterialTheme.colorScheme.primary, thickness = 2.dp)
     }
 }
