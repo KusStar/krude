@@ -338,11 +338,8 @@ class MainViewModel : ViewModel() {
                                 failed += 1
                             } else {
                                 if (appExtensionGroup.main.isNotEmpty()) {
-                                    val nextExtensions =
-                                        appExtensionGroup.main.filter { extension ->
-                                            if (extension.type == ExtensionType.ALIAS) {
-                                                return@filter false
-                                            }
+                                    val (aliasesData, extensionsData) = appExtensionGroup.main.partition { it.type == ExtensionType.ALIAS }
+                                    val nextExtensions = extensionsData.filter { extension ->
                                             if (!extension.required.isNullOrEmpty()) {
                                                 return@filter extension.required!!.any { required ->
                                                     packageNameSet.contains(
@@ -388,10 +385,11 @@ class MainViewModel : ViewModel() {
                                         saveExtensionsIntoCache(context, nextExtensions)
                                     }
                                     val aliasExtensions =
-                                        appExtensionGroup.main.filter { it.type == ExtensionType.ALIAS && !it.required.isNullOrEmpty() }
+                                        aliasesData.filter { !it.required.isNullOrEmpty() }
                                     if (aliasExtensions.isNotEmpty()) {
                                         Timber.d("loadExtensions: aliasExtensions ${aliasExtensions.size}")
                                         setAlias(aliasExtensions)
+                                        saveExtensionsIntoCache(context, aliasExtensions)
                                     }
                                     success += 1
                                 }
@@ -425,11 +423,21 @@ class MainViewModel : ViewModel() {
                 val db = getDatabase(context)
                 val extensionCacheDao = db.extensionCacheDao()
                 val tempMap = mutableMapOf<String, Extension>()
-                extensionCacheDao.getAll().forEach {
-                    tempMap[it.id] = it.extension
+                val (aliasesData, extensionsData) = extensionCacheDao.getAll()
+                    .partition { it.extension.type == ExtensionType.ALIAS }
+                if (aliasesData.isNotEmpty()) {
+                    val aliasExtensions = aliasesData.map { it.extension }.filter {
+                        !it.required.isNullOrEmpty()
+                    }
+                    setAlias(aliasExtensions)
                 }
-                _state.update {
-                    it.copy(extensionMap = tempMap)
+                if (extensionsData.isNotEmpty()) {
+                    extensionsData.forEach {
+                        tempMap[it.id] = it.extension
+                    }
+                    _state.update {
+                        it.copy(extensionMap = tempMap)
+                    }
                 }
             }
         }
