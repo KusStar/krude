@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import java.util.Stack
 
 
-class PathNavigator() {
+class PathNavigator {
     private val backStack = Stack<String>()
     private val forwardStack = Stack<String>()
     var currentPath by mutableStateOf("")
