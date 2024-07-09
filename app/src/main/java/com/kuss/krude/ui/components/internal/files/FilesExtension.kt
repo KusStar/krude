@@ -9,14 +9,16 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -57,6 +59,7 @@ import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
+import com.kuss.krude.viewmodel.extensions.FilesOrderBy
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -75,7 +78,7 @@ fun FilesExtension(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val listState = rememberScrollState()
+    val listState = rememberLazyListState()
 
     val state by viewModel.state.collectAsState()
     val search = state.search
@@ -97,12 +100,16 @@ fun FilesExtension(
 
     val filePreviewState = rememberFilePreviewState()
 
+    LaunchedEffect(state.filesOrderBy, state.showHiddenFiles) {
+        listState.animateScrollToItem(0)
+    }
+
     LaunchedEffect(key1 = needScrollBack) {
         if (needScrollBack) {
             scope.launch {
                 delay(WAIT_TIME)
                 if (prevScroll.size > 0) {
-                    listState.scrollTo(prevScroll.removeLast())
+                    listState.scrollToItem(prevScroll.removeLast())
                     needScrollBack = false
                 }
             }
@@ -110,7 +117,7 @@ fun FilesExtension(
     }
 
     fun onFileItemClick(file: File) {
-        prevScroll.add(listState.value)
+        prevScroll.add(listState.firstVisibleItemIndex)
         needScrollBack = false
         if (file.isFile) {
             Timber.d("File: $file")
@@ -182,16 +189,49 @@ fun FilesExtension(
     }
 
     Column {
-        val listData = remember(search, state.files, state.filteredFiles) {
-            if (search.isNotEmpty()) {
+        val listData = remember(
+            search, state.files, state.filteredFiles, state.showHiddenFiles, state.filesOrderBy
+        ) {
+            val list = if (search.isNotEmpty()) {
                 state.filteredFiles
             } else {
                 state.files
             }
+            val comparator = when (state.filesOrderBy) {
+                FilesOrderBy.ALPHABET_ASC -> {
+                    compareBy<File> { FilterHelper.getAbbr(it.name) }
+                }
+
+                FilesOrderBy.ALPHABET_DESC -> {
+                    compareByDescending { FilterHelper.getAbbr(it.name) }
+                }
+
+                FilesOrderBy.DATE_ASC -> {
+                    compareBy { it.lastModified() }
+                }
+
+                FilesOrderBy.DATE_DESC -> {
+                    compareByDescending { it.lastModified() }
+                }
+
+                FilesOrderBy.SIZE_ASC -> {
+                    compareBy { it.length() }
+                }
+
+                FilesOrderBy.SIZE_DESC -> {
+                    compareByDescending { it.length() }
+                }
+            }
+            return@remember if (!state.showHiddenFiles) {
+                list.filter {
+                    !it.isHidden
+                }
+            } else {
+                list
+            }.sortedWith(comparator)
         }
         TopTab(
-            onBack = onBack,
-            viewModel = viewModel
+            onBack = onBack, viewModel = viewModel
         )
         HorizontalDivider()
         AnimatedContent(
@@ -224,21 +264,22 @@ fun FilesExtension(
                 val showGoToPreviousDir = remember(pathNavigator.currentPath) {
                     pathNavigator.currentPath != FileHelper.PATH_PREFIX && pathNavigator.currentPath != ""
                 }
-                Column(
+                LazyColumn(
                     modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(listState)
-                        .padding(bottom = 16.dp),
-//                    contentPadding = PaddingValues(bottom = 16.dp),
-                    verticalArrangement = Arrangement.Bottom
+                        .weight(1f),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                    verticalArrangement = Arrangement.Bottom,
+                    state = listState
                 ) {
                     if (showGoToPreviousDir) {
-                        FileItem(file = File(".."), onClick = {
-                            val temp = File(pathNavigator.currentPath)
-                            viewModel.goToPath(temp.parent ?: temp.absolutePath)
-                        })
+                        item {
+                            FileItem(file = File(".."), onClick = {
+                                val temp = File(pathNavigator.currentPath)
+                                viewModel.goToPath(temp.parent ?: temp.absolutePath)
+                            })
+                        }
                     }
-                    listData.forEach { file ->
+                    items(listData, key = { it.path }) { file ->
                         val targetTabs by remember {
                             derivedStateOf {
                                 tabs.filterIndexed { index, _ ->

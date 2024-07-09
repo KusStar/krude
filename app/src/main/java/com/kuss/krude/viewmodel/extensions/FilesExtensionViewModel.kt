@@ -16,13 +16,24 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
+enum class FilesOrderBy {
+    ALPHABET_ASC,
+    ALPHABET_DESC,
+    DATE_ASC,
+    DATE_DESC,
+    SIZE_ASC,
+    SIZE_DESC
+}
+
 data class FilesExtensionState(
     val files: List<File> = listOf(),
     val filteredFiles: List<File> = listOf(),
     val search: String = "",
     val pathNavigator: PathNavigator = PathNavigator(),
     val tabs: List<String> = listOf(FileHelper.ROOT_PATH),
-    val currentTabIndex: Int = 0
+    val currentTabIndex: Int = 0,
+    val showHiddenFiles: Boolean = false,
+    val filesOrderBy: FilesOrderBy = FilesOrderBy.ALPHABET_ASC
 )
 
 class FilesExtensionViewModel : ViewModel() {
@@ -135,6 +146,18 @@ class FilesExtensionViewModel : ViewModel() {
                 )
             }
             goToPath(_state.value.tabs[currentTabIndex - 1])
+        }
+    }
+
+    fun setShowHiddenFiles(show: Boolean) {
+        _state.update {
+            it.copy(showHiddenFiles = show)
+        }
+    }
+
+    fun setFilesOrderBy(orderBy: FilesOrderBy) {
+        _state.update {
+            it.copy(filesOrderBy = orderBy)
         }
     }
 }
