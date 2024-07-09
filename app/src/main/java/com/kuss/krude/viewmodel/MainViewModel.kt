@@ -73,6 +73,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    val state: StateFlow<MainState>
+        get() = _state
+
     private lateinit var messageBarState: MessageBarState
 
     private val _state = MutableStateFlow(MainState())
@@ -184,8 +187,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    val state: StateFlow<MainState>
-        get() = _state
+
 
     fun onPackageAdded(context: Context, intent: Intent) {
         val intentPackageName = intent.dataString?.substring(8)
