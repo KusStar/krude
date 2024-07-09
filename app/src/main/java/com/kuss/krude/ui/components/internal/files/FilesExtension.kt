@@ -9,16 +9,14 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -65,7 +63,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
-val WAIT_TIME: Long = 1000 / 30
+const val WAIT_TIME: Long = 1000 / 30
 
 @Composable
 fun FilesExtension(
@@ -87,7 +85,7 @@ fun FilesExtension(
     val searchPath =
         remember(pathNavigator.currentPath) { pathNavigator.currentPath.ifEmpty { FileHelper.ROOT_PATH } }
 
-    val listState = rememberLazyListState()
+    val listState = rememberScrollState()
 
     val openedTabs = remember { mutableStateListOf(FileHelper.ROOT_PATH) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -109,7 +107,7 @@ fun FilesExtension(
             scope.launch {
                 delay(WAIT_TIME)
                 if (prevScroll.size > 0) {
-                    listState.scrollToItem(prevScroll.removeLast())
+                    listState.scrollTo(prevScroll.removeLast())
                     needScrollBack = false
                 }
             }
@@ -139,7 +137,7 @@ fun FilesExtension(
     }
 
     fun onFileItemClick(file: File) {
-        prevScroll.add(listState.firstVisibleItemIndex)
+        prevScroll.add(listState.value)
         needScrollBack = false
         if (file.isFile) {
             Timber.d("File: $file")
@@ -277,7 +275,7 @@ fun FilesExtension(
         AnimatedContent(
             search.isNotEmpty() && listData.isEmpty(),
             label = "file list",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) { isEmpty ->
             if (isEmpty) {
                 Column(
@@ -304,21 +302,18 @@ fun FilesExtension(
                 val showGoToPreviousDir = remember(pathNavigator.currentPath) {
                     pathNavigator.currentPath != FileHelper.PATH_PREFIX && pathNavigator.currentPath != ""
                 }
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(bottom = 16.dp),
-                    state = listState,
+                Column(
+                    modifier = Modifier.weight(1f).verticalScroll(listState).padding(bottom = 16.dp),
+//                    contentPadding = PaddingValues(bottom = 16.dp),
                     verticalArrangement = Arrangement.Bottom
                 ) {
                     if (showGoToPreviousDir) {
-                        item {
-                            FileItem(file = File(".."), onClick = {
-                                val temp = File(pathNavigator.currentPath)
-                                goToPath(temp.parent ?: temp.absolutePath)
-                            })
-                        }
+                        FileItem(file = File(".."), onClick = {
+                            val temp = File(pathNavigator.currentPath)
+                            goToPath(temp.parent ?: temp.absolutePath)
+                        })
                     }
-                    items(listData) { file ->
+                    listData.forEach { file ->
                         val targetTabs by remember {
                             derivedStateOf {
                                 openedTabs.filterIndexed { index, _ ->
