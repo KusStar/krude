@@ -1,19 +1,26 @@
 package com.kuss.krude.ui.components.internal.files
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,8 +49,42 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.utils.ToastUtils
+import com.kuss.krude.utils.applyIf
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
+import com.kuss.krude.viewmodel.extensions.FilesOrderBy
 import me.saket.cascade.CascadeDropdownMenu
+
+val FILE_ORDERS = listOf(
+    FilesOrderBy.DATE_DESC,
+    FilesOrderBy.DATE_ASC,
+    FilesOrderBy.ALPHABET_DESC,
+    FilesOrderBy.ALPHABET_ASC,
+    FilesOrderBy.SIZE_DESC,
+    FilesOrderBy.SIZE_ASC
+)
+
+@Composable
+fun OrderBys(viewModel: FilesExtensionViewModel, onClose: () -> Unit) {
+    val state by viewModel.state.collectAsState()
+    FILE_ORDERS.forEach { orderBy ->
+        DropdownMenuItem(
+            modifier = Modifier.applyIf(state.filesOrderBy == orderBy) {
+                background(MaterialTheme.colorScheme.secondaryContainer)
+            },
+            text = {
+                Text(orderBy.name)
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = if (orderBy.name.contains("_DESC")) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                    contentDescription = orderBy.name
+                )
+            }, onClick = {
+                viewModel.setFilesOrderBy(orderBy)
+                onClose()
+            })
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,8 +111,7 @@ fun TopTab(
                 tint = MaterialTheme.colorScheme.secondary
             )
         }
-        ScrollableTabRow(
-            modifier = Modifier.weight(1f),
+        ScrollableTabRow(modifier = Modifier.weight(1f),
             edgePadding = 0.dp,
             selectedTabIndex = currentTabIndex,
             containerColor = Color.Transparent,
@@ -104,16 +144,13 @@ fun TopTab(
                                     IconButton(
                                         onClick = {
                                             viewModel.closeTab(index)
-                                        },
-                                        Modifier
-                                            .padding(0.dp)
+                                        }, Modifier.padding(0.dp)
                                     ) {
                                         Icon(
                                             Icons.Default.Close,
                                             contentDescription = "Close",
                                             tint = MaterialTheme.colorScheme.outline,
-                                            modifier = Modifier
-                                                .size(ButtonDefaults.IconSize)
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
                                         )
                                     }
                                 }
@@ -129,8 +166,7 @@ fun TopTab(
             Icon(
                 Icons.Default.Add,
                 contentDescription = "New Tab",
-                modifier = Modifier
-                    .size(ButtonDefaults.IconSize),
+                modifier = Modifier.size(ButtonDefaults.IconSize),
                 tint = MaterialTheme.colorScheme.secondary
             )
         }
@@ -144,8 +180,7 @@ fun TopTab(
                 Icon(
                     Icons.Default.MoreVert,
                     contentDescription = "More",
-                    modifier = Modifier
-                        .size(ButtonDefaults.IconSize),
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                     tint = MaterialTheme.colorScheme.secondary
                 )
             }
@@ -154,39 +189,60 @@ fun TopTab(
             }) {
                 DropdownMenuItem(
                     text = {
-                        Text("Close all tab")
+                        Column {
+                            Text(text = "Order by ${state.filesOrderBy.name.lowercase()}")
+                        }
                     },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.ClearAll,
-                            contentDescription = "Close all tab icon",
+                            Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "sort",
                         )
-                    },
-                    onClick = {
-                        viewModel.setTab(listOf(FileHelper.ROOT_PATH))
-                        viewModel.setCurrentTabIndex(0)
-                        viewModel.goToPath(FileHelper.ROOT_PATH)
-                        showMore = false
+                    }, children = {
+                        OrderBys(viewModel, onClose = {
+                            showMore = false
+                        })
                     })
-                DropdownMenuItem(
-                    text = {
-                        Text("Copy path")
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.ContentCopy,
-                            contentDescription = "Copy path icon",
-                        )
-                    },
-                    onClick = {
-                        val currentPath = pathNavigator.currentPath.ifEmpty { FileHelper.ROOT_PATH }
+                DropdownMenuItem(text = {
+                    Text("${if (state.showHiddenFiles) "Hide" else "Show"} hidden files")
+                }, leadingIcon = {
+                    Icon(
+                        if (state.showHiddenFiles) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "showHiddenFiles",
+                    )
+                }, onClick = {
+                    viewModel.setShowHiddenFiles(!state.showHiddenFiles)
+                    showMore = false
+                })
+                DropdownMenuItem(text = {
+                    Text("Close all tab")
+                }, leadingIcon = {
+                    Icon(
+                        Icons.Default.ClearAll,
+                        contentDescription = "Close all tab icon",
+                    )
+                }, onClick = {
+                    viewModel.setTab(listOf(FileHelper.ROOT_PATH))
+                    viewModel.setCurrentTabIndex(0)
+                    viewModel.goToPath(FileHelper.ROOT_PATH)
+                    showMore = false
+                })
+                DropdownMenuItem(text = {
+                    Text("Copy path")
+                }, leadingIcon = {
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = "Copy path icon",
+                    )
+                }, onClick = {
+                    val currentPath = pathNavigator.currentPath.ifEmpty { FileHelper.ROOT_PATH }
 
-                        clipboardManager.setText(AnnotatedString(currentPath))
+                    clipboardManager.setText(AnnotatedString(currentPath))
 
-                        ToastUtils.show(context, "Path copied to clipboard")
+                    ToastUtils.show(context, "Path copied to clipboard")
 
-                        showMore = false
-                    })
+                    showMore = false
+                })
             }
         }
     }
