@@ -26,7 +26,12 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        Timber.plant(Timber.DebugTree())
+        Timber.plant(object: Timber.DebugTree() {
+            override fun createStackElementTag(element: StackTraceElement): String? {
+                val className = super.createStackElementTag(element)
+                return "KRUDE-$className ${element.methodName}"
+            }
+        })
 
         LocaleHelper.init(this)
 
