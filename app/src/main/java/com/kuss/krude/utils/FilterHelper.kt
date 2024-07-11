@@ -30,6 +30,17 @@ object FilterHelper {
     }
 
     @JvmStatic
+    fun getAbbrForChinese(label: String): String {
+        val pinyin = Pinyin.toPinyin(label, "")
+        val isChinese = pinyin != label
+        return if (isChinese) {
+            toAbbr(Pinyin.toPinyin(label, ","), ",")
+        } else {
+            label
+        }
+    }
+
+    @JvmStatic
     fun getAbbr(label: String): String {
         val pinyin = Pinyin.toPinyin(label, "")
         val isChinese = pinyin != label

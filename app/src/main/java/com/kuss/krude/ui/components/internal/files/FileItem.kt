@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.kuss.krude.ui.components.CustomButton
+import com.kuss.krude.ui.components.HighlightedText
 import me.saket.cascade.CascadeDropdownMenu
 import java.io.File
 
@@ -202,6 +203,7 @@ fun FileDropdownMenu(
 @Composable
 fun FileItem(
     modifier: Modifier = Modifier,
+    highlight: String = "",
     file: File,
     onClick: () -> Unit,
     openedTabs: List<String> = emptyList(),
@@ -234,12 +236,22 @@ fun FileItem(
             Spacer(modifier = Modifier.width(8.dp))
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
                 val isPreviousDir = file.name == ".."
-                Text(
-                    text = file.name,
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.let {
-                        if (isPreviousDir) it.titleLarge else it.bodyMedium
-                    })
+                if (highlight.isNotEmpty()) {
+                    HighlightedText(
+                        text = file.name,
+                        highlightText = highlight,
+                        style = MaterialTheme.typography.let {
+                            if (isPreviousDir) it.titleLarge else it.bodyMedium
+                        })
+                } else {
+                    Text(
+                        text = file.name,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.let {
+                            if (isPreviousDir) it.titleLarge else it.bodyMedium
+                        })
+                }
+
                 if (!isPreviousDir) {
                     FileDetail(file)
                 }
