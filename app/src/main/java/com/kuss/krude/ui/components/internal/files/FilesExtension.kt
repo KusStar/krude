@@ -273,10 +273,11 @@ fun FilesExtension(
                 ) {
                     if (showGoToPreviousDir) {
                         item {
-                            FileItem(file = File(".."), onClick = {
-                                val temp = File(pathNavigator.currentPath)
-                                viewModel.goToPath(temp.parent ?: temp.absolutePath)
-                            })
+                            FileItem(
+                                file = File(".."), onClick = {
+                                    val temp = File(pathNavigator.currentPath)
+                                    viewModel.goToPath(temp.parent ?: temp.absolutePath)
+                                })
                         }
                     }
                     items(listData, key = { it.path }) { file ->
@@ -288,9 +289,13 @@ fun FilesExtension(
                             }
                         }
                         FileItem(
-                            modifier = Modifier, file = file, onClick = {
+                            highlight = search,
+                            modifier = Modifier,
+                            file = file,
+                            onClick = {
                                 onFileItemClick(file)
-                            }, openedTabs = targetTabs
+                            },
+                            openedTabs = targetTabs
                         ) { type, arg ->
                             when (type) {
                                 FileDropdownType.OPEN_WITH -> {
@@ -422,6 +427,19 @@ fun FilesExtension(
                     )
                 },
             )
+            if (search.isNotEmpty()) {
+                Text(
+                    text = "${state.filteredFiles.size}/${state.files.size}",
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            } else {
+                Text(
+                    text = "${state.files.size}",
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            }
         }
         Spacer(modifier = Modifier.imePadding())
     }
