@@ -121,13 +121,14 @@ fun MoreBtns(
             horizontalArrangement =
             if (dominantHand == DominantHandDefaults.LEFT) Arrangement.Start else Arrangement.Reverse,
         ) {
-            FastClickBtns(
-                visible = search.isNotEmpty() && searchResult.isNotEmpty(),
-                searchResult = searchResult,
-                onExtensionClick = onExtensionClick,
-                onAppClick = onAppClick,
-                starSet = starSet,
-            )
+            // TODO: rethinking necessity
+//            FastClickBtns(
+//                visible = search.isNotEmpty() && searchResult.isNotEmpty(),
+//                searchResult = searchResult,
+//                onExtensionClick = onExtensionClick,
+//                onAppClick = onAppClick,
+//                starSet = starSet,
+//            )
             AnimatedVisibility(visible = search.isNotEmpty() && searchResult.isNotEmpty()) {
                 IconButton(onClick = {
                     onStarIcon()
