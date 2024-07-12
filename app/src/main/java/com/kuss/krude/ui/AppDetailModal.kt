@@ -23,22 +23,17 @@ import androidx.compose.material.icons.filled.HideSource
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,9 +43,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.utils.ActivityHelper
@@ -59,7 +55,6 @@ import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Collections
-import kotlin.time.Duration
 
 @Composable
 fun JumpButton(text: String, icon: ImageVector, onClick: () -> Unit) {
@@ -87,8 +82,6 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
     val showAppDetailSheet = uiState.showAppDetailSheet
     val selectedDetailApp = uiState.selectedDetailApp
 
-    var showStarDialog by remember { mutableStateOf(false) }
-
     fun openAppInfo(item: AppInfo) {
         ActivityHelper.toDetail(context, item.packageName)
     }
@@ -101,7 +94,6 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
         mainViewModel.insertHidden(context, app.packageName)
         mainViewModel.setShowAppDetailSheet(false)
     }
-
 
     if (showAppDetailSheet) {
         ModalBottomSheet(
@@ -191,7 +183,13 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         JumpButton(stringResource(id = R.string.star), Icons.Default.Star) {
-                            showStarDialog = true
+                            mainViewModel.setStarItemDialogVisible(
+                                true,
+                                item = SearchResultItem(
+                                    SearchResultType.APP,
+                                    app = selectedDetailApp
+                                )
+                            )
                         }
                         JumpButton(stringResource(id = R.string.hide), Icons.Default.HideSource) {
                             hideApp(app)
@@ -279,86 +277,6 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                                             fontSize = 12.sp,
                                         )
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-
-//                    Button(onClick = {
-//                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-//                            if (!sheetState.isVisible) {
-//                                showAppDetailSheet = false
-//                            }
-//                        }
-//                    }) {
-//                        Text("Close")
-//                    }
-            }
-
-        }
-
-        if (showStarDialog) {
-            var keyword by remember { mutableStateOf("") }
-            Dialog(onDismissRequest = {
-                showStarDialog = false
-            }) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    selectedDetailApp?.let { app ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text("Star ${app.label} with:")
-                            Spacing(1)
-                            OutlinedTextField(
-                                value = keyword,
-                                onValueChange = {
-                                    keyword = it
-                                },
-                                placeholder = {
-                                    Text(stringResource(R.string.star_keyword_hint))
-                                }
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                            ) {
-                                TextButton(
-                                    onClick = {
-                                        showStarDialog = false
-                                    },
-                                    modifier = Modifier.padding(8.dp),
-                                ) {
-                                    Text(stringResource(R.string.dismiss))
-                                }
-                                TextButton(
-                                    onClick = {
-                                        showStarDialog = false
-                                        mainViewModel.insertStar(
-                                            context,
-                                            mainViewModel.getSettingsState().enableExtension,
-                                            app.packageName,
-                                            keyword = keyword,
-                                            false
-                                        )
-                                        mainViewModel.getMessageBarState()
-                                            .showSuccess(
-                                                "Starred ${app.label} with $keyword",
-                                                Duration.parse("2s")
-                                            )
-                                    },
-                                    modifier = Modifier.padding(8.dp),
-                                ) {
-                                    Text(stringResource(R.string.confirm))
                                 }
                             }
                         }

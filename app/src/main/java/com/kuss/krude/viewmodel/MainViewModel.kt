@@ -18,6 +18,7 @@ import com.kuss.krude.extensions.FILES_EXTENSION
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.StarItemState
 import com.kuss.krude.ui.components.MessageBarState
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
@@ -73,12 +74,18 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private val _state = MutableStateFlow(MainState())
+
     val state: StateFlow<MainState>
         get() = _state
 
-    private lateinit var messageBarState: MessageBarState
 
-    private val _state = MutableStateFlow(MainState())
+    private val _starItemState = MutableStateFlow(StarItemState())
+
+    val starItemState: StateFlow<StarItemState>
+        get() = _starItemState
+
+    private lateinit var messageBarState: MessageBarState
 
     private var filterKeywordJob: Job? = null
 
@@ -90,6 +97,12 @@ class MainViewModel : ViewModel() {
 
     // every required id to keyword
     private val aliasKeywordMap = mutableMapOf<String, String>()
+
+    fun setStarItemDialogVisible(visible: Boolean, item: SearchResultItem? = null) {
+        _starItemState.update {
+            it.copy(visible = visible, item = item)
+        }
+    }
 
     fun getMessageBarState(): MessageBarState {
         return messageBarState
@@ -186,7 +199,6 @@ class MainViewModel : ViewModel() {
             context.registerReceiver(packageEventReceiver, filter)
         }
     }
-
 
 
     fun onPackageAdded(context: Context, intent: Intent) {
@@ -342,39 +354,39 @@ class MainViewModel : ViewModel() {
                                 if (appExtensionGroup.main.isNotEmpty()) {
                                     val (aliasesData, extensionsData) = appExtensionGroup.main.partition { it.type == ExtensionType.ALIAS }
                                     val nextExtensions = extensionsData.filter { extension ->
-                                            if (!extension.required.isNullOrEmpty()) {
-                                                return@filter extension.required!!.any { required ->
-                                                    packageNameSet.contains(
-                                                        required
-                                                    )
-                                                }
+                                        if (!extension.required.isNullOrEmpty()) {
+                                            return@filter extension.required!!.any { required ->
+                                                packageNameSet.contains(
+                                                    required
+                                                )
                                             }
-                                            true
-                                        }.map {
-                                            if (it.i18n != null) {
-                                                if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
-                                                    overwriteI18nExtension(it, it.i18n.zh)
-                                                }
-                                                if (LocaleHelper.currentLocale == "en" && it.i18n.en != null) {
-                                                    overwriteI18nExtension(it, it.i18n.en)
-                                                }
-                                            }
-                                            it.filterTarget =
-                                                FilterHelper.toTarget(it)
-                                            if (!it.required.isNullOrEmpty()) {
-                                                it.required =
-                                                    it.required!!.sortedByDescending { re ->
-                                                        packageNameSet.contains(re)
-                                                    }
-                                                // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
-                                                it.name = if (it.name.contains("-")) it.name.split(
-                                                    "-",
-                                                    limit = 2
-                                                )[1] else it.name
-                                            }
-
-                                            it
                                         }
+                                        true
+                                    }.map {
+                                        if (it.i18n != null) {
+                                            if (LocaleHelper.currentLocale == "zh" && it.i18n.zh != null) {
+                                                overwriteI18nExtension(it, it.i18n.zh)
+                                            }
+                                            if (LocaleHelper.currentLocale == "en" && it.i18n.en != null) {
+                                                overwriteI18nExtension(it, it.i18n.en)
+                                            }
+                                        }
+                                        it.filterTarget =
+                                            FilterHelper.toTarget(it)
+                                        if (!it.required.isNullOrEmpty()) {
+                                            it.required =
+                                                it.required!!.sortedByDescending { re ->
+                                                    packageNameSet.contains(re)
+                                                }
+                                            // Format "设置-WiFi" to "WiFi", no need to show prefix when required package icon is shown
+                                            it.name = if (it.name.contains("-")) it.name.split(
+                                                "-",
+                                                limit = 2
+                                            )[1] else it.name
+                                        }
+
+                                        it
+                                    }
                                     // bind alias extensions to apps
                                     if (nextExtensions.isNotEmpty()) {
                                         val tempMap = _state.value.extensionMap.toMutableMap()

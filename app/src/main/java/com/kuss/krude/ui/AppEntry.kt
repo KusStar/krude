@@ -123,6 +123,7 @@ fun AppEntry(
                 })
         }
         AppDetailModal(mainViewModel)
+        StarItemDialog(mainViewModel)
     } else {
         AlertDialog(
             title = {

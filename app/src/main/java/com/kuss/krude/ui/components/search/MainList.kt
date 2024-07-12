@@ -51,7 +51,8 @@ fun MainList(
     toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-) {
+    onStarItem: (extension: Extension) -> Unit,
+    ) {
     val isInline = remember(settingsState.extensionDisplayMode) {
         settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE
     }
@@ -71,7 +72,8 @@ fun MainList(
             onAppClick = onAppClick,
             toAppDetail = toAppDetail,
             reverseLayout = reverseLayout,
-            onExtensionClick = onExtensionClick
+            onExtensionClick = onExtensionClick,
+            onStarItem = onStarItem,
         )
     } else {
         AnimatedVisibility(visible = mainData.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -157,6 +159,7 @@ fun MainGroupList(
     toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
+    onStarItem: (extension: Extension) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -217,7 +220,10 @@ fun MainGroupList(
                             onLongClick = {
                             },
                             showTimes = settingsState.showUsageCount,
-                            showIcon = true
+                            showIcon = true,
+                            onStarItem = {
+                                onStarItem(extension)
+                            }
                         )
                     }
                 } else {
@@ -311,6 +317,9 @@ fun MainGroupList(
                                     showTimes = settingsState.showUsageCount,
                                     padding = 0.dp,
                                     showIcon = false,
+                                    onStarItem = {
+                                        onStarItem(extension)
+                                    }
                                 )
                             }
                         }

@@ -49,6 +49,7 @@ fun ExtensionList(
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean,
     groupLayout: Boolean,
+    onStarItem: (extension: Extension) -> Unit
 ) {
     if (groupLayout) {
         ExtensionGroupList(
@@ -58,7 +59,8 @@ fun ExtensionList(
             starSet = starSet,
             showUsageCount = showUsageCount,
             onExtensionClick = onExtensionClick,
-            reverseLayout = reverseLayout
+            reverseLayout = reverseLayout,
+            onStarItem = onStarItem,
         )
     } else {
         ExtensionFlatList(
@@ -67,7 +69,8 @@ fun ExtensionList(
             starSet = starSet,
             showUsageCount = showUsageCount,
             onExtensionClick = onExtensionClick,
-            reverseLayout = reverseLayout
+            reverseLayout = reverseLayout,
+            onStarItem = onStarItem,
         )
     }
 }
@@ -79,7 +82,8 @@ fun ExtensionFlatList(
     starSet: Set<String>,
     showUsageCount: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-    reverseLayout: Boolean
+    reverseLayout: Boolean,
+    onStarItem: (extension: Extension) -> Unit,
 ) {
     val extensions = remember(searchResult) {
         searchResult.filter { it.isExtension() }
@@ -107,7 +111,10 @@ fun ExtensionFlatList(
                     onLongClick = {
                     },
                     showTimes = showUsageCount,
-                    showIcon = true
+                    showIcon = true,
+                    onStarItem = {
+                        onStarItem(extension)
+                    }
                 )
                 if (index < extensions.size - 1) {
                     VerticalDivider(modifier = Modifier.height(16.dp))
@@ -157,7 +164,8 @@ fun ExtensionGroupList(
     starSet: Set<String>,
     showUsageCount: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-    reverseLayout: Boolean
+    reverseLayout: Boolean,
+    onStarItem: (extension: Extension) -> Unit,
 ) {
     val extensionGroups = remember(searchResult) {
         getExtensionGroup(starSet, searchResult)
@@ -288,7 +296,10 @@ fun ExtensionGroupList(
                                 showTimes = showUsageCount,
                                 padding = 0.dp,
                                 showIcon = false,
-                                active = index == pair.first && idx == pair.second
+                                active = index == pair.first && idx == pair.second,
+                                onStarItem = {
+                                    onStarItem(extension)
+                                }
                             )
                         }
                     }
@@ -308,7 +319,10 @@ fun ExtensionGroupList(
                         },
                         showTimes = showUsageCount,
                         showIcon = true,
-                        active = index == pair.first
+                        active = index == pair.first,
+                        onStarItem = {
+                            onStarItem(extension)
+                        }
                     )
                 }
 
