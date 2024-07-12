@@ -49,4 +49,5 @@
     <string name="star">Star</string>
     <string name="dismiss">Dismiss</string>
     <string name="star_keyword_hint">Star keyword to app</string>
+    <string name="title_dynamicfeature">Module Title</string>
 </resources>
