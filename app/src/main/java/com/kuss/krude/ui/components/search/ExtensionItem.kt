@@ -3,6 +3,7 @@ package com.kuss.krude.ui.components.search
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -10,10 +11,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,6 +38,7 @@ import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.CustomButton
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.SizeConst
+import me.saket.cascade.CascadeDropdownMenu
 import timber.log.Timber
 
 @Composable
@@ -89,6 +98,7 @@ fun ExtensionItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    onStarItem: () -> Unit,
     item: Extension,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
@@ -102,50 +112,72 @@ fun ExtensionItem(
     showIcon: Boolean,
     active: Boolean = false
 ) {
+    var showDropdown by remember {
+        mutableStateOf(false)
+    }
     CustomButton(
         onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        Timber.d("AppItem", "onLongPress")
-                    }
-                )
-            },
+        onLongClick = {
+            showDropdown = true
+            onLongClick()
+        },
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures(onLongPress = {
+                Timber.d("AppItem", "onLongPress")
+            })
+        },
         shape = RoundedCornerShape(8.dp),
         enabled = enabled,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(padding)
-        ) {
-            if (showIcon) {
-                StarBox(showStar) {
-                    if (!item.required.isNullOrEmpty()) {
-                        AsyncAppIcon(
-                            packageName = item.required!![0],
-                            modifier = Modifier.size(iconSize)
-                        )
-                    } else {
-                        if (item.type == ExtensionType.INTERNAL) {
-                            InternalExtensionIcon(item, size = iconSize)
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(padding)
+            ) {
+                if (showIcon) {
+                    StarBox(showStar) {
+                        if (!item.required.isNullOrEmpty()) {
+                            AsyncAppIcon(
+                                packageName = item.required!![0], modifier = Modifier.size(iconSize)
+                            )
                         } else {
-                            ExtensionIcon(iconSize = iconSize)
+                            if (item.type == ExtensionType.INTERNAL) {
+                                InternalExtensionIcon(item, size = iconSize)
+                            } else {
+                                ExtensionIcon(iconSize = iconSize)
+                            }
                         }
                     }
                 }
+                if (showContent) {
+                    Spacing(x = 0.5f)
+                    ExtensionContent(
+                        item = item,
+                        showTimes = showTimes,
+                        showSubtitle = showSubtitle,
+                        titleFontSize = titleFontSize,
+                        subtitleFontSize = subtitleFontSize,
+                        active = active
+                    )
+                }
             }
-            if (showContent) {
-                Spacing(x = 0.5f)
-                ExtensionContent(
-                    item = item,
-                    showTimes = showTimes,
-                    showSubtitle = showSubtitle,
-                    titleFontSize = titleFontSize,
-                    subtitleFontSize = subtitleFontSize,
-                    active = active
+            CascadeDropdownMenu(
+                expanded = showDropdown,
+                onDismissRequest = { showDropdown = false }) {
+                DropdownMenuItem(
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = stringResource(id = R.string.star),
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    },
+                    text = { Text(text = stringResource(id = R.string.star)) },
+                    onClick = {
+                        onStarItem()
+                        showDropdown = false
+                    }
                 )
             }
         }

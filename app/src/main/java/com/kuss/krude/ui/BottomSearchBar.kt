@@ -65,6 +65,8 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
+import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.ScrollWheel
 import com.kuss.krude.ui.components.Spacing
@@ -355,7 +357,10 @@ fun BottomSearchBar(
                                             onExtensionClick(extension, isStar)
                                         },
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                                        settingsState.extensionGroupLayout
+                                        settingsState.extensionGroupLayout,
+                                        onStarItem = { extension ->
+                                            mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
+                                        }
                                     )
                                     AnimatedVisibility(visible = hasApp) {
                                         HorizontalDivider()
@@ -376,6 +381,9 @@ fun BottomSearchBar(
                                     reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                     onExtensionClick = { extension, isStar ->
                                         onExtensionClick(extension, isStar)
+                                    },
+                                    onStarItem = { extension ->
+                                        mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
                                     }
                                 )
 
@@ -394,7 +402,10 @@ fun BottomSearchBar(
                                             onExtensionClick(extension, isStar)
                                         },
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
-                                        settingsState.extensionGroupLayout
+                                        settingsState.extensionGroupLayout,
+                                        onStarItem = { extension ->
+                                            mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
+                                        }
                                     )
                                 }
                             }
