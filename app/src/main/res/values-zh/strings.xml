@@ -49,4 +49,5 @@
     <string name="star">星标</string>
     <string name="dismiss">返回</string>
     <string name="star_keyword_hint">星标关键字</string>
+    <string name="reload_apps_success">成功重载应用</string>
 </resources>
