@@ -14,6 +14,7 @@ import com.kuss.krude.db.Hidden
 import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
+import com.kuss.krude.db.UsageDao
 import com.kuss.krude.extensions.FILES_EXTENSION
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
@@ -480,7 +481,7 @@ class MainViewModel : ViewModel() {
         return db.usageDao().getUsageCountByDay()
     }
 
-    fun getAppsByDay(context: Context, day: String): List<AppInfo> {
+    fun getAppsByDay(context: Context, day: String): List<UsageDao.AppInfoWithUsage> {
         val db = getDatabase(context)
 
         return db.usageDao().getAppsByDay(day)

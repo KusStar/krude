@@ -4,13 +4,16 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,9 +42,11 @@ import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
-import com.kuss.krude.db.AppInfo
-import com.kuss.krude.ui.components.search.AppItem
+import com.kuss.krude.db.UsageDao
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.search.AsyncAppIcon
+import com.kuss.krude.utils.DayHelper
+import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -120,7 +125,8 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
     )
     if (selection != null) {
         val (date, _) = selection!!
-        val selectedDayData = remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+        val selectedDayData =
+            remember { mutableStateOf<List<UsageDao.AppInfoWithUsage>>(emptyList()) }
 
         LaunchedEffect(selectedDayData, selection) {
             withContext(Dispatchers.IO) {
@@ -137,14 +143,39 @@ fun UsageHeatMap(mainViewModel: MainViewModel) {
                 }
                 items(items.size) { index ->
                     val item = items[index]
-                    AppItem(item = item,
-                        onClick = {
-//                                openApp(item)
-                        }, onLongClick = {
-//                                toAppDetail(item)
-                        })
-                    Spacing(2)
-
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AsyncAppIcon(
+                            item.appInfo.packageName, Modifier
+                                .size(SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE)
+                        )
+                        Spacing(1)
+                        Column {
+                            val app = item.appInfo
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = app.label,
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                Spacing(0.5f)
+                                Text(
+                                    text = "${app.packageName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                )
+                            }
+                            Text(
+                                text = "${DayHelper.fromNow(item.createdAt)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                            )
+                        }
+                    }
+                    if (index < items.size - 1) {
+                        Spacing(1)
+                    }
                 }
             } else {
                 item {
