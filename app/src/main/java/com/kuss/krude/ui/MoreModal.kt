@@ -35,6 +35,7 @@ import com.kuss.krude.ui.components.SettingSections
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import kotlin.time.Duration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,9 +113,12 @@ fun MoreModal(
                     },
                     title = { Text(text = stringResource(id = R.string.reload_apps)) },
                     onClick = {
-                        mainViewModel.loadFromPackageManger(context = context)
+                        mainViewModel.reloadAppsFromSystem(context)
                         dismiss()
                         refresh()
+                        mainViewModel.getMessageBarState().showSuccess(
+                            context.getString(R.string.reload_apps_success), Duration.parse("2s")
+                        )
                     },
                 )
 
