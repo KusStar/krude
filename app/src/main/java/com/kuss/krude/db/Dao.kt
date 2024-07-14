@@ -1,11 +1,14 @@
 package com.kuss.krude.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import java.util.Date
 
 
 @Dao
@@ -39,11 +42,17 @@ interface UsageDao {
     @Query("SELECT strftime('%Y-%m-%d', datetime(createdAt/1000, 'unixepoch', 'localtime')) AS day, COUNT(*) as count FROM usage GROUP BY day ORDER BY day DESC")
     fun getUsageCountByDay(): List<UsageCountByDay>
 
-    @Query("SELECT apps.*\n" +
-            "        FROM usage\n" +
-            "        INNER JOIN apps ON apps.packageName = usage.packageName\n" +
-            "        WHERE strftime('%Y-%m-%d', usage.createdAt / 1000, 'unixepoch', 'localtime') = :day")
-    fun getAppsByDay(day: String): List<AppInfo>
+    data class AppInfoWithUsage(
+        @Embedded val appInfo: AppInfo,
+        @ColumnInfo(name = "createdAt") val createdAt: Date
+    )
+
+    @Query("SELECT apps.*, usage.createdAt AS createdAt " +
+            "FROM apps " +
+            "INNER JOIN usage ON apps.packageName = usage.packageName " +
+            "WHERE strftime('%Y-%m-%d', usage.createdAt / 1000, 'unixepoch', 'localtime') = :day " +
+            "ORDER BY usage.createdAt DESC")
+    fun getAppsByDay(day: String): List<AppInfoWithUsage>
 
     @Insert
     fun insertUsage(usage: Usage)
