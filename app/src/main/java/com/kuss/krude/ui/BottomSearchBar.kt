@@ -234,7 +234,9 @@ fun BottomSearchBar(
                     focusRequester.requestFocus()
                     isFocused.value = true
                 }
-                mainViewModel.reloadAppsFromSystem(context)
+                if (searchState.text.isEmpty()) {
+                    mainViewModel.reloadAppsFromSystem(context)
+                }
             }
         }
         lifeCycleOwner.lifecycle.addObserver(observer)
