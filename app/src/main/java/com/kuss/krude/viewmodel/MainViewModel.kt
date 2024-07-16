@@ -15,7 +15,7 @@ import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.db.UsageDao
-import com.kuss.krude.extensions.FILES_EXTENSION
+import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
@@ -138,7 +138,8 @@ class MainViewModel : ViewModel() {
     }
 
     fun getExtensionsWithInternal(): List<Extension> {
-        return _state.value.extensionMap.values.toList().plus(parseExtension(FILES_EXTENSION))
+        return _state.value.extensionMap.values.toList()
+            .plus(InternalExtensions.ALL.map { parseExtension(it) })
     }
 
     private fun getExtensions(): List<Extension> {

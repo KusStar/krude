@@ -6,6 +6,7 @@ import androidx.compose.ui.focus.FocusRequester
 import com.kuss.krude.extensions.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.ui.components.internal.files.FilesExtension
+import com.kuss.krude.ui.components.internal.scanner.ScannerExtension
 
 @Composable
 fun SecondLevelArea(
@@ -17,6 +18,10 @@ fun SecondLevelArea(
         if (data.id == InternalExtensions.FILES_EXTENSION_ID) {
             HorizontalDivider()
             FilesExtension(onBack = onBack, focusRequester, data)
+        }
+        if (data.id == InternalExtensions.SCANNER_EXTENSION_ID) {
+            HorizontalDivider()
+            ScannerExtension(focusRequester)
         }
     }
 }
