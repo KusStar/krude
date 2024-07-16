@@ -1,6 +1,7 @@
 package com.kuss.krude.ui.components.internal.scanner
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -28,8 +29,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -39,6 +42,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import timber.log.Timber
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -121,15 +125,18 @@ fun CameraPreview() {
             }
 
             override fun onDestroy(owner: LifecycleOwner) {
+                Timber.d("CameraPreview onDestroy")
                 cameraProvider?.unbindAll()
             }
         }
 
         lifecycleOwner.lifecycle.addObserver(observer)
 
+
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             observer.cameraProvider?.unbindAll()
+            Timber.d("CameraPreview onDispose")
         }
     }
     Box(
@@ -157,8 +164,14 @@ fun ScannerExtension(focusRequester: FocusRequester) {
     var hasPermission by remember {
         mutableStateOf(false)
     }
-
+    val view = LocalView.current
     DisposableEffect(key1 = lifecycleOwner, effect = {
+        val window = (view.context as Activity).window
+        val originalStatusColor = window.statusBarColor
+        val originalNavbarColor = window.navigationBarColor
+        window.statusBarColor = Color.Black.toArgb()
+        window.navigationBarColor = Color.Black.toArgb()
+
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
                 permissionStates.launchMultiplePermissionRequest()
@@ -167,6 +180,9 @@ fun ScannerExtension(focusRequester: FocusRequester) {
         lifecycleOwner.lifecycle.addObserver(observer)
 
         onDispose {
+            window.statusBarColor = originalStatusColor
+            window.navigationBarColor = originalNavbarColor
+
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     })
