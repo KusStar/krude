@@ -413,7 +413,7 @@ class MainViewModel : ViewModel() {
                             if (success + failed == extensionRepos.size) {
                                 messageBarState.showSuccess(
                                     message = "Loaded from $success extension repo",
-                                    duration = Duration.parse("2s")
+                                    duration = Duration.parse("1s")
                                 )
                             }
                         }

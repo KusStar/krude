@@ -117,7 +117,7 @@ fun MoreModal(
                         dismiss()
                         refresh()
                         mainViewModel.getMessageBarState().showSuccess(
-                            context.getString(R.string.reload_apps_success), Duration.parse("2s")
+                            context.getString(R.string.reload_apps_success), Duration.parse("1s")
                         )
                     },
                 )
