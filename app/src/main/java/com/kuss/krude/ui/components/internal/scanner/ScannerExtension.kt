@@ -17,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -55,21 +58,36 @@ private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
         }
     }
 
+fun animAlpha(animatedValue: Float): Float {
+    return if (animatedValue < 0.2f) {
+        val a = 0.0f
+        val b = 0.2f
+        val c = 0.0f
+        val d = 1.0f
+        c + (d - c) * (animatedValue - a) / (b - a)
+    } else if (animatedValue > 0.8f) {
+        val a = 0.8f
+        val b = 1.0f
+        val c = 1.0f
+        val d = 0.0f
+        c + (d - c) * (animatedValue - a) / (b - a)
+    } else {
+        1.0f
+    }
+}
+
 @Composable
 fun ScanLine(
     color: Color = Color.Cyan,
-    tweenDuration: Int = 1500,
+    tweenDuration: Int = 2000,
     scanLineWidth: Int = 1,
+    gradientHeight: Float = 48f
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "scanline")
     val animatedValue by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(tweenDuration, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "scanline"
+        initialValue = 0f, targetValue = 1f, animationSpec = infiniteRepeatable(
+            animation = tween(tweenDuration, easing = LinearEasing), repeatMode = RepeatMode.Restart
+        ), label = "scanline"
     )
     Canvas(modifier = Modifier.fillMaxSize()) {
         val canvasWidth = size.width
@@ -77,12 +95,35 @@ fun ScanLine(
 
         val linePosition = canvasHeight * animatedValue
 
+        val alpha = animAlpha(animatedValue)
+
         drawLine(
-            color = color,
+            color = color.copy(alpha = alpha / 2),
             start = Offset(x = 0f, y = linePosition),
             end = Offset(x = canvasWidth, y = linePosition),
             strokeWidth = scanLineWidth.dp.toPx()
         )
+
+        val brush = Brush.verticalGradient(
+            0f to Color.Transparent,
+            1f to color.copy(alpha = alpha * 0.3f),
+            startY = linePosition - gradientHeight,
+            endY = linePosition
+        )
+
+        drawRect(
+            brush,
+            size = Size(width = canvasWidth, height = gradientHeight),
+            topLeft = Offset(x = 0f, y = linePosition - gradientHeight),
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun ScanLinePreview() {
+    Box(modifier = Modifier.size(256.dp)) {
+        ScanLine()
     }
 }
 
@@ -92,15 +133,13 @@ fun CameraPreview() {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val preview = remember {
-        Preview.Builder()
-            .build()
+        Preview.Builder().build()
     }
     val previewView = remember {
         PreviewView(context)
     }
     val cameraxSelector = remember {
-        CameraSelector.Builder()
-            .requireLensFacing(lensFacing).build()
+        CameraSelector.Builder().requireLensFacing(lensFacing).build()
     }
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -113,9 +152,7 @@ fun CameraPreview() {
                     cameraProvider?.unbindAll()
                     try {
                         cameraProvider?.bindToLifecycle(
-                            owner,
-                            cameraxSelector,
-                            preview
+                            owner, cameraxSelector, preview
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -145,8 +182,7 @@ fun CameraPreview() {
             .background(Color.Black)
     ) {
         AndroidView(
-            { previewView },
-            modifier = Modifier.fillMaxSize()
+            { previewView }, modifier = Modifier.fillMaxSize()
         )
         ScanLine()
     }
