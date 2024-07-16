@@ -190,6 +190,7 @@ fun CameraPreview(modifier: Modifier = Modifier) {
             modifier = modifier.fillMaxSize(),
             factory = { previewView },
         )
+        ScanLine()
         AnimatedVisibility(barcodes.isNotEmpty()) {
             barcodes.forEach { barcode ->
                 val boundingBox = barcode.boundingBox
