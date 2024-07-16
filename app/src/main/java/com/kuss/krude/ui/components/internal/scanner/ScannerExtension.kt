@@ -3,10 +3,10 @@ package com.kuss.krude.ui.components.internal.scanner
 import android.Manifest
 import android.app.Activity
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.mlkit.vision.MlKitAnalyzer
+import androidx.camera.view.CameraController
+import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -17,18 +17,14 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,20 +44,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.kuss.krude.utils.VibrateHelper
-import timber.log.Timber
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 fun animAlpha(animatedValue: Float): Float {
@@ -134,115 +130,108 @@ fun ScanLinePreview() {
 }
 
 @Composable
-fun CameraPreview() {
-    val lensFacing = CameraSelector.LENS_FACING_BACK
+fun CameraPreview(modifier: Modifier = Modifier) {
+    val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
-    val preview = remember {
-        Preview.Builder().build()
+    val localDensity = LocalDensity.current
+
+    val lifecycleCameraController = remember {
+        LifecycleCameraController(localContext).apply {
+            bindToLifecycle(lifecycleOwner)
+            cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+        }
     }
+
     val previewView = remember {
-        PreviewView(context)
-    }
-    val cameraxSelector = remember {
-        CameraSelector.Builder().requireLensFacing(lensFacing).build()
-    }
-    var barcodeValue by remember {
-        mutableStateOf("")
-    }
-    DisposableEffect(lifecycleOwner) {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        val observer = object : DefaultLifecycleObserver {
-            var cameraProvider: ProcessCameraProvider? = null
-
-            @androidx.annotation.OptIn(ExperimentalGetImage::class)
-            override fun onCreate(owner: LifecycleOwner) {
-                val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
-                cameraProviderFuture.addListener({
-                    cameraProvider = cameraProviderFuture.get()
-                    cameraProvider?.unbindAll()
-                    val barcodeAnalyser = BarCodeAnalyser { barcodes ->
-                        barcodes.forEach { barcode ->
-                            barcode.rawValue?.let { barcodeRawValue ->
-                                Timber.d("barcodeValue $barcodeRawValue")
-                                if (barcodeRawValue != barcodeValue) {
-                                    barcodeValue = barcodeRawValue
-                                    VibrateHelper.onScan(context)
-                                }
-                            }
-                        }
-                    }
-                    val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
-                        .also {
-                            it.setAnalyzer(cameraExecutor, barcodeAnalyser)
-                        }
-                    try {
-                        cameraProvider?.bindToLifecycle(
-                            owner, cameraxSelector, preview, imageAnalysis
-                        )
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    preview.setSurfaceProvider(previewView.surfaceProvider)
-                }, ContextCompat.getMainExecutor(context))
-            }
-
-            override fun onDestroy(owner: LifecycleOwner) {
-                Timber.d("CameraPreview onDestroy")
-                cameraProvider?.unbindAll()
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            observer.cameraProvider?.unbindAll()
-            Timber.d("CameraPreview onDispose")
+        PreviewView(localContext).apply {
+            controller = lifecycleCameraController
         }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        AndroidView(
-            { previewView }, modifier = Modifier.fillMaxSize()
+
+    var barcodes by remember {
+        mutableStateOf<List<Barcode>>(listOf())
+    }
+
+    LaunchedEffect(previewView) {
+        val barcodeScanner = BarcodeScanning.getClient(
+            BarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_ALL_FORMATS)
+                .build()
         )
-        ScanLine()
-        AnimatedVisibility(visible = barcodeValue.isNotEmpty()) {
-            Column(
+
+        // thanks: https://stackoverflow.com/a/77698616
+        val mlKitAnalyzer = MlKitAnalyzer(
+            listOf(barcodeScanner),
+            ImageAnalysis.COORDINATE_SYSTEM_VIEW_REFERENCED,
+            ContextCompat.getMainExecutor(localContext),
+        ) { result ->
+            if (barcodes.isNotEmpty()) {
+                return@MlKitAnalyzer
+            }
+            result.getValue(barcodeScanner)?.filter { !it.rawValue.isNullOrEmpty() }?.let {
+                if (it.isNotEmpty()) {
+                    barcodes = it
+                    VibrateHelper.onScan(localContext)
+                }
+            }
+        }
+
+        lifecycleCameraController.apply {
+            setImageAnalysisAnalyzer(
+                Executors.newSingleThreadExecutor(),
+                mlKitAnalyzer,
+            )
+            setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
+        }
+    }
+
+    Box {
+        AndroidView(
+            modifier = modifier.fillMaxSize(),
+            factory = { previewView },
+        )
+        AnimatedVisibility(barcodes.isNotEmpty()) {
+            barcodes.forEach { barcode ->
+                val boundingBox = barcode.boundingBox
+                if (boundingBox != null) {
+                    val x = with(localDensity) { boundingBox.left.toDp() }
+                    val y = with(localDensity) { boundingBox.top.toDp() }
+                    val width = with(localDensity) { boundingBox.width().toDp() }
+                    val height = with(localDensity) { boundingBox.height().toDp() }
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .offset(x = x, y = y)
+                            .size(width = width, height = height)
+                    ) {
+                        Box(
+                            Modifier
+                                .size(24.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    shape = CircleShape
+                                )
+                                .border(2.dp, Color.White, CircleShape)
+                        )
+//                        Text(
+//                            text = barcode.rawValue.orEmpty(),
+//                            color = MaterialTheme.colorScheme.successText
+//                        )
+                    }
+                }
+            }
+
+            Box(
+                contentAlignment = Alignment.BottomCenter,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .padding(bottom = 16.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .background(
-                            MaterialTheme.colorScheme.background,
-                            RoundedCornerShape(16.dp)
-                        )
-                        .padding(end = 12.dp)
-                ) {
-                    IconButton(onClick = {
-                        barcodeValue = ""
+                Button(
+                    onClick = {
+                        barcodes = listOf()
                     }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "clear",
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    Text(
-                        text = barcodeValue,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    Text(text = "Rescan")
                 }
             }
         }
