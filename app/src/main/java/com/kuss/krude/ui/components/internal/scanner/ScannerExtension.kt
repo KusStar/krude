@@ -2,11 +2,13 @@ package com.kuss.krude.ui.components.internal.scanner
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -15,9 +17,20 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -45,18 +59,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.kuss.krude.utils.VibrateHelper
 import timber.log.Timber
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-
-private suspend fun Context.getCameraProvider(): ProcessCameraProvider =
-    suspendCoroutine { continuation ->
-        ProcessCameraProvider.getInstance(this).also { cameraProvider ->
-            cameraProvider.addListener({
-                continuation.resume(cameraProvider.get())
-            }, ContextCompat.getMainExecutor(this))
-        }
-    }
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 fun animAlpha(animatedValue: Float): Float {
     return if (animatedValue < 0.2f) {
@@ -141,18 +147,39 @@ fun CameraPreview() {
     val cameraxSelector = remember {
         CameraSelector.Builder().requireLensFacing(lensFacing).build()
     }
+    var barcodeValue by remember {
+        mutableStateOf("")
+    }
     DisposableEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         val observer = object : DefaultLifecycleObserver {
             var cameraProvider: ProcessCameraProvider? = null
 
+            @androidx.annotation.OptIn(ExperimentalGetImage::class)
             override fun onCreate(owner: LifecycleOwner) {
+                val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
                 cameraProviderFuture.addListener({
                     cameraProvider = cameraProviderFuture.get()
                     cameraProvider?.unbindAll()
+                    val barcodeAnalyser = BarCodeAnalyser { barcodes ->
+                        barcodes.forEach { barcode ->
+                            barcode.rawValue?.let { barcodeRawValue ->
+                                Timber.d("barcodeValue $barcodeRawValue")
+                                if (barcodeRawValue != barcodeValue) {
+                                    barcodeValue = barcodeRawValue
+                                    VibrateHelper.onScan(context)
+                                }
+                            }
+                        }
+                    }
+                    val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+                        .also {
+                            it.setAnalyzer(cameraExecutor, barcodeAnalyser)
+                        }
                     try {
                         cameraProvider?.bindToLifecycle(
-                            owner, cameraxSelector, preview
+                            owner, cameraxSelector, preview, imageAnalysis
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -185,6 +212,40 @@ fun CameraPreview() {
             { previewView }, modifier = Modifier.fillMaxSize()
         )
         ScanLine()
+        AnimatedVisibility(visible = barcodeValue.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.background,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .padding(end = 12.dp)
+                ) {
+                    IconButton(onClick = {
+                        barcodeValue = ""
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "clear",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Text(
+                        text = barcodeValue,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
     }
 }
 
