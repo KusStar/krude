@@ -99,7 +99,7 @@ fun StarItemDialog(
                                     mainViewModel.getMessageBarState()
                                         .showSuccess(
                                             "Starred $name with $keyword",
-                                            Duration.parse("2s")
+                                            Duration.parse("1s")
                                         )
                                 },
                                 modifier = Modifier.padding(8.dp),
