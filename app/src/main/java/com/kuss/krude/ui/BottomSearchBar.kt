@@ -189,11 +189,9 @@ fun BottomSearchBar(
             starMode = !starMode
         } else {
             if (extension.type == ExtensionType.INTERNAL) {
-                when (extension.id) {
-                    InternalExtensions.FILES_EXTENSION_ID -> {
-                        inSecondLevel = true
-                        secondLevelExtension = extension
-                    }
+                if (InternalExtensions.IDS.contains(extension.id)) {
+                    inSecondLevel = true
+                    secondLevelExtension = extension
                 }
             } else {
                 ExtensionHelper.launchExtension(context, extension)
@@ -361,7 +359,13 @@ fun BottomSearchBar(
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                         settingsState.extensionGroupLayout,
                                         onStarItem = { extension ->
-                                            mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
+                                            mainViewModel.setStarItemDialogVisible(
+                                                true,
+                                                SearchResultItem(
+                                                    type = SearchResultType.EXTENSION,
+                                                    extension = extension
+                                                )
+                                            )
                                         }
                                     )
                                     AnimatedVisibility(visible = hasApp) {
@@ -385,7 +389,13 @@ fun BottomSearchBar(
                                         onExtensionClick(extension, isStar)
                                     },
                                     onStarItem = { extension ->
-                                        mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
+                                        mainViewModel.setStarItemDialogVisible(
+                                            true,
+                                            SearchResultItem(
+                                                type = SearchResultType.EXTENSION,
+                                                extension = extension
+                                            )
+                                        )
                                     }
                                 )
 
@@ -406,7 +416,13 @@ fun BottomSearchBar(
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                         settingsState.extensionGroupLayout,
                                         onStarItem = { extension ->
-                                            mainViewModel.setStarItemDialogVisible(true, SearchResultItem(type = SearchResultType.EXTENSION, extension = extension))
+                                            mainViewModel.setStarItemDialogVisible(
+                                                true,
+                                                SearchResultItem(
+                                                    type = SearchResultType.EXTENSION,
+                                                    extension = extension
+                                                )
+                                            )
                                         }
                                     )
                                 }
