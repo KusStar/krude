@@ -50,16 +50,14 @@ object ActivityHelper {
                     w / 2 - startWidth / 2, h + startHeight, startWidth, startHeight
                 )
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    activityOptions.launchBounds =
-                        Rect(200, 200, 1200, 2000)
-                    HiddenApiBypass.invoke(
-                        ActivityOptions::class.java,
-                        activityOptions,
-                        "setLaunchWindowingMode",
-                        LAUNCH_WINDOWING_MODE_FREEFORM
-                    )
-                }
+                activityOptions.launchBounds =
+                    Rect(200, 200, 1200, 2000)
+                HiddenApiBypass.invoke(
+                    ActivityOptions::class.java,
+                    activityOptions,
+                    "setLaunchWindowingMode",
+                    LAUNCH_WINDOWING_MODE_FREEFORM
+                )
             } catch (e: java.lang.Exception) {
                 Timber.e(e)
             }
