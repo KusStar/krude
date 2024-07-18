@@ -28,15 +28,19 @@ object ActivityHelper {
     }
 
     @JvmStatic
-    fun startPackageActivity(context: Context, packageName: String, view: View? = null) {
+    fun startPackageActivity(
+        context: Context, packageName: String, isFreeformWindow: Boolean = false, view: View? = null
+    ) {
         val intent = context
             .packageManager.getLaunchIntentForPackage(packageName)
             ?: return
-        startIntentWithTransition(context, intent, view)
+        startIntentWithTransition(context, intent, isFreeformWindow, view)
     }
 
     @JvmStatic
-    fun startIntentWithTransition(context: Context, intent: Intent, argView: View? = null) {
+    fun startIntentWithTransition(
+        context: Context, intent: Intent, isFreeformWindow: Boolean = false, argView: View? = null
+    ) {
         val view = argView ?: activity?.get()?.window?.decorView
         var bundle: Bundle? = null
         if (view != null) {
@@ -49,17 +53,19 @@ object ActivityHelper {
                     view,
                     w / 2 - startWidth / 2, h + startHeight, startWidth, startHeight
                 )
-            try {
-                activityOptions.launchBounds =
-                    Rect(200, 200, 1200, 2000)
-                HiddenApiBypass.invoke(
-                    ActivityOptions::class.java,
-                    activityOptions,
-                    "setLaunchWindowingMode",
-                    LAUNCH_WINDOWING_MODE_FREEFORM
-                )
-            } catch (e: java.lang.Exception) {
-                Timber.e(e)
+            if (isFreeformWindow) {
+                try {
+                    activityOptions.launchBounds =
+                        Rect(200, 200, 1200, 2000)
+                    HiddenApiBypass.invoke(
+                        ActivityOptions::class.java,
+                        activityOptions,
+                        "setLaunchWindowingMode",
+                        LAUNCH_WINDOWING_MODE_FREEFORM
+                    )
+                } catch (e: java.lang.Exception) {
+                    Timber.e(e)
+                }
             }
             bundle = activityOptions.toBundle()
         }
