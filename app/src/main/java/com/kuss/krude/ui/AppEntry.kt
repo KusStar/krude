@@ -59,7 +59,11 @@ fun AppEntry(
     }
 
     fun openApp(appInfo: AppInfo) {
-        ActivityHelper.startPackageActivity(context, appInfo.packageName, activity.window.decorView)
+        ActivityHelper.startPackageActivity(
+            context,
+            appInfo.packageName,
+            view = activity.window.decorView
+        )
 
         mainViewModel.recordOpenApp(context, appInfo)
     }

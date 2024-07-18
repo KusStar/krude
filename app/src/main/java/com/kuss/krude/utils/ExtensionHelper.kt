@@ -47,14 +47,14 @@ object ExtensionHelper {
             .build()
     }
 
-    fun launchExtension(context: Context, extension: Extension) {
+    fun launchExtension(context: Context, extension: Extension, isFreeformWindow: Boolean) {
         when (extension.type) {
             ExtensionType.SCHEME -> {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(extension.uri)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
-                ActivityHelper.startIntentWithTransition(context, intent)
+                ActivityHelper.startIntentWithTransition(context, intent, isFreeformWindow)
             }
             ExtensionType.ACTION -> {
                 val intent = Intent(extension.uri)
@@ -65,16 +65,21 @@ object ExtensionHelper {
                         intent.setFlags(data.flags.toInt())
                     }
                 }
-                ActivityHelper.startIntentWithTransition(context, intent)
+                ActivityHelper.startIntentWithTransition(context, intent, isFreeformWindow)
             }
             ExtensionType.INTENT -> launchExtensionIntent(
                 context,
-                extension
+                extension,
+                isFreeformWindow
             )
         }
     }
 
-    private fun launchExtensionIntent(context: Context, extension: Extension) {
+    private fun launchExtensionIntent(
+        context: Context,
+        extension: Extension,
+        isFreeformWindow: Boolean
+    ) {
         try {
             Timber.d("launchExtensionIntent: extension = $extension")
             val intent = Intent()
@@ -93,7 +98,7 @@ object ExtensionHelper {
             if (data.action != null) {
                 intent.setAction(data.action)
             }
-            ActivityHelper.startIntentWithTransition(context, intent)
+            ActivityHelper.startIntentWithTransition(context, intent, isFreeformWindow)
         } catch (e: Exception) {
             e.printStackTrace()
         }

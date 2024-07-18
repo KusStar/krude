@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.BrandingWatermark
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ButtonDefaults
@@ -93,12 +94,17 @@ fun ExtensionContent(
     }
 }
 
+enum class ExtensionDropdownType {
+    STAR,
+    OPEN_IN_FREEFORM_WINDOW
+}
+
 @Composable
 fun ExtensionItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
-    onStarItem: () -> Unit,
+    onDropdown: (ExtensionDropdownType) -> Unit,
     item: Extension,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
@@ -175,7 +181,21 @@ fun ExtensionItem(
                     },
                     text = { Text(text = stringResource(id = R.string.star)) },
                     onClick = {
-                        onStarItem()
+                        onDropdown(ExtensionDropdownType.STAR)
+                        showDropdown = false
+                    }
+                )
+                DropdownMenuItem(
+                    leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.BrandingWatermark,
+                            contentDescription = stringResource(id = R.string.open_in_freeform_window),
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    },
+                    text = { Text(text = stringResource(id = R.string.open_in_freeform_window)) },
+                    onClick = {
+                        onDropdown(ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW)
                         showDropdown = false
                     }
                 )
