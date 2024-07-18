@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId "com.kuss.krude"
-        minSdkVersion 26
+        minSdkVersion 28
         targetSdkVersion 34
         compileSdk 34
         versionCode 3

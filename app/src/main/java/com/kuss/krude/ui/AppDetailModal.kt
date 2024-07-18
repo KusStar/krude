@@ -168,7 +168,7 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                             fontSize = 14.sp,
                         )
                         val versionCode =
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) info.longVersionCode.toString() else info.versionCode.toString()
+                            info.longVersionCode.toString()
                         Text(
                             text = "($versionCode)",
                             textAlign = TextAlign.Center,
