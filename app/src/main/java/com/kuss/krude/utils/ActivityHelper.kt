@@ -2,21 +2,25 @@ package com.kuss.krude.utils
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
+import org.lsposed.hiddenapibypass.HiddenApiBypass
+import timber.log.Timber
 import java.lang.ref.WeakReference
 
 object ActivityHelper {
     private var activity: WeakReference<Activity>? = null
+    private const val LAUNCH_WINDOWING_MODE_FREEFORM = 5
 
     @JvmStatic
     fun initActivity(activity: Activity) {
@@ -40,12 +44,26 @@ object ActivityHelper {
             val h = view.measuredHeight
             val startWidth = w / 4
             val startHeight = h / 4
-            val activityOptionsCompat: ActivityOptionsCompat =
-                ActivityOptionsCompat.makeScaleUpAnimation(
+            val activityOptions =
+                ActivityOptions.makeScaleUpAnimation(
                     view,
                     w / 2 - startWidth / 2, h + startHeight, startWidth, startHeight
                 )
-            bundle = activityOptionsCompat.toBundle()
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    activityOptions.launchBounds =
+                        Rect(200, 200, 1200, 2000)
+                    HiddenApiBypass.invoke(
+                        ActivityOptions::class.java,
+                        activityOptions,
+                        "setLaunchWindowingMode",
+                        LAUNCH_WINDOWING_MODE_FREEFORM
+                    )
+                }
+            } catch (e: java.lang.Exception) {
+                Timber.e(e)
+            }
+            bundle = activityOptions.toBundle()
         }
         if (bundle == null) {
             bundle = Bundle()
