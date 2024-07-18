@@ -49,7 +49,7 @@ fun ExtensionList(
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean,
     groupLayout: Boolean,
-    onStarItem: (extension: Extension) -> Unit
+    onDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
 ) {
     if (groupLayout) {
         ExtensionGroupList(
@@ -60,7 +60,7 @@ fun ExtensionList(
             showUsageCount = showUsageCount,
             onExtensionClick = onExtensionClick,
             reverseLayout = reverseLayout,
-            onStarItem = onStarItem,
+            onDropdown = onDropdown,
         )
     } else {
         ExtensionFlatList(
@@ -70,7 +70,7 @@ fun ExtensionList(
             showUsageCount = showUsageCount,
             onExtensionClick = onExtensionClick,
             reverseLayout = reverseLayout,
-            onStarItem = onStarItem,
+            onDropdown = onDropdown,
         )
     }
 }
@@ -83,7 +83,7 @@ fun ExtensionFlatList(
     showUsageCount: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean,
-    onStarItem: (extension: Extension) -> Unit,
+    onDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
 ) {
     val extensions = remember(searchResult) {
         searchResult.filter { it.isExtension() }
@@ -112,8 +112,8 @@ fun ExtensionFlatList(
                     },
                     showTimes = showUsageCount,
                     showIcon = true,
-                    onStarItem = {
-                        onStarItem(extension)
+                    onDropdown = { type ->
+                        onDropdown(extension, type)
                     }
                 )
                 if (index < extensions.size - 1) {
@@ -165,7 +165,7 @@ fun ExtensionGroupList(
     showUsageCount: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     reverseLayout: Boolean,
-    onStarItem: (extension: Extension) -> Unit,
+    onDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
 ) {
     val extensionGroups = remember(searchResult) {
         getExtensionGroup(starSet, searchResult)
@@ -297,8 +297,8 @@ fun ExtensionGroupList(
                                 padding = 0.dp,
                                 showIcon = false,
                                 active = index == pair.first && idx == pair.second,
-                                onStarItem = {
-                                    onStarItem(extension)
+                                onDropdown = {
+                                    onDropdown(extension, it)
                                 }
                             )
                         }
@@ -320,8 +320,8 @@ fun ExtensionGroupList(
                         showTimes = showUsageCount,
                         showIcon = true,
                         active = index == pair.first,
-                        onStarItem = {
-                            onStarItem(extension)
+                        onDropdown = {
+                            onDropdown(extension, it)
                         }
                     )
                 }

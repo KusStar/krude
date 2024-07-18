@@ -74,6 +74,7 @@ import com.kuss.krude.ui.components.internal.SecondLevelArea
 import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.rememberScrollWheelState
 import com.kuss.krude.ui.components.search.CloseBtn
+import com.kuss.krude.ui.components.search.ExtensionDropdownType
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
 import com.kuss.krude.ui.components.search.MoreBtns
@@ -176,7 +177,7 @@ fun BottomSearchBar(
         mainViewModel.clearSearch()
     }
 
-    fun onExtensionClick(extension: Extension, isStar: Boolean) {
+    fun onExtensionClick(extension: Extension, isStar: Boolean, isFreeformWindow: Boolean = false) {
         if (starMode) {
             Timber.d("star $extension")
             mainViewModel.insertStar(
@@ -194,7 +195,7 @@ fun BottomSearchBar(
                     secondLevelExtension = extension
                 }
             } else {
-                ExtensionHelper.launchExtension(context, extension)
+                ExtensionHelper.launchExtension(context, extension, isFreeformWindow)
             }
             mainViewModel.updateExtensionPriority(extension)
             clear()
@@ -216,6 +217,25 @@ fun BottomSearchBar(
             openApp(app)
             insertSearchHistory(searchState.text)
             searchState = TextFieldValue("")
+        }
+    }
+
+    fun onExtensionDropdown(extension: Extension, type: ExtensionDropdownType) {
+        when (type) {
+            ExtensionDropdownType.STAR -> {
+                mainViewModel.setStarItemDialogVisible(
+                    true,
+                    SearchResultItem(
+                        type = SearchResultType.EXTENSION,
+                        extension = extension
+                    )
+                )
+            }
+
+            ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW -> {
+                starMode = false
+                onExtensionClick(extension, isStar = false, isFreeformWindow = true)
+            }
         }
     }
 
@@ -354,19 +374,13 @@ fun BottomSearchBar(
                                         starSet = starSet,
                                         showUsageCount = settingsState.showUsageCount,
                                         onExtensionClick = { extension, isStar ->
-                                            onExtensionClick(extension, isStar)
+                                            onExtensionClick(extension, isStar = isStar)
                                         },
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                         settingsState.extensionGroupLayout,
-                                        onStarItem = { extension ->
-                                            mainViewModel.setStarItemDialogVisible(
-                                                true,
-                                                SearchResultItem(
-                                                    type = SearchResultType.EXTENSION,
-                                                    extension = extension
-                                                )
-                                            )
-                                        }
+                                        onDropdown = { extension, type ->
+                                            onExtensionDropdown(extension, type)
+                                        },
                                     )
                                     AnimatedVisibility(visible = hasApp) {
                                         HorizontalDivider()
@@ -388,14 +402,8 @@ fun BottomSearchBar(
                                     onExtensionClick = { extension, isStar ->
                                         onExtensionClick(extension, isStar)
                                     },
-                                    onStarItem = { extension ->
-                                        mainViewModel.setStarItemDialogVisible(
-                                            true,
-                                            SearchResultItem(
-                                                type = SearchResultType.EXTENSION,
-                                                extension = extension
-                                            )
-                                        )
+                                    onExtensionDropdown = { extension, type ->
+                                        onExtensionDropdown(extension, type)
                                     }
                                 )
 
@@ -415,15 +423,9 @@ fun BottomSearchBar(
                                         },
                                         settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                         settingsState.extensionGroupLayout,
-                                        onStarItem = { extension ->
-                                            mainViewModel.setStarItemDialogVisible(
-                                                true,
-                                                SearchResultItem(
-                                                    type = SearchResultType.EXTENSION,
-                                                    extension = extension
-                                                )
-                                            )
-                                        }
+                                        onDropdown = { extension, type ->
+                                            onExtensionDropdown(extension, type)
+                                        },
                                     )
                                 }
                             }

@@ -51,7 +51,7 @@ fun MainList(
     toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-    onStarItem: (extension: Extension) -> Unit,
+    onExtensionDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
     ) {
     val isInline = remember(settingsState.extensionDisplayMode) {
         settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE
@@ -73,7 +73,7 @@ fun MainList(
             toAppDetail = toAppDetail,
             reverseLayout = reverseLayout,
             onExtensionClick = onExtensionClick,
-            onStarItem = onStarItem,
+            onExtensionDropdown = onExtensionDropdown,
         )
     } else {
         AnimatedVisibility(visible = mainData.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -159,7 +159,7 @@ fun MainGroupList(
     toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
-    onStarItem: (extension: Extension) -> Unit,
+    onExtensionDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -221,9 +221,9 @@ fun MainGroupList(
                             },
                             showTimes = settingsState.showUsageCount,
                             showIcon = true,
-                            onStarItem = {
-                                onStarItem(extension)
-                            }
+                            onDropdown = { type ->
+                                onExtensionDropdown(extension, type)
+                            },
                         )
                     }
                 } else {
@@ -317,9 +317,9 @@ fun MainGroupList(
                                     showTimes = settingsState.showUsageCount,
                                     padding = 0.dp,
                                     showIcon = false,
-                                    onStarItem = {
-                                        onStarItem(extension)
-                                    }
+                                    onDropdown = {
+                                        onExtensionDropdown(extension, it)
+                                    },
                                 )
                             }
                         }
