@@ -2,9 +2,6 @@ package com.kuss.krude.ui.components.internal.kill
 
 import android.app.ActivityManager
 import android.app.IActivityManager
-import android.app.IActivityTaskManager
-import android.content.pm.PackageManager
-import android.view.Display
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -15,7 +12,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,86 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.files.FileHelper
 import com.kuss.krude.ui.components.search.AsyncAppIcon
+import com.kuss.krude.utils.ShizukuHelper.checkShizukuPermission
+import com.kuss.krude.utils.ShizukuHelper.getActivityManager
+import com.kuss.krude.utils.ShizukuHelper.getActivityTaskManager
+import com.kuss.krude.utils.ShizukuHelper.getAllTasks
+import com.kuss.krude.utils.rememberShizukuStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuBinderWrapper
-import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
-
-
-const val ShizukuPermissionCode = 2024
-
-fun getActivityTaskManager(): IActivityTaskManager {
-    return IActivityTaskManager.Stub.asInterface(
-        ShizukuBinderWrapper(
-            SystemServiceHelper.getSystemService(
-                "activity_task"
-            )
-        )
-    )
-}
-
-fun getActivityManager(): IActivityManager {
-    return IActivityManager.Stub.asInterface(
-        ShizukuBinderWrapper(
-            SystemServiceHelper.getSystemService(
-                "activity"
-            )
-        )
-    )
-}
-
-private const val MAX_TASKS_NUM = 1000
-
-private fun getAllTasks(activityTaskManager: IActivityTaskManager): List<ActivityManager.RunningTaskInfo> {
-    runCatching {
-        return activityTaskManager.getTasks(MAX_TASKS_NUM)
-    }.getOrElse {
-        runCatching {
-            return activityTaskManager.getTasks(
-                MAX_TASKS_NUM, false
-            )
-        }.getOrElse {
-            runCatching {
-                return activityTaskManager.getTasks(
-                    MAX_TASKS_NUM, false, false, Display.INVALID_DISPLAY
-                )
-            }.getOrElse {
-                return runCatching {
-                    return activityTaskManager.getTasks(MAX_TASKS_NUM, false, false)
-                }.getOrElse { listOf() }
-            }
-        }
-    }
-}
-
-// https://github.com/RikkaApps/Shizuku-API/tree/master?tab=readme-ov-file#request-permission
-fun checkShizukuPermission(code: Int): Boolean {
-    if (Shizuku.isPreV11()) {
-        // Pre-v11 is unsupported
-        return false
-    }
-
-    if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-        // Granted
-        return true
-    } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-        // Users choose "Deny and don't ask again"
-        return false
-    } else {
-        // Request the permission
-        Shizuku.requestPermission(code)
-        return false
-    }
-}
 
 @Composable
 fun KillExtension(focusRequester: FocusRequester) {
@@ -114,56 +42,17 @@ fun KillExtension(focusRequester: FocusRequester) {
     var allRunningApps by remember {
         mutableStateOf<List<ActivityManager.RunningAppProcessInfo>>(listOf())
     }
-    var hasShizukuBinder by remember {
-        mutableStateOf(false)
-    }
-    var hasShizukuPermission by remember {
-        mutableStateOf(false)
-    }
-    val onRequestPermissionsResult =
-        Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
-            val granted = grantResult == PackageManager.PERMISSION_GRANTED
-            Timber.d("Shizuku.onRequestPermissionsResult: $granted")
-            hasShizukuPermission = granted
-        }
-    val onBinderReceivedListener = Shizuku.OnBinderReceivedListener {
-        Timber.d("Shizuku.OnBinderReceivedListener: on received")
-        hasShizukuBinder = true
-    }
-    val onBinderDeadListener = Shizuku.OnBinderDeadListener {
-        Timber.d("Shizuku.OnBinderDeadListener: on binder dead")
-        hasShizukuBinder = false
-    }
-    val lifeCycleOwner = LocalLifecycleOwner.current
     var myActivityManager by remember {
         mutableStateOf<IActivityManager?>(null)
     }
-    DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            Timber.d("Lifecycle event: $event")
-            if (event == Lifecycle.Event.ON_CREATE) {
-                Shizuku.addBinderReceivedListenerSticky(onBinderReceivedListener)
-                Shizuku.addBinderDeadListener(onBinderDeadListener)
-                Shizuku.addRequestPermissionResultListener(onRequestPermissionsResult);
-            }
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
-                Shizuku.removeBinderDeadListener(onBinderDeadListener)
-                Shizuku.removeRequestPermissionResultListener(onRequestPermissionsResult);
-            }
-        }
-        lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+    val shizukuState = rememberShizukuStatus()
     LaunchedEffect(Unit) {
-        if (checkShizukuPermission(ShizukuPermissionCode)) {
-            hasShizukuPermission = true
+        if (checkShizukuPermission()) {
+            shizukuState.setHasPermission(true)
         }
     }
-    LaunchedEffect(hasShizukuPermission, hasShizukuBinder) {
-        if (hasShizukuBinder && hasShizukuPermission) {
+    LaunchedEffect(shizukuState.hasPermission, shizukuState.hasBinder) {
+        if (shizukuState.hasBinder && shizukuState.hasPermission) {
             myActivityManager = getActivityManager()
             val activityTaskManager = getActivityTaskManager()
             myActivityManager?.let { activityManager ->
@@ -190,13 +79,12 @@ fun KillExtension(focusRequester: FocusRequester) {
             .heightIn(min = 128.dp)
     ) {
         Text(
-            text = "Kill, has Shizuku permission: $hasShizukuPermission",
+            text = "Kill, has Shizuku permission: ${shizukuState.hasPermission}",
             modifier = Modifier.focusRequester(focusRequester)
         )
         val context = LocalContext.current
         LazyColumn {
             itemsIndexed(allRunningApps, key = { _, item -> item.pid }) { index, process ->
-
                 val memoryInfo = remember(process.pid) {
                     myActivityManager?.getProcessMemoryInfo(intArrayOf(process.pid))?.first()
                 }
