@@ -247,9 +247,10 @@ fun BottomSearchBar(
             }
             if (event == Lifecycle.Event.ON_RESUME) {
                 coroutineScope.launch {
-                    delay(100)
-                    focusRequester.requestFocus()
+                    // NOTE: delay hack
+                    delay(200)
                     isFocused.value = true
+                    focusRequester.requestFocus()
                 }
                 if (searchState.text.isEmpty()) {
                     mainViewModel.reloadAppsFromSystem(context)

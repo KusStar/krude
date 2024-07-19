@@ -499,7 +499,7 @@ class MainViewModel : ViewModel() {
         return db.usageDao().getAppsByDay(day)
     }
 
-    fun loadFromPackageManger(context: Context, dbApps: List<AppInfo>? = null) {
+    private fun loadFromPackageManger(context: Context, dbApps: List<AppInfo>? = null) {
         viewModelScope.launch {
             withContext(IO) {
                 val apps = AppHelper.getInstalled(context)
