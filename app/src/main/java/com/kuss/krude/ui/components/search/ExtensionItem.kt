@@ -38,6 +38,7 @@ import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.CustomButton
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.internal.InternalExtensionIcon
 import com.kuss.krude.utils.SizeConst
 import me.saket.cascade.CascadeDropdownMenu
 import timber.log.Timber

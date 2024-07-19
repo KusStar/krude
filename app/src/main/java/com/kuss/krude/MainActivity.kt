@@ -1,5 +1,6 @@
 package com.kuss.krude
 
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,6 +16,7 @@ import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.LocaleHelper
 import com.kuss.krude.utils.PinyinHelper
 import com.kuss.krude.utils.Umami
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 
 
@@ -26,7 +28,7 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
-        Timber.plant(object: Timber.DebugTree() {
+        Timber.plant(object : Timber.DebugTree() {
             override fun createStackElementTag(element: StackTraceElement): String? {
                 val className = super.createStackElementTag(element)
                 return "KRUDE-$className ${element.methodName}"
@@ -53,6 +55,11 @@ class MainActivity : ComponentActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         ActivityHelper.initActivity(this)
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        HiddenApiBypass.addHiddenApiExemptions("L")
     }
 
 }

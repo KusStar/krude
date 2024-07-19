@@ -15,7 +15,7 @@ import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.db.UsageDao
-import com.kuss.krude.extensions.InternalExtensions
+import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
