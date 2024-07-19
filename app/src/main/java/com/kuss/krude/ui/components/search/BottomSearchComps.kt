@@ -26,6 +26,7 @@ import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.components.internal.InternalExtensionIcon
 import com.kuss.krude.utils.Reverse
 import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults

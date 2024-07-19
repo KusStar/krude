@@ -52,3 +52,8 @@
 
    void traceEventEnd();
 }
+
+-keep interface android.app.IActivityTaskManager { *; }
+-keep class android.app.IActivityTaskManager$Stub { *; }
+-keep interface android.app.IActivityManager { *; }
+-keep class android.app.IActivityManager$Stub { *; }
