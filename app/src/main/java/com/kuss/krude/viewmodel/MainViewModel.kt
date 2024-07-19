@@ -15,12 +15,12 @@ import com.kuss.krude.db.Star
 import com.kuss.krude.db.Usage
 import com.kuss.krude.db.UsageCountByDay
 import com.kuss.krude.db.UsageDao
-import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.ui.StarItemState
 import com.kuss.krude.ui.components.MessageBarState
+import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.AppHelper
 import com.kuss.krude.utils.ExtensionHelper
@@ -95,6 +95,8 @@ class MainViewModel : ViewModel() {
     private lateinit var settingsViewModel: SettingsViewModel
 
     private var loadExtensionsJob: Job? = null
+
+    private var extenstionsFirstLoaded = false
 
     // every required id to keyword
     private val aliasKeywordMap = mutableMapOf<String, String>()
@@ -330,7 +332,9 @@ class MainViewModel : ViewModel() {
                     ExtensionHelper.EXTENSIONS_REPO
                 }
                 Timber.i("loadExtensions from repo")
-                messageBarState.showLoading("Loading extensions from repo")
+                if (extenstionsFirstLoaded) {
+                    messageBarState.showLoading("Loading extensions from repo")
+                }
                 val (exception, extensionRepos) = ExtensionHelper.fetchExtensionsFromRepo(
                     context,
                     repoUrl
@@ -344,7 +348,9 @@ class MainViewModel : ViewModel() {
                     var success = 0
                     var failed = 0
                     for ((index, extensionRepo) in extensionRepos.withIndex()) {
-                        messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
+                        if (extenstionsFirstLoaded) {
+                            messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
+                        }
                         ExtensionHelper.fetchExtension(
                             context,
                             extensionRepo.url
@@ -411,10 +417,15 @@ class MainViewModel : ViewModel() {
                                 }
                             }
                             if (success + failed == extensionRepos.size) {
-                                messageBarState.showSuccess(
-                                    message = "Loaded from $success extension repo",
-                                    duration = Duration.parse("1s")
-                                )
+                                if (extenstionsFirstLoaded) {
+                                    messageBarState.showSuccess(
+                                        message = "Loaded from $success extension repo",
+                                        duration = Duration.parse("1s")
+                                    )
+                                }
+                                if (!extenstionsFirstLoaded) {
+                                    extenstionsFirstLoaded = true
+                                }
                             }
                         }
                     }
