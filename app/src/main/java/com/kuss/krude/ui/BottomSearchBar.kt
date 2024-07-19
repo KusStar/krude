@@ -62,7 +62,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.extensions.InternalExtensions
+import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem

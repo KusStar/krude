@@ -37,7 +37,7 @@ import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
-import com.kuss.krude.ui.components.search.InternalExtensionIcon
+import com.kuss.krude.ui.components.internal.InternalExtensionIcon
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers.IO
