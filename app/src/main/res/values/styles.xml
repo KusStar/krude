@@ -13,7 +13,7 @@
              animated drawable. One of these is required. -->
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         <!-- Required for animated icons -->
-        <item name="windowSplashScreenAnimationDuration">200</item>
+        <!-- <item name="windowSplashScreenAnimationDuration">200</item> -->
 
         <!-- Set the theme of the Activity that directly follows your splash screen. -->
         <!-- Required -->
