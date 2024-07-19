@@ -51,4 +51,5 @@
     <string name="star_keyword_hint">星标关键字</string>
     <string name="reload_apps_success">成功重载应用</string>
     <string name="open_in_freeform_window">打开为小窗</string>
+    <string name="app_detail">应用详情</string>
 </resources>

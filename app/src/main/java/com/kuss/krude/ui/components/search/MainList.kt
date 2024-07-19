@@ -48,10 +48,10 @@ fun MainList(
     starSet: Set<String>,
     settingsState: SettingsState,
     onAppClick: (app: AppInfo, isStar: Boolean) -> Unit,
-    toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     onExtensionDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
+    onAppDropdown: (app: AppInfo, type: AppDropdownType) -> Unit,
     ) {
     val isInline = remember(settingsState.extensionDisplayMode) {
         settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE
@@ -70,10 +70,10 @@ fun MainList(
             starSet = starSet,
             settingsState = settingsState,
             onAppClick = onAppClick,
-            toAppDetail = toAppDetail,
             reverseLayout = reverseLayout,
             onExtensionClick = onExtensionClick,
             onExtensionDropdown = onExtensionDropdown,
+            onAppDropdown = onAppDropdown
         )
     } else {
         AnimatedVisibility(visible = mainData.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
@@ -100,12 +100,12 @@ fun MainList(
                         onClick = {
                             onAppClick(app, isStar)
                         },
-                        onLongClick = {
-                            toAppDetail(app)
-                        },
                         iconSize = if (settingsState.appItemHorizontal) SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE else SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE,
                         showTimes = settingsState.showUsageCount,
-                        horizontal = settingsState.appItemHorizontal
+                        horizontal = settingsState.appItemHorizontal,
+                        onDropdown = {
+                            onAppDropdown(app, it)
+                        },
                     )
 
                     if (settingsState.appItemHorizontal && index < mainData.size - 1) {
@@ -156,10 +156,10 @@ fun MainGroupList(
     starSet: Set<String>,
     settingsState: SettingsState,
     onAppClick: (app: AppInfo, isStar: Boolean) -> Unit,
-    toAppDetail: (AppInfo) -> Unit,
     reverseLayout: Boolean,
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     onExtensionDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
+    onAppDropdown: (app: AppInfo, type: AppDropdownType) -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -198,8 +198,8 @@ fun MainGroupList(
                             onClick = {
                                 onAppClick(app, isStar)
                             },
-                            onLongClick = {
-                                toAppDetail(app)
+                            onDropdown = {
+                                onAppDropdown(app, it)
                             },
                             iconSize = if (settingsState.appItemHorizontal) SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE else SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE,
                             showTimes = settingsState.showUsageCount,
@@ -292,13 +292,13 @@ fun MainGroupList(
                                     onClick = {
                                         onAppClick(app, isStar)
                                     },
-                                    onLongClick = {
-                                        toAppDetail(app)
-                                    },
                                     iconSize = if (settingsState.appItemHorizontal) SizeConst.SEARCH_RESULT_SMALL_ICON_SIZE else SizeConst.SEARCH_RESULT_LARGE_ICON_SIZE,
                                     showTimes = settingsState.showUsageCount,
                                     horizontal = true,
-                                    showIcon = false
+                                    showIcon = false,
+                                    onDropdown = {
+                                        onAppDropdown(app, it)
+                                    },
                                 )
                             } else if (pickerItem.isExtension()) {
                                 val extension = pickerItem.asExtension()!!

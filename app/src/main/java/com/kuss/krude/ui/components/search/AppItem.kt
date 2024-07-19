@@ -19,8 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -38,10 +40,14 @@ import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.ui.components.CustomButton
+import com.kuss.krude.ui.components.OnAppDetailDropdown
+import com.kuss.krude.ui.components.OnOpenInFreeformDropdown
+import com.kuss.krude.ui.components.OnStarDropdown
 import com.kuss.krude.ui.components.Spacing
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import me.saket.cascade.CascadeDropdownMenu
 import me.zhanghai.android.appiconloader.AppIconLoader
 import timber.log.Timber
 
@@ -128,12 +134,16 @@ fun AppItemContent(
     }
 }
 
+enum class AppDropdownType {
+    STAR,
+    OPEN_IN_FREEFORM_WINDOW,
+    APP_DETAIL,
+}
 
 @Composable
 fun AppItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
     item: AppInfo,
     showStar: Boolean = false,
     showSubtitle: Boolean = true,
@@ -145,11 +155,17 @@ fun AppItem(
     subtitleFontSize: TextUnit = 12.sp,
     showTimes: Boolean = false,
     horizontal: Boolean = false,
-    showIcon: Boolean = true
+    showIcon: Boolean = true,
+    onDropdown: (AppDropdownType) -> Unit
 ) {
+    var showDropdown by remember {
+        mutableStateOf(false)
+    }
     CustomButton(
         onClick = onClick,
-        onLongClick = onLongClick,
+        onLongClick = {
+            showDropdown = true
+        },
         modifier = modifier
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -161,54 +177,70 @@ fun AppItem(
         shape = RoundedCornerShape(8.dp),
         enabled = enabled
     ) {
-        if (horizontal) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                if (showIcon) {
+        Box {
+            if (horizontal) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (showIcon) {
+                        StarBox(showStar) {
+                            AsyncAppIcon(
+                                packageName = item.packageName, modifier = Modifier.size(iconSize)
+                            )
+                        }
+                        if (showContent) {
+                            Spacing(1)
+                        }
+                    }
+                    if (showContent) {
+                        AppItemContent(
+                            item = item,
+                            showSubtitle = showSubtitle,
+                            titleSingleLine = true,
+                            titleFontSize = titleFontSize,
+                            subtitleFontSize = subtitleFontSize,
+                            showTimes = showTimes
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
                     StarBox(showStar) {
                         AsyncAppIcon(
-                            packageName = item.packageName, modifier = Modifier
-                                .size(iconSize)
+                            packageName = item.packageName, modifier = Modifier.size(iconSize)
                         )
                     }
                     if (showContent) {
                         Spacing(1)
+                        AppItemContent(
+                            item = item,
+                            showSubtitle = showSubtitle,
+                            titleSingleLine = titleSingleLine,
+                            titleFontSize = titleFontSize,
+                            subtitleFontSize = subtitleFontSize,
+                            showTimes = showTimes
+                        )
                     }
                 }
-                if (showContent) {
-                    AppItemContent(
-                        item = item,
-                        showSubtitle = showSubtitle,
-                        titleSingleLine = true,
-                        titleFontSize = titleFontSize,
-                        subtitleFontSize = subtitleFontSize,
-                        showTimes = showTimes
-                    )
-                }
             }
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                StarBox(showStar) {
-                    AsyncAppIcon(
-                        packageName = item.packageName, modifier = Modifier
-                            .size(iconSize)
-                    )
+            CascadeDropdownMenu(
+                expanded = showDropdown,
+                onDismissRequest = { showDropdown = false }) {
+                OnStarDropdown {
+                    onDropdown(AppDropdownType.STAR)
+                    showDropdown = false
                 }
-                if (showContent) {
-                    Spacing(1)
-                    AppItemContent(
-                        item = item,
-                        showSubtitle = showSubtitle,
-                        titleSingleLine = titleSingleLine,
-                        titleFontSize = titleFontSize,
-                        subtitleFontSize = subtitleFontSize,
-                        showTimes = showTimes
-                    )
+                OnOpenInFreeformDropdown {
+                    onDropdown(AppDropdownType.OPEN_IN_FREEFORM_WINDOW)
+                    showDropdown = false
+                }
+                OnAppDetailDropdown {
+                    onDropdown(AppDropdownType.APP_DETAIL)
+                    showDropdown = false
                 }
             }
         }

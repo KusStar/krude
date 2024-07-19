@@ -51,4 +51,5 @@
     <string name="star_keyword_hint">Star keyword to app</string>
     <string name="reload_apps_success">Reload apps success</string>
     <string name="open_in_freeform_window">Open in small window</string>
+    <string name="app_detail">App Detail</string>
 </resources>

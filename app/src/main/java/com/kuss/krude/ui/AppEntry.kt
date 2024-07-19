@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.interfaces.SearchResultType
+import com.kuss.krude.ui.components.search.AppDropdownType
 import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AppItemShimmer
 import com.kuss.krude.utils.ActivityHelper
@@ -58,21 +61,40 @@ fun AppEntry(
         mainViewModel.loadApps(context)
     }
 
-    fun openApp(appInfo: AppInfo) {
+    fun openApp(appInfo: AppInfo, isFreeformWindow: Boolean = false) {
         ActivityHelper.startPackageActivity(
             context,
             appInfo.packageName,
+            isFreeformWindow = isFreeformWindow,
             view = activity.window.decorView
         )
 
         mainViewModel.recordOpenApp(context, appInfo)
     }
 
-    fun toAppDetail(item: AppInfo) {
-        mainViewModel.setSelectedDetailApp(item)
-        mainViewModel.setShowAppDetailSheet(true)
+    fun onAppDropdown(app: AppInfo, type: AppDropdownType) {
+        when (type) {
+            AppDropdownType.STAR -> {
+                mainViewModel.setStarItemDialogVisible(
+                    true,
+                    item = SearchResultItem(
+                        SearchResultType.APP,
+                        app = app
+                    )
+                )
+            }
 
-        focusManager.clearFocus()
+            AppDropdownType.OPEN_IN_FREEFORM_WINDOW -> {
+                openApp(app, true)
+            }
+
+            AppDropdownType.APP_DETAIL -> {
+                mainViewModel.setSelectedDetailApp(app)
+                mainViewModel.setShowAppDetailSheet(true)
+
+                focusManager.clearFocus()
+            }
+        }
     }
 
     if (!missingPermission) {
@@ -103,8 +125,8 @@ fun AppEntry(
                                 AppItem(item = item,
                                     onClick = {
                                         openApp(item)
-                                    }, onLongClick = {
-                                        toAppDetail(item)
+                                    }, onDropdown = { type ->
+                                        onAppDropdown(item, type)
                                     })
                             }
                         } else {
@@ -122,8 +144,8 @@ fun AppEntry(
                 openApp = {
                     openApp(it)
                 },
-                toAppDetail = {
-                    toAppDetail(it)
+                onAppDropdown = { app, type ->
+                    onAppDropdown(app, type)
                 })
         }
         AppDetailModal(mainViewModel)
