@@ -2,8 +2,10 @@ package com.kuss.krude.ui.components.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -41,6 +43,10 @@ import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 
 
+val MainListEnterTransition = fadeIn() + expandVertically(expandFrom = Alignment.Bottom)
+val MainListExitTransition =
+    fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
+
 @Composable
 fun MainList(
     searchResult: List<SearchResultItem>,
@@ -76,7 +82,11 @@ fun MainList(
             onAppDropdown = onAppDropdown
         )
     } else {
-        AnimatedVisibility(visible = mainData.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+        AnimatedVisibility(
+            visible = mainData.isNotEmpty(),
+            enter = MainListEnterTransition,
+            exit = MainListExitTransition
+        ) {
             LazyRow(
                 modifier = Modifier
                     .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)
@@ -166,7 +176,11 @@ fun MainGroupList(
     val textMeasurer = rememberTextMeasurer()
 
     val groupList = getMainGroupList(data)
-    AnimatedVisibility(visible = groupList.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(
+        visible = groupList.isNotEmpty(),
+        enter = MainListEnterTransition,
+        exit = MainListExitTransition
+    ) {
         LazyRow(
             modifier = Modifier
                 .padding(vertical = if (settingsState.appItemHorizontal) 12.dp else 8.dp)

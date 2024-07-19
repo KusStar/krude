@@ -2,8 +2,10 @@ package com.kuss.krude.ui.components.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -38,6 +40,9 @@ import com.kuss.krude.utils.measureMaxWidthOfTexts
 import com.sd.lib.compose.wheel_picker.FVerticalWheelPicker
 import com.sd.lib.compose.wheel_picker.rememberFWheelPickerState
 import timber.log.Timber
+
+val ExtensionListEnterTransition = fadeIn() + expandVertically(expandFrom = Alignment.Bottom)
+val ExtensionListExitTransition = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
 
 @Composable
 fun ExtensionList(
@@ -88,7 +93,11 @@ fun ExtensionFlatList(
     val extensions = remember(searchResult) {
         searchResult.filter { it.isExtension() }
     }
-    AnimatedVisibility(visible = extensions.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(
+        visible = extensions.isNotEmpty(),
+        enter = ExtensionListEnterTransition,
+        exit = ExtensionListExitTransition
+    ) {
         LazyRow(
             modifier = Modifier
                 .padding(vertical = 8.dp),
@@ -214,7 +223,11 @@ fun ExtensionGroupList(
             }
         }
     }
-    AnimatedVisibility(visible = extensionGroups.isNotEmpty(), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(
+        visible = extensionGroups.isNotEmpty(),
+        enter = ExtensionListEnterTransition,
+        exit = ExtensionListExitTransition
+    ) {
         val density = LocalDensity.current
         val hapticFeedback = LocalHapticFeedback.current
         val textMeasurer = rememberTextMeasurer()

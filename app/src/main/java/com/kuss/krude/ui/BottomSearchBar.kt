@@ -3,9 +3,6 @@ package com.kuss.krude.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -62,7 +59,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
-import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
@@ -70,6 +66,7 @@ import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.ScrollWheel
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.ui.components.internal.SecondLevelArea
 import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.rememberScrollWheelState
@@ -316,13 +313,9 @@ fun BottomSearchBar(
                     visible = searchState.text.isNotEmpty(),
                 ) {
                     HorizontalDivider()
-                    Crossfade(
+                    AnimatedContent(
                         targetState = searchResult.isNotEmpty(),
                         label = "searchList",
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow
-                        )
                     ) { show ->
                         if (show) {
                             Column {
