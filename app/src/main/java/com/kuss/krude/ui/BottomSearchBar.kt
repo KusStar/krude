@@ -73,6 +73,7 @@ import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.SecondLevelArea
 import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.rememberScrollWheelState
+import com.kuss.krude.ui.components.search.AppDropdownType
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.ui.components.search.ExtensionDropdownType
 import com.kuss.krude.ui.components.search.ExtensionList
@@ -95,7 +96,7 @@ fun BottomSearchBar(
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
     openApp: (AppInfo) -> Unit,
-    toAppDetail: (AppInfo) -> Unit
+    onAppDropdown: (AppInfo, AppDropdownType) -> Unit
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -219,6 +220,7 @@ fun BottomSearchBar(
             searchState = TextFieldValue("")
         }
     }
+
 
     fun onExtensionDropdown(extension: Extension, type: ExtensionDropdownType) {
         when (type) {
@@ -395,16 +397,16 @@ fun BottomSearchBar(
                                     onAppClick = { app, isStar ->
                                         onAppClick(app, isStar)
                                     },
-                                    toAppDetail = { app ->
-                                        toAppDetail(app)
-                                    },
                                     reverseLayout = settingsState.dominantHand == DominantHandDefaults.RIGHT,
                                     onExtensionClick = { extension, isStar ->
                                         onExtensionClick(extension, isStar)
                                     },
                                     onExtensionDropdown = { extension, type ->
                                         onExtensionDropdown(extension, type)
-                                    }
+                                    },
+                                    onAppDropdown = { app, type ->
+                                        onAppDropdown(app, type)
+                                    },
                                 )
 
                                 if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {

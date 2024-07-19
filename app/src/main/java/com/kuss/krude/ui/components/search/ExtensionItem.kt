@@ -10,11 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.BrandingWatermark
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,6 +33,8 @@ import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.CustomButton
+import com.kuss.krude.ui.components.OnOpenInFreeformDropdown
+import com.kuss.krude.ui.components.OnStarDropdown
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.internal.InternalExtensionIcon
 import com.kuss.krude.utils.SizeConst
@@ -172,34 +170,14 @@ fun ExtensionItem(
             CascadeDropdownMenu(
                 expanded = showDropdown,
                 onDismissRequest = { showDropdown = false }) {
-                DropdownMenuItem(
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Star,
-                            contentDescription = stringResource(id = R.string.star),
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    },
-                    text = { Text(text = stringResource(id = R.string.star)) },
-                    onClick = {
-                        onDropdown(ExtensionDropdownType.STAR)
-                        showDropdown = false
-                    }
-                )
-                DropdownMenuItem(
-                    leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.BrandingWatermark,
-                            contentDescription = stringResource(id = R.string.open_in_freeform_window),
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    },
-                    text = { Text(text = stringResource(id = R.string.open_in_freeform_window)) },
-                    onClick = {
-                        onDropdown(ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW)
-                        showDropdown = false
-                    }
-                )
+                OnStarDropdown {
+                    onDropdown(ExtensionDropdownType.STAR)
+                    showDropdown = false
+                }
+                OnOpenInFreeformDropdown {
+                    onDropdown(ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW)
+                    showDropdown = false
+                }
             }
         }
     }
