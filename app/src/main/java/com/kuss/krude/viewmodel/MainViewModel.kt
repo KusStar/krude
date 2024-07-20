@@ -97,8 +97,6 @@ class MainViewModel : ViewModel() {
 
     private var loadExtensionsJob: Job? = null
 
-    private var extenstionsFirstLoaded = false
-
     // every required id to keyword
     private val aliasKeywordMap = mutableMapOf<String, String>()
 
@@ -316,7 +314,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun loadExtensions(context: Context) {
+    fun loadExtensions(context: Context, showMessage: Boolean = false) {
         loadExtensionsJob?.cancel()
         loadExtensionsJob = viewModelScope.launch {
             withContext(IO) {
@@ -334,7 +332,7 @@ class MainViewModel : ViewModel() {
                     ExtensionHelper.EXTENSIONS_REPO
                 }
                 Timber.i("loadExtensions from repo")
-                if (extenstionsFirstLoaded) {
+                if (showMessage) {
                     messageBarState.showLoading("Loading extensions from repo")
                 }
                 val (exception, extensionRepos) = ExtensionHelper.fetchExtensionsFromRepo(
@@ -343,14 +341,16 @@ class MainViewModel : ViewModel() {
                 )
                 if (exception != null) {
                     Timber.e("loadExtensions: error, $exception")
-                    messageBarState.showError("Load extensions error, please check the repo url.")
+                    if (showMessage) {
+                        messageBarState.showError("Load extensions error, please check the repo url.")
+                    }
                     return@withContext
                 }
                 if (extensionRepos != null) {
                     var success = 0
                     var failed = 0
                     for ((index, extensionRepo) in extensionRepos.withIndex()) {
-                        if (extenstionsFirstLoaded) {
+                        if (showMessage) {
                             messageBarState.showLoading("(${index + 1}/${extensionRepos.size}) Loading ${extensionRepo.name}")
                         }
                         ExtensionHelper.fetchExtension(
@@ -358,7 +358,9 @@ class MainViewModel : ViewModel() {
                             extensionRepo.url
                         ) { appExtensionGroup ->
                             if (appExtensionGroup == null) {
-                                messageBarState.showError("Cannot load ${extensionRepo.name}")
+                                if (showMessage) {
+                                    messageBarState.showError("Cannot load ${extensionRepo.name}")
+                                }
                                 failed += 1
                             } else {
                                 if (appExtensionGroup.main.isNotEmpty()) {
@@ -419,14 +421,11 @@ class MainViewModel : ViewModel() {
                                 }
                             }
                             if (success + failed == extensionRepos.size) {
-                                if (extenstionsFirstLoaded) {
+                                if (showMessage) {
                                     messageBarState.showSuccess(
                                         message = "Loaded from $success extension repo",
                                         duration = Duration.parse("1s")
                                     )
-                                }
-                                if (!extenstionsFirstLoaded) {
-                                    extenstionsFirstLoaded = true
                                 }
                             }
                         }
