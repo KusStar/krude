@@ -11,6 +11,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,8 +32,7 @@ import com.kuss.krude.viewmodel.MainViewModel
 import kotlin.time.Duration
 
 data class StarItemState(
-    val visible: Boolean = false,
-    val item: SearchResultItem? = null
+    val visible: Boolean = false, val item: SearchResultItem? = null
 )
 
 @Composable
@@ -44,12 +46,15 @@ fun StarItemDialog(
     if (state.visible) {
         val context = LocalContext.current
         var keyword by remember { mutableStateOf("") }
+        val focusRequester = remember { FocusRequester() }
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
         Dialog(onDismissRequest = {
             onDismiss()
         }) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 state.item?.let { item ->
@@ -65,17 +70,20 @@ fun StarItemDialog(
                         Text("Star $name with:")
                         Spacing(1)
                         OutlinedTextField(
+                            modifier = Modifier.focusRequester(focusRequester),
                             value = keyword,
                             onValueChange = {
                                 keyword = it
                             },
                             placeholder = {
                                 Text(stringResource(R.string.star_keyword_hint))
-                            }
+                            },
+                            supportingText = {
+                                Text(stringResource(R.string.star_keyword_supporting_text))
+                            },
                         )
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                         ) {
                             TextButton(
@@ -90,16 +98,11 @@ fun StarItemDialog(
                                 onClick = {
                                     onDismiss()
                                     mainViewModel.insertStar(
-                                        context,
-                                        id,
-                                        keyword = keyword,
-                                        false
+                                        context, id, keyword = keyword, false
                                     )
-                                    mainViewModel.getMessageBarState()
-                                        .showSuccess(
-                                            "Starred $name with $keyword",
-                                            Duration.parse("1s")
-                                        )
+                                    mainViewModel.getMessageBarState().showSuccess(
+                                        "Starred $name with $keyword", Duration.parse("1s")
+                                    )
                                 },
                                 modifier = Modifier.padding(8.dp),
                             ) {
