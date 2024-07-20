@@ -91,7 +91,6 @@ fun StarItemDialog(
                                     onDismiss()
                                     mainViewModel.insertStar(
                                         context,
-                                        mainViewModel.getSettingsState().enableExtension,
                                         id,
                                         keyword = keyword,
                                         false
