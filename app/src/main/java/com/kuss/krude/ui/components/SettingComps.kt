@@ -199,7 +199,7 @@ fun SettingSections(
                     title = { Text(text = stringResource(id = R.string.refetch_extensions)) },
                     onClick = {
                         mainViewModel.clearExtensionsCache(context)
-                        mainViewModel.loadExtensions(context)
+                        mainViewModel.loadExtensions(context, true)
                     }
                 )
                 // extension list
