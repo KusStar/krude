@@ -51,7 +51,7 @@ data class MainState(
     val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
     val showMoreSheet: Boolean = false,
-    val currentStarPackageNameSet: Set<String> = setOf(),
+    val keywordStarSet: Set<String> = setOf(),
     val hidden: Set<String> = setOf(),
     val extensionMap: Map<String, Extension> = mapOf()
 )
@@ -88,9 +88,10 @@ class MainViewModel : ViewModel() {
 
     private lateinit var messageBarState: MessageBarState
 
-    private var filterKeywordJob: Job? = null
-
     private var packageNameSet: MutableSet<String> = mutableSetOf()
+
+    // star map keyword to key
+    private var allStarMap: Map<String, String> = mapOf()
 
     private lateinit var settingsViewModel: SettingsViewModel
 
@@ -283,6 +284,7 @@ class MainViewModel : ViewModel() {
                 loadPackageNameSet(context)
                 loadFromPackageManger(context, dbApps)
                 loadExtensions(context)
+                loadAllStarMap(context)
             }
         }
     }
@@ -757,65 +759,73 @@ class MainViewModel : ViewModel() {
                 }
             }
 
+            val (starSet, finalResult) = filterKeywordStars(
+                filterResult,
+                enableExtension,
+                text
+            )
+
             _state.update { mainState ->
-                mainState.copy(searchResult = filterResult)
+                mainState.copy(keywordStarSet = starSet, searchResult = finalResult)
             }
         }
     }
 
-    fun filterKeywordStars(context: Context, enableExtension: Boolean, keyword: String) {
-        filterKeywordJob?.cancel()
-        filterKeywordJob = viewModelScope.launch {
-            withContext(IO) {
-                val db = getDatabase(context)
-                val stars = db.starDao().getKeywordStars(keyword)
-                Timber.d("filterKeywordStars: ${stars.joinToString { it.key }}")
-                val starSet = HashSet<String>()
+    private fun loadAllStarMap(context: Context) {
+        val db = getDatabase(context)
+        allStarMap = db.starDao().getAllStars().associate { it.key to it.keyword }
+    }
 
-                stars.forEach {
-                    starSet.add(it.key)
-                }
+    private fun filterKeywordStars(
+        searchResult: List<SearchResultItem>,
+        enableExtension: Boolean,
+        keyword: String
+    ): Pair<Set<String>, List<SearchResultItem>> {
+        val starSet = allStarMap.filter { it.value == keyword }.keys.toSet()
+        val apps = _state.value.apps
+        val extensions = getExtensionsWithInternal()
 
-                val apps = _state.value.apps
-                val extensions = getExtensionsWithInternal()
+        val starAppList = apps.filter { starSet.contains(it.packageName) }
+            .sortedByDescending { it.priority }.map {
+                SearchResultItem(it)
+            }
 
-                val starAppList = apps.filter { starSet.contains(it.packageName) }
-                    .sortedByDescending { it.priority }.map {
+        val starExtensionList =
+            if (enableExtension && extensions.isNotEmpty())
+                extensions
+                    .filter { extension ->
+                        starSet.contains(extension.id)
+                    }
+                    .sortedByDescending { it.priority }
+                    .map {
                         SearchResultItem(it)
                     }
+            else listOf()
 
-                val starExtensionList =
-                    if (enableExtension && extensions.isNotEmpty())
-                        extensions
-                            .filter { extension ->
-                                starSet.contains(extension.id)
-                            }
-                            .sortedByDescending { it.priority }
-                            .map {
-                                SearchResultItem(it)
-                            }
-                    else listOf()
-
-                val restList = _state.value.searchResult.filter {
-                    if (it.isApp()) {
-                        return@filter !starSet.contains(it.asApp()!!.packageName)
-                    }
-                    return@filter !starSet.contains(it.asExtension()!!.id)
-                }
-
-                _state.update { mainState ->
-                    mainState.copy(
-                        currentStarPackageNameSet = starSet,
-                        searchResult = starExtensionList.plus(starAppList.plus(restList))
-                    )
-                }
+        val restList = searchResult.filter {
+            if (it.isApp()) {
+                return@filter !starSet.contains(it.asApp()!!.packageName)
             }
+            return@filter !starSet.contains(it.asExtension()!!.id)
+        }
+
+        return Pair(starSet, starExtensionList.plus(starAppList.plus(restList)))
+    }
+
+    private fun updateStarSet(context: Context, keyword: String) {
+        loadAllStarMap(context)
+        val (starSet, result) = filterKeywordStars(
+            _state.value.searchResult,
+            true,
+            keyword
+        )
+        _state.update { mainState ->
+            mainState.copy(keywordStarSet = starSet, searchResult = result)
         }
     }
 
     fun insertStar(
         context: Context,
-        enableExtension: Boolean,
         key: String,
         keyword: String,
         isStar: Boolean
@@ -828,7 +838,7 @@ class MainViewModel : ViewModel() {
                 } else {
                     db.starDao().deleteStarPackage(key, keyword)
                 }
-                filterKeywordStars(context, enableExtension, keyword = keyword)
+                updateStarSet(context, keyword)
             }
         }
     }
@@ -843,6 +853,7 @@ class MainViewModel : ViewModel() {
             withContext(IO) {
                 val db = getDatabase(context)
                 db.starDao().deleteStar(star.key)
+                loadAllStarMap(context)
             }
         }
     }

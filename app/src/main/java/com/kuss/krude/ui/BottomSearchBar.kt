@@ -101,7 +101,7 @@ fun BottomSearchBar(
     val uiState by mainViewModel.state.collectAsState()
     val settingsState by settingsViewModel.state.collectAsState()
 
-    val starSet = uiState.currentStarPackageNameSet
+    val starSet = uiState.keywordStarSet
     val apps = uiState.apps
     val searchResult = uiState.searchResult
 
@@ -152,22 +152,10 @@ fun BottomSearchBar(
         searchState = value
         starMode = false
         mainViewModel.onSearch(value.text, settingsState.enableExtension, settingsState.fuzzySearch)
-        mainViewModel.filterKeywordStars(
-            context = context,
-            settingsState.enableExtension,
-            value.text
-        )
     }
 
     fun refresh(fuzzy: Boolean) {
         mainViewModel.onSearch(searchState.text, settingsState.enableExtension, fuzzy)
-        if (searchState.text.isNotEmpty()) {
-            mainViewModel.filterKeywordStars(
-                context = context,
-                settingsState.enableExtension,
-                searchState.text
-            )
-        }
     }
 
     fun clear() {
@@ -180,7 +168,6 @@ fun BottomSearchBar(
             Timber.d("star $extension")
             mainViewModel.insertStar(
                 context,
-                settingsState.enableExtension,
                 extension.id,
                 keyword = searchState.text,
                 isStar
@@ -205,7 +192,6 @@ fun BottomSearchBar(
             Timber.d("star $app")
             mainViewModel.insertStar(
                 context,
-                settingsState.enableExtension,
                 app.packageName,
                 keyword = searchState.text,
                 isStar
