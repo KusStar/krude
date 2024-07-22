@@ -3,30 +3,42 @@ package com.kuss.krude.utils
 import android.app.ActivityManager
 import android.app.IActivityManager
 import android.app.IActivityTaskManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.view.Display
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.kuss.krude.utils.ShizukuHelper.checkShizukuInstalled
+import com.kuss.krude.utils.ShizukuHelper.checkShizukuPermission
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
 
 class ShizukuState {
+    private var _isInstalled by mutableStateOf(false)
     private var _hasBinder by mutableStateOf(false)
     private var _hasPermission by mutableStateOf(false)
 
+    val isInstalled: Boolean
+        get() = _isInstalled
     val hasBinder: Boolean
         get() = _hasBinder
     val hasPermission: Boolean
         get() = _hasPermission
+
+    fun setInstalled(installed: Boolean) {
+        _isInstalled = installed
+    }
 
     fun setHasBinder(has: Boolean) {
         _hasBinder = has
@@ -38,7 +50,8 @@ class ShizukuState {
 }
 
 @Composable
-fun rememberShizukuStatus(): ShizukuState {
+fun rememberShizukuState(): ShizukuState {
+    val context = LocalContext.current
     val shizukuState = remember { ShizukuState() }
     val onRequestPermissionsResult =
         Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
@@ -55,6 +68,15 @@ fun rememberShizukuStatus(): ShizukuState {
         shizukuState.setHasBinder(false)
     }
     val lifeCycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        if (checkShizukuInstalled(context)) {
+            shizukuState.setInstalled(true)
+            if (checkShizukuPermission()) {
+                shizukuState.setHasPermission(true)
+            }
+        }
+    }
 
     DisposableEffect(lifeCycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -82,6 +104,8 @@ object ShizukuHelper {
 
     private const val MAX_TASKS_NUM = 1000
     private const val REQUEST_CODE = 2024
+    private const val SHIZUKU_PACKAGE_NAME = "moe.shizuku.privileged.api"
+    const val SHIZUKU_INSTALL_PAGE = "https://shizuku.rikka.app/introduction/"
 
     fun getActivityTaskManager(): IActivityTaskManager {
         return IActivityTaskManager.Stub.asInterface(
@@ -145,4 +169,10 @@ object ShizukuHelper {
             return false
         }
     }
+
+    fun checkShizukuInstalled(context: Context): Boolean {
+        return context.packageManager.getInstalledPackages(0)
+            .find { it.packageName == SHIZUKU_PACKAGE_NAME } != null
+    }
+
 }

@@ -21,6 +21,8 @@ public interface IActivityManager extends IInterface {
      */
     List<ActivityManager.RunningAppProcessInfo> getRunningAppProcesses();
 
+    void forceStopPackage(String packageName, int userId);
+
     /**
      * Return information about the memory usage of one or more processes.
      *
