@@ -2,6 +2,7 @@ package com.kuss.krude.viewmodel.extensions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kuss.krude.shizuku.bean.BeanFile
 import com.kuss.krude.ui.components.internal.files.FileHelper
 import com.kuss.krude.ui.components.internal.files.PathNavigator
 import com.kuss.krude.ui.components.internal.files.WAIT_TIME
@@ -26,8 +27,8 @@ enum class FilesOrderBy {
 }
 
 data class FilesExtensionState(
-    val files: List<File> = listOf(),
-    val filteredFiles: List<File> = listOf(),
+    val files: List<BeanFile> = listOf(),
+    val filteredFiles: List<BeanFile> = listOf(),
     val search: String = "",
     val pathNavigator: PathNavigator = PathNavigator(),
     val tabs: List<String> = listOf(FileHelper.ROOT_PATH),
@@ -42,13 +43,13 @@ class FilesExtensionViewModel : ViewModel() {
     val state: StateFlow<FilesExtensionState>
         get() = _state
 
-    private fun setFiles(files: List<File>) {
+    private fun setFiles(files: List<BeanFile>) {
         _state.update {
             it.copy(files = files)
         }
     }
 
-    fun setFilteredFiles(files: List<File>) {
+    fun setFilteredFiles(files: List<BeanFile>) {
         _state.update {
             it.copy(filteredFiles = files)
         }
@@ -129,7 +130,7 @@ class FilesExtensionViewModel : ViewModel() {
     fun loadFiles(path: String) {
         viewModelScope.launch {
             withContext(IO) {
-                val list = File(path).listFiles()?.toList() ?: emptyList()
+                val list = FileHelper.listFiles(File(path))?.toList() ?: emptyList()
                 setFiles(list.sortedBy { FilterHelper.getAbbr(it.name.lowercase()) })
                 Timber.d("Path: $path, Files: $list")
             }

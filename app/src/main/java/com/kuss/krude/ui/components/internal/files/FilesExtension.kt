@@ -54,10 +54,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.shizuku.FileExplorerServiceManager
+import com.kuss.krude.shizuku.bean.BeanFile
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
+import com.kuss.krude.utils.rememberShizukuState
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
 import com.kuss.krude.viewmodel.extensions.FilesOrderBy
 import kotlinx.coroutines.Dispatchers.IO
@@ -89,7 +92,7 @@ fun FilesExtension(
     val currentTabIndex = state.currentTabIndex
 
     var showDeleteAlertDialog by remember { mutableStateOf(false) }
-    var toDeleteFile by remember { mutableStateOf<File?>(null) }
+    var toDeleteFile by remember { mutableStateOf<BeanFile?>(null) }
 
     var needScrollBack by remember {
         mutableStateOf(false)
@@ -98,7 +101,15 @@ fun FilesExtension(
         mutableStateListOf<Int>()
     }
 
+    val shizukuState = rememberShizukuState()
+
     val filePreviewState = rememberFilePreviewState()
+
+    LaunchedEffect(shizukuState.hasBinder, shizukuState.hasPermission) {
+        if (shizukuState.hasBinder && shizukuState.hasPermission) {
+            FileExplorerServiceManager.bindService()
+        }
+    }
 
     LaunchedEffect(state.filesOrderBy, state.showHiddenFiles) {
         listState.animateScrollToItem(0)
@@ -116,7 +127,7 @@ fun FilesExtension(
         }
     }
 
-    fun onFileItemClick(file: File) {
+    fun onFileItemClick(file: BeanFile) {
         prevScroll.add(listState.firstVisibleItemIndex)
         needScrollBack = false
         if (file.isFile) {
@@ -199,7 +210,7 @@ fun FilesExtension(
             }
             val comparator = when (state.filesOrderBy) {
                 FilesOrderBy.ALPHABET_ASC -> {
-                    compareBy<File> { FilterHelper.getAbbr(it.name) }
+                    compareBy<BeanFile> { FilterHelper.getAbbr(it.name) }
                 }
 
                 FilesOrderBy.ALPHABET_DESC -> {
@@ -207,19 +218,19 @@ fun FilesExtension(
                 }
 
                 FilesOrderBy.DATE_ASC -> {
-                    compareBy { it.lastModified() }
+                    compareBy { it.lastModified }
                 }
 
                 FilesOrderBy.DATE_DESC -> {
-                    compareByDescending { it.lastModified() }
+                    compareByDescending { it.lastModified }
                 }
 
                 FilesOrderBy.SIZE_ASC -> {
-                    compareBy { it.length() }
+                    compareBy { it.length }
                 }
 
                 FilesOrderBy.SIZE_DESC -> {
-                    compareByDescending { it.length() }
+                    compareByDescending { it.length }
                 }
             }
             return@remember if (!state.showHiddenFiles) {
@@ -274,7 +285,7 @@ fun FilesExtension(
                     if (showGoToPreviousDir) {
                         item {
                             FileItem(
-                                file = File(".."), onClick = {
+                                file = BeanFile(".."), onClick = {
                                     val temp = File(pathNavigator.currentPath)
                                     viewModel.goToPath(temp.parent ?: temp.absolutePath)
                                 })
@@ -478,7 +489,7 @@ fun FilesExtension(
     if (filePreviewState.previewing) {
         Dialog(onDismissRequest = { filePreviewState.dismiss() }) {
             Card {
-                FilePreview(file = filePreviewState.file!!)
+                FilePreview(file = File(filePreviewState.file!!.path))
             }
         }
     }

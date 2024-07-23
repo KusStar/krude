@@ -37,14 +37,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kuss.krude.shizuku.bean.BeanFile
 import com.kuss.krude.ui.components.CustomButton
 import com.kuss.krude.ui.components.HighlightedText
 import me.saket.cascade.CascadeDropdownMenu
-import java.io.File
 
 
 @Composable
-fun FileIcon(file: File) {
+fun FileIcon(file: BeanFile) {
     val icon = remember {
         FileHelper.getFileTypeIcon(file)
     }
@@ -56,9 +56,9 @@ fun FileIcon(file: File) {
 }
 
 @Composable
-fun FileDetail(file: File) {
+fun FileDetail(file: BeanFile) {
     val date = remember {
-        DateFormat.getDateTimeInstance().format(file.lastModified())
+        DateFormat.getDateTimeInstance().format(file.lastModified)
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -68,7 +68,7 @@ fun FileDetail(file: File) {
         )
         if (file.isFile) {
             val size = remember {
-                FileHelper.formatFileSize(file.length())
+                FileHelper.formatFileSize(file.length)
             }
             VerticalDivider(
                 modifier = Modifier
@@ -87,7 +87,7 @@ fun FileDetail(file: File) {
 @Composable
 fun FileDropdownMenu(
     visible: Boolean,
-    file: File,
+    file: BeanFile,
     onDismiss: () -> Unit,
     openedTabs: List<String>,
     onDropdown: ((type: FileDropdownType, arg: String?) -> Unit)? = null
@@ -204,7 +204,7 @@ fun FileDropdownMenu(
 fun FileItem(
     modifier: Modifier = Modifier,
     highlight: String = "",
-    file: File,
+    file: BeanFile,
     onClick: () -> Unit,
     openedTabs: List<String> = emptyList(),
     onDropdown: ((type: FileDropdownType, arg: String?) -> Unit)? = null

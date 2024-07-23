@@ -23,6 +23,11 @@ object ActivityHelper {
     private const val LAUNCH_WINDOWING_MODE_FREEFORM = 5
 
     @JvmStatic
+    fun getActivity(): Activity? {
+        return activity?.get()
+    }
+
+    @JvmStatic
     fun initActivity(activity: Activity) {
         this.activity = WeakReference(activity)
     }

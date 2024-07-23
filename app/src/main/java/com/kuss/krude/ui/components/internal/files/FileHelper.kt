@@ -1,6 +1,7 @@
 package com.kuss.krude.ui.components.internal.files
 
 import android.os.Environment
+import android.os.RemoteException
 import android.webkit.MimeTypeMap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
@@ -14,6 +15,9 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Source
 import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.kuss.krude.shizuku.FileExplorerServiceManager
+import com.kuss.krude.shizuku.IFileExplorerService
+import com.kuss.krude.shizuku.bean.BeanFile
 import java.io.File
 import java.text.DecimalFormat
 import kotlin.math.ln
@@ -30,6 +34,32 @@ enum class FileDropdownType {
 
 object FileHelper {
     val ROOT_PATH: String = Environment.getExternalStoragePublicDirectory("").absolutePath
+    private var iFileExplorerService: IFileExplorerService? = null
+
+    fun setIFileExplorerService(service: IFileExplorerService?) {
+        iFileExplorerService = service
+    }
+
+    private fun listFilesByShizuku(path: String?): List<BeanFile> {
+        try {
+            return iFileExplorerService!!.listFiles(path)
+        } catch (e: NullPointerException) {
+            e.printStackTrace()
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+        return ArrayList()
+    }
+
+    fun listFiles(file: File): List<BeanFile>? {
+        return if (FileExplorerServiceManager.isBind) {
+            listFilesByShizuku(file.path)
+        } else {
+            file.listFiles()?.map {
+                BeanFile(it)
+            }
+        }
+    }
 
     val PATH_SUGGESTIONS = listOf<String>(
         "",
@@ -54,7 +84,7 @@ object FileHelper {
     }
 
     @JvmStatic
-    fun getFileTypeIcon(file: File): ImageVector {
+    fun getFileTypeIcon(file: BeanFile): ImageVector {
         val ext = MimeTypeMap.getFileExtensionFromUrl(file.name)
         return when (".$ext") {
             ".png", ".jpg", ".jpeg", ".gif", ".bmp" -> Icons.Default.Image
@@ -82,9 +112,10 @@ object FileHelper {
     }
 
     @JvmStatic
-    fun copyFileTo(src: File, destDir: String) {
+    fun copyFileTo(src: BeanFile, destDir: String) {
         val dest = File("$destDir/${src.name}")
-        src.inputStream().use { input ->
+        val srcFile = File(src.path)
+        srcFile.inputStream().use { input ->
             dest.outputStream().use { output ->
                 input.copyTo(output)
             }
@@ -92,17 +123,19 @@ object FileHelper {
     }
 
     @JvmStatic
-    fun moveFileTo(src: File, destDir: String) {
+    fun moveFileTo(src: BeanFile, destDir: String) {
         val dest = File("$destDir/${src.name}")
-        src.renameTo(dest)
+        val srcFile = File(src.path)
+        srcFile.renameTo(dest)
     }
 
     @JvmStatic
-    fun deleteFile(file: File) {
-        if (file.isDirectory) {
-            file.deleteRecursively()
+    fun deleteFile(src: BeanFile) {
+        val srcFile = File(src.path)
+        if (srcFile.isDirectory) {
+            srcFile.deleteRecursively()
         } else {
-            file.delete()
+            srcFile.delete()
         }
     }
 }

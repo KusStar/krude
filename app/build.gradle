@@ -24,6 +24,7 @@ java {
 android {
 
     buildFeatures {
+        aidl true
         viewBinding true
         compose true
         buildConfig true

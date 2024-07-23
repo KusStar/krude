@@ -61,6 +61,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
+import com.kuss.krude.shizuku.bean.BeanFile
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.utils.ActivityHelper
 import kotlinx.coroutines.Dispatchers.IO
@@ -82,10 +83,10 @@ import kotlin.math.sqrt
 
 
 class FilePreviewState {
-    var file by mutableStateOf<File?>(null)
+    var file by mutableStateOf<BeanFile?>(null)
     var previewing by mutableStateOf(false)
 
-    fun show(file: File) {
+    fun show(file: BeanFile) {
         this.file = file
         previewing = true
     }
@@ -537,9 +538,9 @@ fun PdfPreview(
                             contentDescription = "Page ${index + 1} of $pageCount"
                         )
                     }
-                    }
                 }
             }
+        }
     }
 }
 
