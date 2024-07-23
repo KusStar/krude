@@ -1,10 +1,11 @@
-package com.kuss.krude.utils
+package com.kuss.krude.shizuku
 
 import android.app.ActivityManager
 import android.app.IActivityManager
 import android.app.IActivityTaskManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.provider.Browser
 import android.view.Display
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -17,12 +18,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.kuss.krude.utils.ShizukuHelper.checkShizukuInstalled
-import com.kuss.krude.utils.ShizukuHelper.checkShizukuPermission
+import com.kuss.krude.shizuku.ShizukuHelper.checkShizukuInstalled
+import com.kuss.krude.shizuku.ShizukuHelper.checkShizukuPermission
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
+
 
 class ShizukuState {
     private var _isInstalled by mutableStateOf(false)

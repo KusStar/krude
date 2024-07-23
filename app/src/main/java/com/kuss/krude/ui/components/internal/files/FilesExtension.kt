@@ -60,7 +60,7 @@ import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
-import com.kuss.krude.utils.rememberShizukuState
+import com.kuss.krude.shizuku.rememberShizukuState
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
 import com.kuss.krude.viewmodel.extensions.FilesOrderBy
 import kotlinx.coroutines.Dispatchers.IO
