@@ -39,7 +39,7 @@ data class SettingsState(
     val customKeyboardOffset: Int = 0,
     val devMode: Boolean = false,
     val devExtension: Boolean = false,
-    val devExtensionRepo: String = "http://localhost:12345",
+    val devExtensionRepo: String = "http://localhost:8000",
     val appItemHorizontal: Boolean = true
 )
 
