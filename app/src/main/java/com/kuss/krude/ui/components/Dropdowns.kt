@@ -13,6 +13,62 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.kuss.krude.R
+import me.saket.cascade.CascadeDropdownMenu
+
+enum class AppDropdownType {
+    STAR,
+    OPEN_IN_FREEFORM_WINDOW,
+    APP_DETAIL,
+}
+
+@Composable
+fun AppItemDropdowns(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    onDropdown: (AppDropdownType) -> Unit
+) {
+    CascadeDropdownMenu(
+        expanded = visible,
+        onDismissRequest = { onDismiss() }) {
+        OnStarDropdown {
+            onDropdown(AppDropdownType.STAR)
+            onDismiss()
+        }
+        OnOpenInFreeformDropdown {
+            onDropdown(AppDropdownType.OPEN_IN_FREEFORM_WINDOW)
+            onDismiss()
+        }
+        OnAppDetailDropdown {
+            onDropdown(AppDropdownType.APP_DETAIL)
+            onDismiss()
+        }
+    }
+}
+
+enum class ExtensionDropdownType {
+    STAR,
+    OPEN_IN_FREEFORM_WINDOW
+}
+
+@Composable
+fun ExtensionItemDropdowns(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    onDropdown: (ExtensionDropdownType) -> Unit
+) {
+    CascadeDropdownMenu(
+        expanded = visible,
+        onDismissRequest = { onDismiss() }) {
+        OnStarDropdown {
+            onDropdown(ExtensionDropdownType.STAR)
+            onDismiss()
+        }
+        OnOpenInFreeformDropdown {
+            onDropdown(ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW)
+            onDismiss()
+        }
+    }
+}
 
 @Composable
 fun OnStarDropdown(onClick: () -> Unit) {

@@ -33,6 +33,8 @@ import com.kuss.krude.R
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.ui.components.CustomButton
+import com.kuss.krude.ui.components.ExtensionDropdownType
+import com.kuss.krude.ui.components.ExtensionItemDropdowns
 import com.kuss.krude.ui.components.OnOpenInFreeformDropdown
 import com.kuss.krude.ui.components.OnStarDropdown
 import com.kuss.krude.ui.components.Spacing
@@ -93,10 +95,6 @@ fun ExtensionContent(
     }
 }
 
-enum class ExtensionDropdownType {
-    STAR,
-    OPEN_IN_FREEFORM_WINDOW
-}
 
 @Composable
 fun ExtensionItem(
@@ -167,17 +165,10 @@ fun ExtensionItem(
                     )
                 }
             }
-            CascadeDropdownMenu(
-                expanded = showDropdown,
-                onDismissRequest = { showDropdown = false }) {
-                OnStarDropdown {
-                    onDropdown(ExtensionDropdownType.STAR)
-                    showDropdown = false
-                }
-                OnOpenInFreeformDropdown {
-                    onDropdown(ExtensionDropdownType.OPEN_IN_FREEFORM_WINDOW)
-                    showDropdown = false
-                }
+            ExtensionItemDropdowns(
+                visible = showDropdown,
+                onDismiss = { showDropdown = false }) { type ->
+                onDropdown(type)
             }
         }
     }

@@ -33,13 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.ui.components.AppDropdownType
+import com.kuss.krude.ui.components.AppItemDropdowns
 import com.kuss.krude.ui.components.CustomButton
-import com.kuss.krude.ui.components.OnAppDetailDropdown
-import com.kuss.krude.ui.components.OnOpenInFreeformDropdown
-import com.kuss.krude.ui.components.OnStarDropdown
 import com.kuss.krude.ui.components.Spacing
 import com.valentinilk.shimmer.shimmer
-import me.saket.cascade.CascadeDropdownMenu
 import timber.log.Timber
 
 @Composable
@@ -83,11 +81,6 @@ fun AppItemContent(
     }
 }
 
-enum class AppDropdownType {
-    STAR,
-    OPEN_IN_FREEFORM_WINDOW,
-    APP_DETAIL,
-}
 
 @Composable
 fun AppItem(
@@ -176,21 +169,8 @@ fun AppItem(
                     }
                 }
             }
-            CascadeDropdownMenu(
-                expanded = showDropdown,
-                onDismissRequest = { showDropdown = false }) {
-                OnStarDropdown {
-                    onDropdown(AppDropdownType.STAR)
-                    showDropdown = false
-                }
-                OnOpenInFreeformDropdown {
-                    onDropdown(AppDropdownType.OPEN_IN_FREEFORM_WINDOW)
-                    showDropdown = false
-                }
-                OnAppDetailDropdown {
-                    onDropdown(AppDropdownType.APP_DETAIL)
-                    showDropdown = false
-                }
+            AppItemDropdowns(visible = showDropdown, onDismiss = { showDropdown = false }) { type ->
+                onDropdown(type)
             }
         }
     }
