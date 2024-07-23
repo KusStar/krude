@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
+import com.kuss.krude.ui.components.AppDropdownType
+import com.kuss.krude.ui.components.ExtensionDropdownType
 import com.kuss.krude.utils.SizeConst
 import com.kuss.krude.utils.applyIf
 import com.kuss.krude.utils.measureMaxWidthOfTexts

@@ -53,4 +53,5 @@
     <string name="open_in_freeform_window">Open in small window</string>
     <string name="app_detail">App Detail</string>
     <string name="star_keyword_supporting_text">Starred keyword item display first</string>
+    <string name="app_stats">App Stats</string>
 </resources>

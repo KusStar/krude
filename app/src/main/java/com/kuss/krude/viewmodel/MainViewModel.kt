@@ -47,13 +47,16 @@ data class MainState(
     val searchResult: List<SearchResultItem> = listOf(),
     val scrollbarItems: List<String> = listOf(),
     val currentScrollbarIndex: Int = 0,
-    val showAppDetailSheet: Boolean = false,
-    val selectedDetailApp: AppInfo? = null,
     val showAppUsageSheet: Boolean = false,
     val showMoreSheet: Boolean = false,
     val keywordStarSet: Set<String> = setOf(),
     val hidden: Set<String> = setOf(),
     val extensionMap: Map<String, Extension> = mapOf()
+)
+
+data class AppStatsModalState(
+    val appInfo: AppInfo? = null,
+    val visible: Boolean = false,
 )
 
 class MainViewModel : ViewModel() {
@@ -85,6 +88,11 @@ class MainViewModel : ViewModel() {
 
     val starItemState: StateFlow<StarItemState>
         get() = _starItemState
+
+    private val _appStatsModalState = MutableStateFlow(AppStatsModalState())
+
+    val appStatsModalState: StateFlow<AppStatsModalState>
+        get() = _appStatsModalState
 
     private lateinit var messageBarState: MessageBarState
 
@@ -236,7 +244,7 @@ class MainViewModel : ViewModel() {
 
         FilterHelper.getSorted(apps).let { sorted ->
             _state.update { mainState ->
-                mainState.copy(apps = sorted, showAppDetailSheet = false)
+                mainState.copy(apps = sorted)
             }
         }
     }
@@ -253,7 +261,7 @@ class MainViewModel : ViewModel() {
             apps.removeAt(removedIndex)
 
             _state.update { mainState ->
-                mainState.copy(apps = apps, showAppDetailSheet = false)
+                mainState.copy(apps = apps)
             }
         }
     }
@@ -616,10 +624,11 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun setShowAppDetailSheet(visible: Boolean) {
-        _state.update { mainState ->
-            mainState.copy(
-                showAppDetailSheet = visible
+    fun setShowAppStatsModal(visible: Boolean, app: AppInfo? = null) {
+        _appStatsModalState.update { state ->
+            state.copy(
+                visible = visible,
+                appInfo = app
             )
         }
     }
@@ -636,14 +645,6 @@ class MainViewModel : ViewModel() {
         _state.update { mainState ->
             mainState.copy(
                 showMoreSheet = visible
-            )
-        }
-    }
-
-    fun setSelectedDetailApp(app: AppInfo) {
-        _state.update { mainState ->
-            mainState.copy(
-                selectedDetailApp = app
             )
         }
     }

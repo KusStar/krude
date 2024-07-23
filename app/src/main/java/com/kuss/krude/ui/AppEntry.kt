@@ -27,7 +27,7 @@ import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
-import com.kuss.krude.ui.components.search.AppDropdownType
+import com.kuss.krude.ui.components.AppDropdownType
 import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AppItemShimmer
 import com.kuss.krude.utils.ActivityHelper
@@ -88,9 +88,21 @@ fun AppEntry(
                 openApp(app, true)
             }
 
-            AppDropdownType.APP_DETAIL -> {
-                mainViewModel.setSelectedDetailApp(app)
-                mainViewModel.setShowAppDetailSheet(true)
+            AppDropdownType.APP_INFO -> {
+                ActivityHelper.toDetail(context, app.packageName)
+            }
+
+            AppDropdownType.HIDE -> {
+                mainViewModel.insertHidden(context, app.packageName)
+                mainViewModel.setShowAppStatsModal(false)
+            }
+
+            AppDropdownType.UNINSTALL -> {
+                ActivityHelper.toUninstall(context, app.packageName)
+            }
+
+            AppDropdownType.APP_STATS -> {
+                mainViewModel.setShowAppStatsModal(true, app)
 
                 focusManager.clearFocus()
             }
@@ -148,7 +160,7 @@ fun AppEntry(
                     onAppDropdown(app, type)
                 })
         }
-        AppDetailModal(mainViewModel)
+        AppStatsModal(mainViewModel)
         StarItemDialog(mainViewModel)
     } else {
         AlertDialog(

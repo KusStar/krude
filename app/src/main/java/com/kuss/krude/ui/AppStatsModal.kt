@@ -6,7 +6,6 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,14 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.HideSource
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -35,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -43,9 +34,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuss.krude.R
-import com.kuss.krude.db.AppInfo
-import com.kuss.krude.interfaces.SearchResultItem
-import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.utils.ActivityHelper
@@ -55,49 +43,21 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Collections
 
-@Composable
-fun JumpButton(text: String, icon: ImageVector, onClick: () -> Unit) {
-    TextButton(onClick = onClick) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                icon,
-                contentDescription = text,
-                modifier = Modifier.size(ButtonDefaults.IconSize)
-            )
-            Spacing(1)
-            Text(text = text)
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun AppDetailModal(mainViewModel: MainViewModel) {
+fun AppStatsModal(mainViewModel: MainViewModel) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
-    val uiState by mainViewModel.state.collectAsState()
-    val showAppDetailSheet = uiState.showAppDetailSheet
-    val selectedDetailApp = uiState.selectedDetailApp
-
-    fun openAppInfo(item: AppInfo) {
-        ActivityHelper.toDetail(context, item.packageName)
-    }
-
-    fun uninstallApp(item: AppInfo) {
-        ActivityHelper.toUninstall(context, item.packageName)
-    }
-
-    fun hideApp(app: AppInfo) {
-        mainViewModel.insertHidden(context, app.packageName)
-        mainViewModel.setShowAppDetailSheet(false)
-    }
+    val uiState by mainViewModel.appStatsModalState.collectAsState()
+    val showAppDetailSheet = uiState.visible
+    val selectedDetailApp = uiState.appInfo
 
     if (showAppDetailSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                mainViewModel.setShowAppDetailSheet(false)
+                mainViewModel.setShowAppStatsModal(false)
             },
             sheetState = sheetState,
             modifier = ModalSheetModifier
@@ -176,34 +136,6 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                         )
                     }
                     Spacing(3)
-                    // btns
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        JumpButton(stringResource(id = R.string.star), Icons.Default.Star) {
-                            mainViewModel.setStarItemDialogVisible(
-                                true,
-                                item = SearchResultItem(
-                                    SearchResultType.APP,
-                                    app = selectedDetailApp
-                                )
-                            )
-                        }
-                        JumpButton(stringResource(id = R.string.hide), Icons.Default.HideSource) {
-                            hideApp(app)
-                        }
-                        JumpButton(stringResource(id = R.string.app_info), Icons.Default.Info) {
-                            openAppInfo(app)
-                        }
-                        JumpButton(
-                            stringResource(id = R.string.uninstall_app),
-                            Icons.Default.Delete
-                        ) {
-                            uninstallApp(app)
-                        }
-                    }
-                    Spacing(3)
                     val activitiesListState = rememberLazyListState()
                     if (info.activities.isNotEmpty()) {
                         LazyColumn(
@@ -233,7 +165,6 @@ fun AppDetailModal(mainViewModel: MainViewModel) {
                                 }
                             }
                             items(info.activities.filter { it.exported && it.enabled }) {
-
                                 TextButton(onClick = {
                                     val intent =
                                         context.packageManager.getLaunchIntentForPackage(it.packageName)

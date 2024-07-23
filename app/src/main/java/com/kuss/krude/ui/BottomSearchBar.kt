@@ -63,6 +63,8 @@ import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.ExtensionType
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
+import com.kuss.krude.ui.components.AppDropdownType
+import com.kuss.krude.ui.components.ExtensionDropdownType
 import com.kuss.krude.ui.components.MessageBar
 import com.kuss.krude.ui.components.ScrollWheel
 import com.kuss.krude.ui.components.Spacing
@@ -70,9 +72,7 @@ import com.kuss.krude.ui.components.internal.InternalExtensions
 import com.kuss.krude.ui.components.internal.SecondLevelArea
 import com.kuss.krude.ui.components.rememberMessageBarState
 import com.kuss.krude.ui.components.rememberScrollWheelState
-import com.kuss.krude.ui.components.search.AppDropdownType
 import com.kuss.krude.ui.components.search.CloseBtn
-import com.kuss.krude.ui.components.search.ExtensionDropdownType
 import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
 import com.kuss.krude.ui.components.search.MoreBtns
