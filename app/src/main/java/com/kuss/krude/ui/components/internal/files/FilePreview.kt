@@ -102,8 +102,8 @@ fun rememberFilePreviewState(): FilePreviewState {
     return remember { FilePreviewState() }
 }
 
-private fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
-    return context.contentResolver.openInputStream(uri)?.use {
+private fun loadBitmapFromFile(file: File): Bitmap? {
+    return FileHelper.openInputStream(file)?.use {
         BitmapFactory.decodeStream(it)
     }
 }
@@ -122,7 +122,7 @@ fun getFileMimeType(context: Context, uri: Uri): String {
 fun ImageFilePreview(file: File) {
     val context = LocalContext.current
     val bitmap = remember(file) {
-        loadBitmapFromUri(context, getUriFromFile(context, file))
+        loadBitmapFromFile(file)
     }
     bitmap?.let {
         Image(bitmap = it.asImageBitmap(), contentDescription = "Preview Image")
@@ -139,8 +139,8 @@ fun formatDuration(int: Int): String {
     return "%02d:%02d".format(minutes, remainingSeconds)
 }
 
-private fun readTextFileFromUri(context: Context, uri: Uri): List<String> {
-    val inputStream = context.contentResolver.openInputStream(uri)
+private fun readTextFile(file: File): List<String> {
+    val inputStream = FileHelper.openInputStream(file)
     val reader = BufferedReader(InputStreamReader(inputStream))
     val list = mutableListOf<String>()
     reader.use { r ->
@@ -399,8 +399,7 @@ fun TextFilePreview(file: File) {
     LaunchedEffect(file) {
         scope.launch {
             withContext(IO) {
-                val uri = getUriFromFile(context, file)
-                textLines = readTextFileFromUri(context, uri)
+                textLines = readTextFile(file)
             }
         }
     }

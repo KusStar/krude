@@ -19,6 +19,8 @@ import com.kuss.krude.shizuku.FileExplorerServiceManager
 import com.kuss.krude.shizuku.IFileExplorerService
 import com.kuss.krude.shizuku.bean.BeanFile
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.text.DecimalFormat
 import kotlin.math.ln
 import kotlin.math.pow
@@ -51,6 +53,19 @@ object FileHelper {
         return ArrayList()
     }
 
+    private fun openInputStreamByShizuku(path: String?): InputStream? {
+        try {
+            val pfd = iFileExplorerService!!.openPfd(path)
+            val fileInputStream = FileInputStream(pfd.fileDescriptor)
+            return fileInputStream
+        } catch (e: NullPointerException) {
+            e.printStackTrace()
+        } catch (e: RemoteException) {
+            e.printStackTrace()
+        }
+        return null
+    }
+
     fun listFiles(file: File): List<BeanFile>? {
         return if (FileExplorerServiceManager.isBind) {
             listFilesByShizuku(file.path)
@@ -58,6 +73,14 @@ object FileHelper {
             file.listFiles()?.map {
                 BeanFile(it)
             }
+        }
+    }
+
+    fun openInputStream(file: File): InputStream? {
+        return if (FileExplorerServiceManager.isBind) {
+            openInputStreamByShizuku(file.path)
+        } else {
+            file.inputStream()
         }
     }
 

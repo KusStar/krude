@@ -6,4 +6,6 @@ import com.kuss.krude.shizuku.bean.BeanFile;
 
 interface IFileExplorerService {
     List<BeanFile> listFiles(String path);
+
+    ParcelFileDescriptor openPfd(String path);
 }
