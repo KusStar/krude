@@ -15,8 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,17 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
-import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.ui.components.internal.files.FileHelper
-import com.kuss.krude.ui.components.search.AsyncAppIcon
-import com.kuss.krude.shizuku.ShizukuHelper.SHIZUKU_INSTALL_PAGE
-import com.kuss.krude.shizuku.ShizukuHelper.checkShizukuPermission
 import com.kuss.krude.shizuku.ShizukuHelper.getActivityManager
 import com.kuss.krude.shizuku.ShizukuHelper.getActivityTaskManager
 import com.kuss.krude.shizuku.ShizukuHelper.getAllTasks
+import com.kuss.krude.shizuku.ShizukuStatusChecklist
 import com.kuss.krude.shizuku.rememberShizukuState
+import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.internal.files.FileHelper
+import com.kuss.krude.ui.components.search.AsyncAppIcon
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -193,37 +189,7 @@ fun KillExtension(focusRequester: FocusRequester) {
                 }
             }
         } else {
-            val uriHandler = LocalUriHandler.current
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Shizuku installed", color = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (shizukuState.isInstalled) {
-                        Icon(imageVector = Icons.Default.Done, contentDescription = "done")
-                    } else {
-                        Button(onClick = {
-                            uriHandler.openUri(SHIZUKU_INSTALL_PAGE)
-                        }) {
-                            Text(text = "To install")
-                        }
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Shizuku granted", color = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (shizukuState.hasPermission) {
-                        Icon(imageVector = Icons.Default.Done, contentDescription = "done")
-                    } else {
-                        Button(onClick = {
-                            if (checkShizukuPermission()) {
-                                shizukuState.setHasPermission(true)
-                            }
-                        }) {
-                            Text(text = "To grant")
-                        }
-                    }
-                }
-            }
+            ShizukuStatusChecklist(shizukuState)
         }
     }
 }

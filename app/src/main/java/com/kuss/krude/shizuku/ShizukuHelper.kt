@@ -5,8 +5,18 @@ import android.app.IActivityManager
 import android.app.IActivityTaskManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.provider.Browser
 import android.view.Display
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -14,12 +24,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.kuss.krude.shizuku.ShizukuHelper.SHIZUKU_INSTALL_PAGE
 import com.kuss.krude.shizuku.ShizukuHelper.checkShizukuInstalled
 import com.kuss.krude.shizuku.ShizukuHelper.checkShizukuPermission
+import com.kuss.krude.ui.theme.errorText
+import com.kuss.krude.ui.theme.successText
+import com.kuss.krude.utils.ActivityHelper
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
@@ -102,11 +120,74 @@ fun rememberShizukuState(): ShizukuState {
     return shizukuState
 }
 
+
+@Composable
+fun ShizukuStatusChecklist(shizukuState: ShizukuState) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    Column {
+        StatusItem(
+            text = "Shizuku installed",
+            enabled = shizukuState.isInstalled,
+            toEnableText = "To install"
+        ) {
+            uriHandler.openUri(SHIZUKU_INSTALL_PAGE)
+        }
+        if (shizukuState.isInstalled) {
+            StatusItem(
+                text = "Shizuku connected",
+                enabled = shizukuState.hasBinder,
+                toEnableText = "To connect"
+            ) {
+                context.packageManager.getLaunchIntentForPackage(ShizukuHelper.SHIZUKU_PACKAGE_NAME)
+                    ?.let { ActivityHelper.startIntentWithTransition(context, it) }
+            }
+            if (shizukuState.hasBinder) {
+                StatusItem(
+                    text = "Shizuku permission",
+                    enabled = shizukuState.hasPermission,
+                    toEnableText = "To grant"
+                ) {
+                    if (checkShizukuPermission()) {
+                        shizukuState.setHasPermission(true)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatusItem(text: String, enabled: Boolean, toEnableText: String, toEnable: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.height(48.dp)) {
+        Text(text = text, color = MaterialTheme.colorScheme.secondary)
+        Spacer(modifier = Modifier.weight(1f))
+        if (enabled) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "done",
+                tint = MaterialTheme.colorScheme.successText
+            )
+        } else {
+            TextButton(onClick = {
+                toEnable()
+            }) {
+                Text(text = toEnableText)
+            }
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "done",
+                tint = MaterialTheme.colorScheme.errorText
+            )
+        }
+    }
+}
+
 object ShizukuHelper {
 
     private const val MAX_TASKS_NUM = 1000
     private const val REQUEST_CODE = 2024
-    private const val SHIZUKU_PACKAGE_NAME = "moe.shizuku.privileged.api"
+    const val SHIZUKU_PACKAGE_NAME = "moe.shizuku.privileged.api"
     const val SHIZUKU_INSTALL_PAGE = "https://shizuku.rikka.app/introduction/"
 
     fun getActivityTaskManager(): IActivityTaskManager {
@@ -154,6 +235,9 @@ object ShizukuHelper {
 
     // https://github.com/RikkaApps/Shizuku-API/tree/master?tab=readme-ov-file#request-permission
     fun checkShizukuPermission(): Boolean {
+        if (!Shizuku.pingBinder()) {
+            return false;
+        }
         if (Shizuku.isPreV11()) {
             // Pre-v11 is unsupported
             return false
