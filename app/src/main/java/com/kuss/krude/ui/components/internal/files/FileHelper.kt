@@ -38,6 +38,10 @@ object FileHelper {
     val ROOT_PATH: String = Environment.getExternalStoragePublicDirectory("").absolutePath
     private var iFileExplorerService: IFileExplorerService? = null
 
+    private fun runWithShizuku(path: String): Boolean {
+        return FileExplorerServiceManager.isBind && path.startsWith("$ROOT_PATH/Android")
+    }
+
     fun setIFileExplorerService(service: IFileExplorerService?) {
         iFileExplorerService = service
     }
@@ -67,7 +71,7 @@ object FileHelper {
     }
 
     fun listFiles(file: File): List<BeanFile>? {
-        return if (FileExplorerServiceManager.isBind) {
+        return if (runWithShizuku(file.path)) {
             listFilesByShizuku(file.path)
         } else {
             file.listFiles()?.map {
@@ -77,7 +81,7 @@ object FileHelper {
     }
 
     fun openInputStream(file: File): InputStream? {
-        return if (FileExplorerServiceManager.isBind) {
+        return if (runWithShizuku(file.path)) {
             openInputStreamByShizuku(file.path)
         } else {
             file.inputStream()
