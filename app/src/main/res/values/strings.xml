@@ -54,4 +54,5 @@
     <string name="app_detail">App Detail</string>
     <string name="star_keyword_supporting_text">Starred keyword item display first</string>
     <string name="app_stats">App Stats</string>
+    <string name="kill_running_apps">Kill running process</string>
 </resources>

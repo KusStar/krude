@@ -25,7 +25,7 @@ fun SecondLevelArea(
         }
         if (data.id == InternalExtensions.KILL_EXTENSION_ID) {
             HorizontalDivider()
-            KillExtension(focusRequester)
+            KillExtension(focusRequester, onBack)
         }
     }
 }
