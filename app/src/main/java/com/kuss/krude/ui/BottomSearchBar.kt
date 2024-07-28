@@ -137,8 +137,13 @@ fun BottomSearchBar(
 
     val scrollWheelState = rememberScrollWheelState()
 
+    var mounted by remember {
+        mutableStateOf(false)
+    }
+
     LaunchedEffect(Unit) {
         mainViewModel.initMessageBarState(messageBarState)
+        mounted = true
     }
 
     fun insertSearchHistory(text: String) {
@@ -232,14 +237,17 @@ fun BottomSearchBar(
                 mainViewModel.unregisterPackageEventReceiver(context)
             }
             if (event == Lifecycle.Event.ON_RESUME) {
-                coroutineScope.launch {
-                    // NOTE: delay hack
-                    delay(200)
-                    isFocused.value = true
-                    focusRequester.requestFocus()
-                }
-                if (searchState.text.isEmpty()) {
-                    mainViewModel.reloadAppsFromSystem(context)
+                if (mounted) {
+                    Timber.d("Lifecycle event: onResume call")
+                    coroutineScope.launch {
+                        // NOTE: delay hack
+                        delay(200)
+                        isFocused.value = true
+                        focusRequester.requestFocus()
+                    }
+                    if (searchState.text.isEmpty()) {
+                        mainViewModel.reloadAppsFromSystem(context)
+                    }
                 }
             }
         }
