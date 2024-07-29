@@ -19,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +55,9 @@ class ShizukuState {
     val hasPermission: Boolean
         get() = _hasPermission
 
+    val usable: Boolean
+        get() = isInstalled && hasBinder && hasPermission
+
     fun setInstalled(installed: Boolean) {
         _isInstalled = installed
     }
@@ -89,11 +91,15 @@ fun rememberShizukuState(): ShizukuState {
     }
     val lifeCycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
+    fun checkStates() {
         if (checkShizukuInstalled(context)) {
             shizukuState.setInstalled(true)
-            if (checkShizukuPermission()) {
-                shizukuState.setHasPermission(true)
+            if (Shizuku.pingBinder()) {
+                if (checkShizukuPermission()) {
+                    shizukuState.setHasPermission(true)
+                }
+            } else {
+                shizukuState.setHasBinder(false)
             }
         }
     }
@@ -105,6 +111,9 @@ fun rememberShizukuState(): ShizukuState {
                 Shizuku.addBinderReceivedListenerSticky(onBinderReceivedListener)
                 Shizuku.addBinderDeadListener(onBinderDeadListener)
                 Shizuku.addRequestPermissionResultListener(onRequestPermissionsResult);
+            }
+            if (event == Lifecycle.Event.ON_RESUME) {
+                checkStates()
             }
             if (event == Lifecycle.Event.ON_DESTROY) {
                 Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
@@ -235,9 +244,6 @@ object ShizukuHelper {
 
     // https://github.com/RikkaApps/Shizuku-API/tree/master?tab=readme-ov-file#request-permission
     fun checkShizukuPermission(): Boolean {
-        if (!Shizuku.pingBinder()) {
-            return false;
-        }
         if (Shizuku.isPreV11()) {
             // Pre-v11 is unsupported
             return false
