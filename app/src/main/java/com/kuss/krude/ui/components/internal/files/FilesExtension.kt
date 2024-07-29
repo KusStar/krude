@@ -29,6 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -55,12 +56,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.shizuku.FileExplorerServiceManager
+import com.kuss.krude.shizuku.ShizukuStatusChecklist
 import com.kuss.krude.shizuku.bean.BeanFile
+import com.kuss.krude.shizuku.rememberShizukuState
 import com.kuss.krude.ui.components.search.CloseBtn
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.FilterHelper
 import com.kuss.krude.utils.ToastUtils
-import com.kuss.krude.shizuku.rememberShizukuState
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
 import com.kuss.krude.viewmodel.extensions.FilesOrderBy
 import kotlinx.coroutines.Dispatchers.IO
@@ -365,6 +367,19 @@ fun FilesExtension(
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                    if (!shizukuState.usable && currentPath.contains("/Android")) {
+                        item {
+                            OutlinedCard(modifier = Modifier.padding(horizontal = 12.dp)) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = "Access /Android/ folder need to connect with Shizuku",
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                    ShizukuStatusChecklist(shizukuState)
                                 }
                             }
                         }
