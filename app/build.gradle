@@ -63,15 +63,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-            enable true
-            reset()
-            include 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
-            universalApk true
-        }
-    }
-
     buildTypes {
         release {
             shrinkResources true
@@ -101,6 +92,7 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    dynamicFeatures = [':scanner']
 
     // applicationVariants are e.g. debug, release
     android.applicationVariants.configureEach { variant ->
@@ -108,8 +100,7 @@ android {
         variant.outputs.each { output ->
             def versionCodes = ['armeabi-v7a': 2, 'arm64-v8a': 3, 'x86': 4, 'x86_64': 5]
             def abi = output.getFilter(com.android.build.OutputFile.ABI)
-            output.versionCodeOverride =
-                    versionCodes.get(abi, 0) * 1000000 + android.defaultConfig.versionCode
+            output.versionCodeOverride = versionCodes.get(abi, 0) * 1000000 + android.defaultConfig.versionCode
         }
     }
 }
@@ -154,12 +145,7 @@ dependencies {
     implementation libs.cascade.compose
     implementation libs.lazycolumnscrollbar
     // extensions
-    implementation libs.camera.view
-    implementation(libs.camera.camera2)
-    implementation libs.androidx.camera.lifecycle
-    implementation libs.androidx.camera.mlkit.vision
     implementation libs.accompanist.permissions
-    implementation libs.barcode.scanning
     implementation libs.hiddenapibypass
     implementation libs.shizuku.api
     implementation libs.shizuku.provider
