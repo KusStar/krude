@@ -25,9 +25,6 @@ jobs:
         run: |
           sh ./bump.sh
   
-      - name: Build Debug
-        run: ./gradlew assembleDebug
-
       - name: Build Release
         run: ./gradlew assembleRelease
 
@@ -39,4 +36,4 @@ jobs:
           title: 'Weekly Debug & Release Build'
           files: |
             ./app/build/outputs/apk/release/*.apk
-            ./app/build/outputs/apk/debug/*.apk
+            ./scanner/build/outputs/apk/release/*.apk
