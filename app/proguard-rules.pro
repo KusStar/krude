@@ -58,5 +58,7 @@
 -keep interface android.app.IActivityManager { *; }
 -keep class android.app.IActivityManager$Stub { *; }
 
+-keep interface com.kuss.krude.shizuku.** { *; }
+-keep class com.kuss.krude.shizuku.** { *; }
 -keep interface com.kuss.krude.scanner.** { *; }
 -keep class com.kuss.krude.scanner.** { *; }
