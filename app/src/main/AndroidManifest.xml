@@ -26,6 +26,7 @@
 
     <dist:module dist:instant="true" />
 
+
     <application
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
@@ -50,6 +51,10 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:authorities="${applicationId}.mlkitinitprovider"
+            tools:node="remove" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

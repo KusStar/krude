@@ -10,4 +10,10 @@
         </dist:delivery>
         <dist:fusing dist:include="false" />
     </dist:module>
+
+    <application>
+        <provider
+            android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+            android:authorities="${applicationId}.mlkitinitprovider" />
+    </application>
 </manifest>
