@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.kuss.krude.utils.StringHelper
 import com.kuss.krude.utils.ToastUtils
 import com.kuss.krude.utils.applyIf
 import com.kuss.krude.viewmodel.extensions.FilesExtensionViewModel
@@ -129,13 +130,18 @@ fun TopTab(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
+                            val text = remember(path) {
+                                StringHelper.middleEllipsis(
+                                    if (path.startsWith(FileHelper.PATH_PREFIX)) FileHelper.formatPath(
+                                        path
+                                    ) else path.ifEmpty { "~" }
+                                )
+                            }
                             Text(
-                                text = if (path.startsWith(FileHelper.PATH_PREFIX)) FileHelper.formatPath(
-                                    path
-                                ) else path.ifEmpty { "~" },
-                                modifier = Modifier.widthIn(max = 128.dp),
+                                text = text,
+                                modifier = Modifier.widthIn(max = 168.dp),
                                 textAlign = TextAlign.Center,
-                                maxLines = 2,
+                                maxLines = 1,
                             )
                             AnimatedVisibility(index > 0 && active) {
                                 CompositionLocalProvider(
