@@ -8,6 +8,26 @@
 
 > All in one app and workflow launcher / 小而美的应用启动器。Built with Jetpack Compose.
 
+## Captures
+
+- Search apps or extensions to open
+
+<div align="center">
+<video src="https://github.com/user-attachments/assets/f7daf9e0-ef6e-4e22-a325-c4904f874b30" />
+</div>
+
+- Internal Extension - Files(with Shizuku)
+
+<div align="center">
+<video src="https://github.com/user-attachments/assets/32f41f0e-189d-496a-af3a-4c1f31e39b27" />
+</div>
+
+- Internal Extension - Kill Process(with Shizuku)
+
+<div align="center">
+<video src="https://github.com/user-attachments/assets/b8901e4b-cdb7-4c66-b280-0564683403ab" />
+</div>
+
 ## Features
 
 - 使用拼音/首字母搜索打开应用
