@@ -285,7 +285,7 @@ fun T9SoftKeyboardView(
                             Text(
                                 text = key,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 color = keyColor,
                                 textAlign = TextAlign.Center
                             )
