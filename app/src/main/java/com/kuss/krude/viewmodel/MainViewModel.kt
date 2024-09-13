@@ -685,79 +685,17 @@ class MainViewModel : ViewModel() {
             val apps = _state.value.apps
             val extensions = getExtensionsWithInternal()
 
-            val searchResult = apps.map { SearchResultItem(it) }.toMutableList()
+            val searchData = apps.map { SearchResultItem(it) }.toMutableList()
 
             if (enableExtension && extensions.isNotEmpty()) {
-                searchResult.addAll(
+                searchData.addAll(
                     extensions.map {
                         SearchResultItem(it)
                     }
                 )
             }
 
-            val filterResult = if (fuzzy) {
-                // fuzzy search
-                searchResult
-                    .map { it ->
-                        val ratio = if (it.isApp()) {
-                            val app = it.asApp()!!
-                            val appAliasKeyword = getAppAliasKeyword(app)
-                            FuzzySearch.partialRatio(
-                                app.abbr.lowercase() + " " + app.filterTarget.lowercase() + appAliasKeyword.lowercase(),
-                                search
-                            )
-                        } else if (it.isExtension()) {
-                            val extension = it.asExtension()!!
-                            val extensionAliasKeyword = getExtensionAliasKeyword(extension)
-                            val filterTargetLower = extension.filterTarget?.lowercase() ?: ""
-                            FuzzySearch.partialRatio(
-                                extension.name.lowercase() + " " + filterTargetLower + extensionAliasKeyword,
-                                search
-                            )
-                        } else 0
-
-                        Fuzzy(it, ratio)
-                    }
-                    .filter {
-                        (it.ratio >= 50)
-                    }
-                    .sortedByDescending {
-                        val priority = it.resultItem.getPriority()
-                        it.ratio * (priority + 1)
-                    }
-                    .map {
-                        it.resultItem
-                    }
-            } else {
-                // exact search
-                searchResult.filter {
-                    if (it.isApp()) {
-                        val app = it.asApp()!!
-                        val appAliasKeyword = getAppAliasKeyword(app)
-
-                        val abbrContains = app.abbr.lowercase()
-                            .contains(search)
-                        val filterTargetContains = app.filterTarget.lowercase()
-                            .contains(search)
-                        val aliasContains = appAliasKeyword.lowercase().contains(search)
-
-                        return@filter abbrContains || filterTargetContains || aliasContains
-                    } else if (it.isExtension()) {
-                        val extension = it.asExtension()!!
-                        val extensionAliasKeyword = getExtensionAliasKeyword(extension)
-
-                        val aliasContains = extensionAliasKeyword.lowercase().contains(search)
-                        val nameContains = extension.name.lowercase().contains(search)
-                        val filterTargetContains =
-                            extension.filterTarget?.lowercase()?.contains(search)
-
-                        return@filter nameContains || filterTargetContains == true || aliasContains
-                    }
-                    return@filter true
-                }.sortedByDescending {
-                    it.getPriority()
-                }
-            }
+            val filterResult = filterSearchData(search, searchData, fuzzy)
 
             val (starSet, finalResult) = filterKeywordStars(
                 filterResult,
@@ -769,6 +707,77 @@ class MainViewModel : ViewModel() {
                 mainState.copy(keywordStarSet = starSet, searchResult = finalResult)
             }
         }
+    }
+
+    private fun filterSearchData(
+        search: String,
+        searchData: List<SearchResultItem>,
+        fuzzy: Boolean
+    ): List<SearchResultItem> {
+        val filterResult = if (fuzzy) {
+            // fuzzy search
+            searchData
+                .map { it ->
+                    val ratio = if (it.isApp()) {
+                        val app = it.asApp()!!
+                        val appAliasKeyword = getAppAliasKeyword(app)
+                        FuzzySearch.partialRatio(
+                            app.abbr.lowercase() + " " + app.filterTarget.lowercase() + appAliasKeyword.lowercase(),
+                            search
+                        )
+                    } else if (it.isExtension()) {
+                        val extension = it.asExtension()!!
+                        val extensionAliasKeyword = getExtensionAliasKeyword(extension)
+                        val filterTargetLower = extension.filterTarget?.lowercase() ?: ""
+                        FuzzySearch.partialRatio(
+                            extension.name.lowercase() + " " + filterTargetLower + extensionAliasKeyword,
+                            search
+                        )
+                    } else 0
+
+                    Fuzzy(it, ratio)
+                }
+                .filter {
+                    (it.ratio >= 50)
+                }
+                .sortedByDescending {
+                    val priority = it.resultItem.getPriority()
+                    it.ratio * (priority + 1)
+                }
+                .map {
+                    it.resultItem
+                }
+        } else {
+            // exact search
+            searchData.filter {
+                if (it.isApp()) {
+                    val app = it.asApp()!!
+                    val appAliasKeyword = getAppAliasKeyword(app)
+
+                    val abbrContains = app.abbr.lowercase()
+                        .contains(search)
+                    val filterTargetContains = app.filterTarget.lowercase()
+                        .contains(search)
+                    val aliasContains = appAliasKeyword.lowercase().contains(search)
+
+                    return@filter abbrContains || filterTargetContains || aliasContains
+                } else if (it.isExtension()) {
+                    val extension = it.asExtension()!!
+                    val extensionAliasKeyword = getExtensionAliasKeyword(extension)
+
+                    val aliasContains = extensionAliasKeyword.lowercase().contains(search)
+                    val nameContains = extension.name.lowercase().contains(search)
+                    val filterTargetContains =
+                        extension.filterTarget?.lowercase()?.contains(search)
+
+                    return@filter nameContains || filterTargetContains == true || aliasContains
+                }
+                return@filter true
+            }.sortedByDescending {
+                it.getPriority()
+            }
+        }
+        return filterResult
     }
 
     private fun loadAllStarMap(context: Context) {
