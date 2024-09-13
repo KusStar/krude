@@ -77,6 +77,7 @@ import com.kuss.krude.ui.components.search.ExtensionList
 import com.kuss.krude.ui.components.search.MainList
 import com.kuss.krude.ui.components.search.MoreBtns
 import com.kuss.krude.ui.components.search.SoftKeyboardView
+import com.kuss.krude.ui.components.search.T9SoftKeyboardView
 import com.kuss.krude.utils.ExtensionHelper
 import com.kuss.krude.utils.Reverse
 import com.kuss.krude.viewmodel.MainViewModel
@@ -512,40 +513,68 @@ fun BottomSearchBar(
                     enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
                     exit = slideOutVertically() + shrinkVertically() + fadeOut()
                 ) {
-                    SoftKeyboardView(
-                        showLeftSideBackspace = settingsState.showLeftSideBackSpace,
-                        scale = settingsState.customKeyboardScale,
-                        offset = settingsState.customKeyboardOffset,
-                        onBack = {
-                            isFocused.value = false
-                            focusManager.clearFocus()
-                        }, onClick = { key, isDeleting ->
-                            val sb = StringBuilder(searchState.text)
-                            var range = searchState.selection
-                            if (isDeleting) {
-                                if (range.end > 0) {
-                                    sb.deleteCharAt(range.end - 1)
-                                    range = TextRange(range.end - 1)
+                    if (settingsState.embeddedKeyboardType == "T9") {
+                        T9SoftKeyboardView(
+                            scale = settingsState.customKeyboardScale,
+                            offset = settingsState.customKeyboardOffset,
+                            onBack = {
+                                isFocused.value = false
+                                focusManager.clearFocus()
+                            }, onClick = { key, isDeleting ->
+                                val sb = StringBuilder(searchState.text)
+                                var range = searchState.selection
+                                if (isDeleting) {
+                                    if (range.end > 0) {
+                                        sb.deleteCharAt(range.end - 1)
+                                        range = TextRange(range.end - 1)
+                                    }
+                                } else {
+                                    if (range.end < searchState.text.length)
+                                        sb.insert(range.end, key)
+                                    else
+                                        sb.append(key)
+                                    range = TextRange(range.end + 1)
                                 }
-                            } else {
-                                if (range.end < searchState.text.length)
-                                    sb.insert(range.end, key)
-                                else
-                                    sb.append(key)
-                                range = TextRange(range.end + 1)
+                                onTextChange(TextFieldValue(sb.toString(), selection = range))
+                            }) {
+                            Spacing(x = 2)
+                        }
+                    } else {
+                        SoftKeyboardView(
+                            showLeftSideBackspace = settingsState.showLeftSideBackSpace,
+                            scale = settingsState.customKeyboardScale,
+                            offset = settingsState.customKeyboardOffset,
+                            onBack = {
+                                isFocused.value = false
+                                focusManager.clearFocus()
+                            }, onClick = { key, isDeleting ->
+                                val sb = StringBuilder(searchState.text)
+                                var range = searchState.selection
+                                if (isDeleting) {
+                                    if (range.end > 0) {
+                                        sb.deleteCharAt(range.end - 1)
+                                        range = TextRange(range.end - 1)
+                                    }
+                                } else {
+                                    if (range.end < searchState.text.length)
+                                        sb.insert(range.end, key)
+                                    else
+                                        sb.append(key)
+                                    range = TextRange(range.end + 1)
+                                }
+                                onTextChange(TextFieldValue(sb.toString(), selection = range))
+                            }) {
+                            Spacing(x = 2)
+                            val wheelCount = remember(searchResult) {
+                                searchResult.filter { it.isExtension() }.size
                             }
-                            onTextChange(TextFieldValue(sb.toString(), selection = range))
-                        }) {
-                        Spacing(x = 2)
-                        val wheelCount = remember(searchResult) {
-                            searchResult.filter { it.isExtension() }.size
+                            if (wheelCount > 0) {
+                                ScrollWheel(count = wheelCount, state = scrollWheelState)
+                            } else {
+                                Spacer(modifier = Modifier.height(24.dp))
+                            }
+                            Spacing(x = 1)
                         }
-                        if (wheelCount > 0) {
-                            ScrollWheel(count = wheelCount, state = scrollWheelState)
-                        } else {
-                            Spacer(modifier = Modifier.height(24.dp))
-                        }
-                        Spacing(x = 1)
                     }
                 }
             }

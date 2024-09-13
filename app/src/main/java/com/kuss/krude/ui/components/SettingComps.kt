@@ -60,6 +60,7 @@ import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.DEFAULT_SETTINGS_STATE
 import com.kuss.krude.viewmodel.settings.DominantHandDefaults
+import com.kuss.krude.viewmodel.settings.EmbeddedKeyboardTypes
 import com.kuss.krude.viewmodel.settings.ExtensionDisplayModeDefaults
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import me.zhanghai.compose.preference.ListPreference
@@ -263,6 +264,25 @@ fun SettingSections(
 
         AnimatedVisibility(visible = settingsState.useEmbedKeyboard) {
             Column {
+                // settingsState.embeddedKeyboardType
+                ProvidePreferenceTheme {
+                    ListPreference(
+                        value = settingsState.embeddedKeyboardType,
+                        onValueChange = {
+                            settingsViewModel.setEmbeddedKeyboardType(it)
+                        },
+                        values = EmbeddedKeyboardTypes.LIST,
+                        title = { Text(text = stringResource(id = R.string.embedded_keyboard_type)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = null
+                            )
+                        },
+                        summary = { Text(text = settingsState.embeddedKeyboardType) }
+                    )
+                }
                 // settingsState.showLeftSideBackSpace
                 SettingsCheckbox(
                     icon = {

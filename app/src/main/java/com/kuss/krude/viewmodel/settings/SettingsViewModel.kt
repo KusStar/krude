@@ -102,6 +102,13 @@ class SettingsViewModel(private val settingsRepository: SettingsRepository) : Vi
         }
     }
 
+    fun setEmbeddedKeyboardType(type: String) {
+        viewModelScope.launch {
+            settingsRepository.saveStringSetting(SettingsRepository.EMBEDDED_KEYBOARD_TYPE, type)
+            loadSettings()
+        }
+    }
+
     fun setExtensionDisplayMode(mode: String) {
         viewModelScope.launch {
             settingsRepository.saveStringSetting(SettingsRepository.EXTENSION_DISPLAY_MODE_KEY, mode)

@@ -38,6 +38,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
@@ -50,9 +51,9 @@ private fun getKeymaps(showLeftSideBackspace: Boolean): List<String> {
     return listOf("qwertyuiop", "asdfghjkl", bottomKeys)
 }
 
-fun getKeyboardWidth(keyNum: Int, screenWidth: Dp, padding: Dp): Dp {
+fun getKeyboardWidth(keyNum: Int, screenWidth: Dp, padding: Dp, minWidth: Int = 42): Dp {
     val keyWidth = (screenWidth - padding * (keyNum - 2)) / keyNum
-    return min(keyWidth, 42.dp)
+    return min(keyWidth, minWidth.dp)
 }
 
 val KEY_PADDING = 3.dp
@@ -166,6 +167,127 @@ fun SoftKeyboardView(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp,
                                 color = keyColor
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            bottomContent()
+        }
+    }
+}
+
+@Composable
+fun T9SoftKeyboardView(
+    onBack: () -> Unit,
+    onClick: (key: Char, isDeleting: Boolean) -> Unit,
+    offset: Int = 0,
+    scale: Float = 1f,
+    keyBackground: Color = MaterialTheme.colorScheme.secondary,
+    keyColor: Color = MaterialTheme.colorScheme.onSecondary,
+    deleteKeyBackground: Color = MaterialTheme.colorScheme.secondaryContainer,
+    deleteKeyColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    bottomContent: @Composable () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+
+    // Updated keymaps for T9 keypad
+    val keymaps = listOf(
+        listOf("1", "2\nABC", "3\nDEF"),
+        listOf("4\nGHI", "5\nJKL", "6\nMNO"),
+        listOf("7\nPQRS", "8\nTUV", "9\nWXYZ"),
+        listOf("-", "0", "~")
+    )
+
+    val keyWidth = 64.dp
+
+    BackHandler(enabled = true, onBack = onBack)
+
+    LazyColumn(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp)
+            .scale(scale)
+            .absoluteOffset(x = offset.dp)
+    ) {
+        items(keymaps) { row ->
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                items(row) { key ->
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isDeleting = key == "-" || key == "~"
+
+                    fun send() {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClick(key.first(), isDeleting)
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .height(keyWidth * 1.2f)
+                            .width(keyWidth)
+                            .padding(
+                                horizontal = KEY_PADDING,
+                                vertical = KEY_PADDING * 2
+                            )
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isDeleting)
+                                    deleteKeyBackground
+                                else
+                                    keyBackground
+                            )
+                            .indication(
+                                interactionSource = interactionSource,
+                                indication = LocalIndication.current
+                            )
+                            .pointerInput(interactionSource) {
+                                detectTapGestures(
+                                    onPress = { offset ->
+                                        val press = PressInteraction.Press(offset)
+                                        interactionSource.emit(press)
+
+                                        send()
+
+                                        val job = coroutineScope.launch {
+                                            delay(500)
+                                            while (true) {
+                                                send()
+                                                delay(66)
+                                            }
+                                        }
+
+                                        tryAwaitRelease()
+                                        job.cancel()
+
+                                        interactionSource.emit(PressInteraction.Release(press))
+                                    }
+                                )
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isDeleting) {
+                            Icon(
+                                Icons.Filled.Clear,
+                                contentDescription = "Delete",
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                                tint = deleteKeyColor
+                            )
+                        } else {
+                            Text(
+                                text = key,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = keyColor,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }

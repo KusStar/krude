@@ -55,4 +55,7 @@
     <string name="star_keyword_supporting_text">优先显示关键字星标条目</string>
     <string name="app_stats">应用分析</string>
     <string name="kill_running_apps">杀死应用进程</string>
+    <string name="apps">应用</string>
+    <string name="extensions">扩展</string>
+    <string name="embedded_keyboard_type">内置键盘类型</string>
 </resources>

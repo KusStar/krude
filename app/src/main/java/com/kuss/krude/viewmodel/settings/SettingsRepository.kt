@@ -17,6 +17,12 @@ object DominantHandDefaults {
     const val RIGHT = "right"
 }
 
+object EmbeddedKeyboardTypes {
+    val QWERTY = "QWERTY"
+    val T9 = "T9"
+    val LIST = listOf(QWERTY, T9)
+}
+
 object ExtensionDisplayModeDefaults {
     const val ON_TOP = "on_top"
     const val IN_LINE = "in_line"
@@ -31,6 +37,7 @@ data class SettingsState(
     val enableExtension: Boolean = true,
     val useEmbedKeyboard: Boolean = true,
     val showSearchHistory: Boolean = true,
+    val embeddedKeyboardType: String = EmbeddedKeyboardTypes.QWERTY,
     val showLeftSideBackSpace: Boolean = true,
     val dominantHand: String = DominantHandDefaults.LEFT,
     val extensionDisplayMode: String = ExtensionDisplayModeDefaults.ON_TOP,
@@ -48,12 +55,13 @@ val DEFAULT_SETTINGS_STATE = SettingsState()
 class SettingsRepository(private val context: Context) {
 
     companion object {
-        private val Context.dataStore by preferencesDataStore(name = if (BuildConfig.DEBUG) "settings_debug" else "settings" )
+        private val Context.dataStore by preferencesDataStore(name = if (BuildConfig.DEBUG) "settings_debug" else "settings")
         val AUTO_FOCUS_KEY = booleanPreferencesKey("auto_focus")
         val FUZZY_SEARCH_KEY = booleanPreferencesKey("fuzzy_search")
         val SHOW_USAGE_COUNT_KEY = booleanPreferencesKey("show_usage_count")
         val USE_EMBED_KEYBOARD_KEY = booleanPreferencesKey("use_embed_keyboard")
         val SHOW_SEARCH_HISTORY_KEY = booleanPreferencesKey("show_search_history")
+        val EMBEDDED_KEYBOARD_TYPE = stringPreferencesKey("embedded_keyboard_type")
         val SHOW_LEFT_SIDE_BACKSPACE_KEY = booleanPreferencesKey("show_left_side_backspace")
         val DOMINANT_HAND_KEY = stringPreferencesKey("dominant_hand")
         val ENABLE_EXTENSION_KEY = booleanPreferencesKey("enable_extension")
@@ -97,21 +105,36 @@ class SettingsRepository(private val context: Context) {
             SettingsState(
                 autoFocus = preferences[AUTO_FOCUS_KEY] ?: DEFAULT_SETTINGS_STATE.autoFocus,
                 fuzzySearch = preferences[FUZZY_SEARCH_KEY] ?: DEFAULT_SETTINGS_STATE.fuzzySearch,
-                showUsageCount = preferences[SHOW_USAGE_COUNT_KEY] ?: DEFAULT_SETTINGS_STATE.showUsageCount,
-                useEmbedKeyboard = preferences[USE_EMBED_KEYBOARD_KEY] ?: DEFAULT_SETTINGS_STATE.useEmbedKeyboard,
-                showSearchHistory = preferences[SHOW_SEARCH_HISTORY_KEY] ?: DEFAULT_SETTINGS_STATE.showSearchHistory,
-                showLeftSideBackSpace = preferences[SHOW_LEFT_SIDE_BACKSPACE_KEY] ?: DEFAULT_SETTINGS_STATE.showLeftSideBackSpace,
-                dominantHand = preferences[DOMINANT_HAND_KEY] ?: DEFAULT_SETTINGS_STATE.dominantHand,
-                enableExtension = preferences[ENABLE_EXTENSION_KEY] ?: DEFAULT_SETTINGS_STATE.enableExtension,
-                extensionDisplayMode = preferences[EXTENSION_DISPLAY_MODE_KEY] ?: DEFAULT_SETTINGS_STATE.extensionDisplayMode,
-                extensionGroupLayout = preferences[EXTENSION_GROUP_LAYOUT_KEY] ?: DEFAULT_SETTINGS_STATE.extensionGroupLayout,
-                customKeyboardScale = preferences[CUSTOM_KEYBOARD_SCALE_KEY] ?: DEFAULT_SETTINGS_STATE.customKeyboardScale,
-                customKeyboardOffset = preferences[CUSTOM_KEYBOARD_OFFSET_KEY] ?: DEFAULT_SETTINGS_STATE.customKeyboardOffset,
-                appItemHorizontal =  preferences[APP_ITEM_HORIZONTAL_KEY] ?: DEFAULT_SETTINGS_STATE.appItemHorizontal,
+                showUsageCount = preferences[SHOW_USAGE_COUNT_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.showUsageCount,
+                useEmbedKeyboard = preferences[USE_EMBED_KEYBOARD_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.useEmbedKeyboard,
+                showSearchHistory = preferences[SHOW_SEARCH_HISTORY_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.showSearchHistory,
+                embeddedKeyboardType = preferences[EMBEDDED_KEYBOARD_TYPE]
+                    ?: DEFAULT_SETTINGS_STATE.embeddedKeyboardType,
+                showLeftSideBackSpace = preferences[SHOW_LEFT_SIDE_BACKSPACE_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.showLeftSideBackSpace,
+                dominantHand = preferences[DOMINANT_HAND_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.dominantHand,
+                enableExtension = preferences[ENABLE_EXTENSION_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.enableExtension,
+                extensionDisplayMode = preferences[EXTENSION_DISPLAY_MODE_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.extensionDisplayMode,
+                extensionGroupLayout = preferences[EXTENSION_GROUP_LAYOUT_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.extensionGroupLayout,
+                customKeyboardScale = preferences[CUSTOM_KEYBOARD_SCALE_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.customKeyboardScale,
+                customKeyboardOffset = preferences[CUSTOM_KEYBOARD_OFFSET_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.customKeyboardOffset,
+                appItemHorizontal = preferences[APP_ITEM_HORIZONTAL_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.appItemHorizontal,
                 // dev mode
                 devMode = preferences[DEV_MODE_KEY] ?: DEFAULT_SETTINGS_STATE.devMode,
-                devExtension = preferences[DEV_EXTENSION_KEY] ?: DEFAULT_SETTINGS_STATE.devExtension,
-                devExtensionRepo =  preferences[DEV_EXTENSION_REPO_KEY] ?: DEFAULT_SETTINGS_STATE.devExtensionRepo,
+                devExtension = preferences[DEV_EXTENSION_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.devExtension,
+                devExtensionRepo = preferences[DEV_EXTENSION_REPO_KEY]
+                    ?: DEFAULT_SETTINGS_STATE.devExtensionRepo,
             )
         }
 }

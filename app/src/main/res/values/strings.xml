@@ -56,4 +56,7 @@
     <string name="app_stats">App Stats</string>
     <string name="kill_running_apps">Kill running process</string>
     <string name="title_scanner" translatable="false">scanner</string>
+    <string name="apps">Apps</string>
+    <string name="extensions">Extensions</string>
+    <string name="embedded_keyboard_type">Embedded keyboard type</string>
 </resources>
