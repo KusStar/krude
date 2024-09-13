@@ -1,14 +1,22 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,10 +25,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
@@ -29,11 +39,57 @@ import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.AppDropdownType
 import com.kuss.krude.ui.components.search.AppItem
-import com.kuss.krude.ui.components.search.AppItemShimmer
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import kotlinx.coroutines.launch
 
+@Composable
+fun AppsList(
+    modifier: Modifier = Modifier,
+    mainViewModel: MainViewModel,
+    openApp: (AppInfo) -> Unit,
+    onAppDropdown: (AppInfo, AppDropdownType) -> Unit
+) {
+    val uiState by mainViewModel.state.collectAsState()
+    val listState = rememberLazyStaggeredGridState()
+    val apps = uiState.apps
+    val scrollbarItems = uiState.scrollbarItems
+
+    val firstVisibleItemIndex by remember {
+        derivedStateOf { listState.firstVisibleItemIndex }
+    }
+    Row(modifier = modifier) {
+        LaunchedEffect(firstVisibleItemIndex) {
+            val next = scrollbarItems.indexOfFirst {
+                it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
+            }
+
+            mainViewModel.setSelectedHeaderIndex(next)
+        }
+        LazyVerticalStaggeredGrid(state = listState,
+            columns = StaggeredGridCells.Adaptive(128.dp),
+            // content padding
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                start = 12.dp, top = 16.dp, end = 12.dp, bottom = 12.dp
+            ),
+            content = {
+                if (apps.isNotEmpty()) {
+                    items(apps, key = { item -> item.packageName }) { item ->
+                        AppItem(item = item, onClick = {
+                            openApp(item)
+                        }, onDropdown = { type ->
+                            onAppDropdown(item, type)
+                        })
+                    }
+                }
+            })
+        AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AppEntry(
     mainViewModel: MainViewModel = viewModel(),
@@ -41,17 +97,11 @@ fun AppEntry(
 ) {
     val context = LocalContext.current
     val activity = LocalContext.current as Activity
-    val listState = rememberLazyStaggeredGridState()
     val focusManager = LocalFocusManager.current
 
     val uiState by mainViewModel.state.collectAsState()
     val missingPermission = uiState.missingPermission
-    val apps = uiState.apps
-    val scrollbarItems = uiState.scrollbarItems
 
-    val firstVisibleItemIndex by remember {
-        derivedStateOf { listState.firstVisibleItemIndex }
-    }
 
     LaunchedEffect(Unit) {
         mainViewModel.initSettingsViewModel(settingsViewModel)
@@ -76,10 +126,8 @@ fun AppEntry(
         when (type) {
             AppDropdownType.STAR -> {
                 mainViewModel.setStarItemDialogVisible(
-                    true,
-                    item = SearchResultItem(
-                        SearchResultType.APP,
-                        app = app
+                    true, item = SearchResultItem(
+                        SearchResultType.APP, app = app
                     )
                 )
             }
@@ -111,86 +159,81 @@ fun AppEntry(
 
     if (!missingPermission) {
         Column {
-            Row(modifier = Modifier.weight(1f, false)) {
-                LaunchedEffect(firstVisibleItemIndex) {
-                    val next = scrollbarItems.indexOfFirst {
-                        it == apps[firstVisibleItemIndex + 1].abbr.first().uppercase()
+            Column(modifier = Modifier.weight(1f, false)) {
+                val scope = rememberCoroutineScope()
+                val titles =
+                    listOf(stringResource(R.string.apps), stringResource(R.string.extensions))
+                val pagerState = rememberPagerState { titles.size }
+                SecondaryTabRow(selectedTabIndex = pagerState.currentPage) {
+                    titles.forEachIndexed { index, title ->
+                        Tab(
+                            selected = pagerState.currentPage == index,
+                            onClick = {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            },
+                            text = {
+                                Text(
+                                    text = title, maxLines = 1, overflow = TextOverflow.Ellipsis
+                                )
+                            })
                     }
-
-                    mainViewModel.setSelectedHeaderIndex(next)
                 }
+                HorizontalPager(pagerState) { tabIndex ->
+                    when (tabIndex) {
+                        0 -> {
+                            AppsList(
+                                modifier = Modifier.weight(1f, false),
+                                mainViewModel, openApp = {
+                                    openApp(it)
+                                }, onAppDropdown = { app, type ->
+                                    onAppDropdown(app, type)
+                                })
+                        }
 
-                LazyVerticalStaggeredGrid(
-                    state = listState,
-                    columns = StaggeredGridCells.Adaptive(128.dp),
-                    // content padding
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(
-                        start = 12.dp,
-                        top = 16.dp,
-                        end = 12.dp,
-                        bottom = 12.dp
-                    ),
-                    content = {
-                        if (apps.isNotEmpty()) {
-                            items(apps, key = { item -> item.packageName }) { item ->
-                                AppItem(item = item,
-                                    onClick = {
-                                        openApp(item)
-                                    }, onDropdown = { type ->
-                                        onAppDropdown(item, type)
-                                    })
-                            }
-                        } else {
-                            items(16) {
-                                AppItemShimmer()
+                        1 -> {
+                            // Extensions
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize(),
+                            ) {
+                                Text(text = "Extensions", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
-                )
-                AlphabetScrollbar(mainViewModel = mainViewModel, listState = listState)
+
+                }
+
             }
-            BottomSearchBar(
-                mainViewModel,
-                settingsViewModel,
-                openApp = {
-                    openApp(it)
-                },
-                onAppDropdown = { app, type ->
-                    onAppDropdown(app, type)
-                })
+            BottomSearchBar(mainViewModel, settingsViewModel, openApp = {
+                openApp(it)
+            }, onAppDropdown = { app, type ->
+                onAppDropdown(app, type)
+            })
         }
         AppStatsModal(mainViewModel)
         StarItemDialog(mainViewModel)
     } else {
-        AlertDialog(
-            title = {
-                Text(text = stringResource(id = R.string.missing_permission))
-            },
-            text = {
-                Text(text = stringResource(id = R.string.request_permission))
-            },
-            onDismissRequest = {
-                mainViewModel.loadApps(context)
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        ActivityHelper.toDetail(context, context.packageName)
-                    }
-                ) {
-                    Text(stringResource(id = R.string.go_grant))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        mainViewModel.loadApps(context)
-                    }
-                ) {
-                    Text(stringResource(id = R.string.granted))
-                }
+        AlertDialog(title = {
+            Text(text = stringResource(id = R.string.missing_permission))
+        }, text = {
+            Text(text = stringResource(id = R.string.request_permission))
+        }, onDismissRequest = {
+            mainViewModel.loadApps(context)
+        }, confirmButton = {
+            TextButton(onClick = {
+                ActivityHelper.toDetail(context, context.packageName)
+            }) {
+                Text(stringResource(id = R.string.go_grant))
             }
-        )
+        }, dismissButton = {
+            TextButton(onClick = {
+                mainViewModel.loadApps(context)
+            }) {
+                Text(stringResource(id = R.string.granted))
+            }
+        })
     }
 }
