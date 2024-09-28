@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.kuss.krude.R
+import com.kuss.krude.ui.components.MessageBar
+import com.kuss.krude.ui.components.MessageBarState
 import com.kuss.krude.ui.components.SettingSections
 import com.kuss.krude.utils.ModalSheetModifier
 import com.kuss.krude.viewmodel.MainViewModel
@@ -42,9 +44,11 @@ import kotlin.time.Duration
 fun MoreModal(
     refresh: () -> Unit,
     mainViewModel: MainViewModel,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    messageBarState: MessageBarState
 ) {
     val uiState by mainViewModel.state.collectAsState()
+
     val showMoreModal = uiState.showMoreSheet
     var showStarTable by remember {
         mutableStateOf(false)
@@ -81,6 +85,7 @@ fun MoreModal(
             sheetState = sheetState,
             modifier = ModalSheetModifier,
         ) {
+            MessageBar(state = messageBarState, topContent = {})
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier

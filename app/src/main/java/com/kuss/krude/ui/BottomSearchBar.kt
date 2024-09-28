@@ -584,7 +584,8 @@ fun BottomSearchBar(
     MoreModal(
         refresh = { refresh(settingsState.fuzzySearch) },
         mainViewModel = mainViewModel,
-        settingsViewModel = settingsViewModel
+        settingsViewModel = settingsViewModel,
+        messageBarState = messageBarState
     )
 
     AppUsageModal(mainViewModel)
