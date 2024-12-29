@@ -1,19 +1,30 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -24,8 +35,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -35,10 +49,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
+import com.kuss.krude.interfaces.Extension
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.AppDropdownType
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.search.AppItem
+import com.kuss.krude.ui.components.search.AsyncAppIcon
+import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
@@ -194,12 +212,70 @@ fun AppEntry(
 
                         1 -> {
                             // Extensions
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize(),
-                            ) {
-                                Text(text = "Extensions", color = MaterialTheme.colorScheme.primary)
+                            val extensions = uiState.extensionMap.values.toList()
+                            val appMap = uiState.originalApps.associateBy { it.packageName }
+                            val groupExtensions = groupExtensionsByRequired(extensions)
+                            LazyColumn(modifier = Modifier.fillMaxHeight()) {
+                                items(groupExtensions) { group ->
+                                    Column() {
+                                        var expanded by remember { mutableStateOf(true) }
+                                        Row(
+                                            modifier = Modifier.clickable {
+                                                expanded = !expanded
+                                            }.padding(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (appMap.containsKey(group.packageName)) {
+                                                appMap[group.packageName]?.let { app ->
+                                                    AsyncAppIcon(
+                                                        packageName = app.packageName,
+                                                        modifier = Modifier.size(48.dp)
+                                                    )
+                                                    Spacing(1)
+                                                    Text(
+                                                        app.label,
+                                                        modifier = Modifier.weight(1.0f)
+                                                    )
+                                                }
+                                            } else {
+                                                ExtensionIcon(iconSize = 48.dp)
+                                                Spacing(1)
+                                                Text("Standalone", modifier = Modifier.weight(1.0f))
+                                            }
+                                            Icon(
+                                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                contentDescription = "expandIcon",
+                                            )
+                                        }
+                                        AnimatedVisibility(visible = expanded) {
+                                            Column(modifier = Modifier.padding(8.dp)) {
+                                                Spacing(1)
+                                                group.extensions.forEachIndexed { index, extension ->
+                                                    Column {
+                                                        Text(
+                                                            extension.name,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                        )
+                                                        extension.description?.let { desc ->
+                                                            if (desc != extension.name) {
+                                                                Spacing(0.5f)
+                                                                Text(
+                                                                    desc,
+                                                                    color = MaterialTheme.colorScheme.secondary
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                    if (index != group.extensions.size - 1) {
+                                                        HorizontalDivider()
+                                                        Spacing(1)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -235,5 +311,22 @@ fun AppEntry(
                 Text(stringResource(id = R.string.granted))
             }
         })
+    }
+}
+
+data class ExtensionGroup(
+    val packageName: String,
+    val extensions: List<Extension>
+)
+
+fun groupExtensionsByRequired(extensions: List<Extension>): List<ExtensionGroup> {
+    // Group the extensions by their `required` field or use "@unknown@" if `required` is null or empty
+    val groupedByPackageName = extensions.groupBy {
+        it.required?.firstOrNull() ?: "@unknown@"
+    }
+
+    // Map each group to an ExtensionGroup instance
+    return groupedByPackageName.map { (packageName, extensions) ->
+        ExtensionGroup(packageName, extensions)
     }
 }
