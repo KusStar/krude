@@ -113,6 +113,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     // Fix Android 14 debug lag
     debugImplementation(libs.wytrace)
+    prereleaseImplementation(libs.wytrace.no.impl)
     releaseImplementation(libs.wytrace.no.impl)
     implementation libs.kotlin.stdlib
     implementation libs.androidx.lifecycle.runtime.compose
