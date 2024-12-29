@@ -111,6 +111,9 @@ composeCompiler {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    // Fix Android 14 debug lag
+    debugImplementation(libs.wytrace)
+    releaseImplementation(libs.wytrace.no.impl)
     implementation libs.kotlin.stdlib
     implementation libs.androidx.lifecycle.runtime.compose
     implementation libs.androidx.lifecycle.viewmodel.compose

@@ -16,6 +16,7 @@ import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.LocaleHelper
 import com.kuss.krude.utils.PinyinHelper
 import com.kuss.krude.utils.Umami
+import com.wy.lib.wytrace.ArtMethodTrace
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 
@@ -42,6 +43,8 @@ class MainActivity : ComponentActivity() {
         ActivityHelper.initActivity(this)
 
         Umami.trackInit()
+
+        ArtMethodTrace.fix14debugApp(this)
 
         setContent {
             Box(Modifier.safeDrawingPadding()) {

@@ -31,6 +31,7 @@ roomRuntime = "2.6.1"
 shizukuApi = "13.1.5"
 timber = "5.0.1"
 tinypinyin = "2.0.3.RELEASE"
+wytrace = "1.0.1"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -77,5 +78,7 @@ shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizukuApi" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizukuApi" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 tinypinyin = { module = "io.github.biezhi:TinyPinyin", version.ref = "tinypinyin" }
+wytrace = { module = "io.github.shiqos:wytrace", version.ref = "wytrace" }
+wytrace-no-impl = { module = "io.github.shiqos:wytrace-no-impl", version.ref = "wytrace" }
 
 [plugins]
