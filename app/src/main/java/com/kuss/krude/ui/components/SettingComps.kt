@@ -203,19 +203,6 @@ fun SettingSections(
                         mainViewModel.loadExtensions(context, true)
                     }
                 )
-                // extension list
-                SettingsMenuLink(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(id = R.string.extension_list)
-                        )
-                    },
-                    title = { Text(text = stringResource(id = R.string.extension_list)) },
-                    onClick = {
-
-                    }
-                )
                 if (settingsState.devMode) {
                     // settingsState.devExtension
                     SettingsCheckbox(

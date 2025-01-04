@@ -1,9 +1,9 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,20 +11,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -35,7 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -181,14 +174,14 @@ fun AppEntry(
                 val scope = rememberCoroutineScope()
                 val titles =
                     listOf(stringResource(R.string.apps), stringResource(R.string.extensions))
-                val pagerState = rememberPagerState { titles.size }
-                SecondaryTabRow(selectedTabIndex = pagerState.currentPage) {
+                var tabIndex by remember { mutableIntStateOf(0) }
+                SecondaryTabRow(selectedTabIndex = tabIndex) {
                     titles.forEachIndexed { index, title ->
                         Tab(
-                            selected = pagerState.currentPage == index,
+                            selected = tabIndex == index,
                             onClick = {
                                 scope.launch {
-                                    pagerState.animateScrollToPage(index)
+                                    tabIndex = index
                                 }
                             },
                             text = {
@@ -198,8 +191,8 @@ fun AppEntry(
                             })
                     }
                 }
-                HorizontalPager(pagerState) { tabIndex ->
-                    when (tabIndex) {
+                Crossfade(tabIndex) { index ->
+                    when (index) {
                         0 -> {
                             AppsList(
                                 modifier = Modifier.weight(1f, false),
@@ -216,13 +209,14 @@ fun AppEntry(
                             val appMap = uiState.originalApps.associateBy { it.packageName }
                             val groupExtensions = groupExtensionsByRequired(extensions)
                             LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                                items(groupExtensions) { group ->
-                                    Column() {
-                                        var expanded by remember { mutableStateOf(true) }
+                                groupExtensions.forEach { group ->
+                                    stickyHeader {
                                         Row(
-                                            modifier = Modifier.clickable {
-                                                expanded = !expanded
-                                            }.padding(8.dp),
+                                            modifier = Modifier
+                                                .background(
+                                                    MaterialTheme.colorScheme.surface
+                                                )
+                                                .padding(8.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             if (appMap.containsKey(group.packageName)) {
@@ -242,46 +236,33 @@ fun AppEntry(
                                                 Spacing(1)
                                                 Text("Standalone", modifier = Modifier.weight(1.0f))
                                             }
-                                            Icon(
-                                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                contentDescription = "expandIcon",
-                                            )
                                         }
-                                        AnimatedVisibility(visible = expanded) {
-                                            Column(modifier = Modifier.padding(8.dp)) {
-                                                Spacing(1)
-                                                group.extensions.forEachIndexed { index, extension ->
-                                                    Column {
-                                                        Text(
-                                                            extension.name,
-                                                            color = MaterialTheme.colorScheme.primary,
-                                                        )
-                                                        extension.description?.let { desc ->
-                                                            if (desc != extension.name) {
-                                                                Spacing(0.5f)
-                                                                Text(
-                                                                    desc,
-                                                                    color = MaterialTheme.colorScheme.secondary
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                    if (index != group.extensions.size - 1) {
-                                                        HorizontalDivider()
-                                                        Spacing(1)
-                                                    }
+                                    }
+                                    itemsIndexed(group.extensions) { index, extension ->
+                                        Column(Modifier.padding(8.dp)) {
+                                            Text(
+                                                extension.name,
+                                                color = MaterialTheme.colorScheme.primary,
+                                            )
+                                            extension.description?.let { desc ->
+                                                if (desc != extension.name) {
+                                                    Spacing(0.5f)
+                                                    Text(
+                                                        desc,
+                                                        color = MaterialTheme.colorScheme.secondary
+                                                    )
                                                 }
                                             }
+                                        }
+                                        if (index == group.extensions.size - 1) {
+                                            Spacing(1)
                                         }
                                     }
                                 }
                             }
                         }
                     }
-
                 }
-
             }
             BottomSearchBar(mainViewModel, settingsViewModel, openApp = {
                 openApp(it)
@@ -324,6 +305,8 @@ fun groupExtensionsByRequired(extensions: List<Extension>): List<ExtensionGroup>
     val groupedByPackageName = extensions.groupBy {
         it.required?.firstOrNull() ?: "@unknown@"
     }
+
+    val standaloneExtensions = mutableListOf<Extension>()
 
     // Map each group to an ExtensionGroup instance
     return groupedByPackageName.map { (packageName, extensions) ->
