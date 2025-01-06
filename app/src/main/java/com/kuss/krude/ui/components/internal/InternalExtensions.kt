@@ -6,10 +6,10 @@ import com.kuss.krude.interfaces.I18NExtension
 
 object InternalExtensions {
     const val FILES_EXTENSION_ID = "internal-files"
-    const val SCANNER_EXTENSION_ID = "internal-scanner"
+    // const val SCANNER_EXTENSION_ID = "internal-scanner"
     const val KILL_EXTENSION_ID = "internal-kill"
 
-    val IDS = setOf(FILES_EXTENSION_ID, SCANNER_EXTENSION_ID, KILL_EXTENSION_ID)
+    val IDS = setOf(FILES_EXTENSION_ID, KILL_EXTENSION_ID)
 
     private val FILES_EXTENSION = Extension(
         FILES_EXTENSION_ID,
