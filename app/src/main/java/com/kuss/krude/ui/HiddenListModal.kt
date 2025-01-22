@@ -2,13 +2,12 @@ package com.kuss.krude.ui
 
 import android.icu.text.DateFormat
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ButtonDefaults
@@ -75,56 +74,57 @@ fun HiddenListModal(
                     style = MaterialTheme.typography.titleLarge
                 )
                 Spacing(x = 1)
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(3),
-                    contentPadding = PaddingValues(12.dp)
-                ) {
+                LazyColumn {
                     items(hiddenList, key = { it.key }) { hidden ->
-                        Column(Modifier.padding(vertical = 6.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        ) {
                             val hasApp = remember {
                                 packageNameToNameMap.containsKey(hidden.key)
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (hasApp) {
-                                    AsyncAppIcon(
-                                        packageName = hidden.key, modifier = Modifier
-                                            .size(48.dp)
-                                    )
-                                } else {
-                                    ExtensionIcon(iconSize = 48.dp)
-                                }
-                                Spacing(x = 1)
-                                IconButton(onClick = {
-                                    mainViewModel.deleteHidden(context, hidden)
-                                    hiddenList.remove(hidden)
-                                }) {
-                                    Icon(
-                                        Icons.Filled.Delete,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
                             if (hasApp) {
+                                AsyncAppIcon(
+                                    packageName = hidden.key, modifier = Modifier
+                                        .size(48.dp)
+                                )
+                            } else {
+                                ExtensionIcon(iconSize = 48.dp)
+                            }
+                            Spacing(x = 1)
+                            Column {
+                                if (hasApp) {
+                                    Text(
+                                        text = packageNameToNameMap[hidden.key]!!,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
                                 Text(
-                                    text = packageNameToNameMap[hidden.key]!!,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    text = hidden.key,
+                                    color = MaterialTheme.colorScheme.let {
+                                        if (hasApp) it.secondary else it.primary
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    text = DateFormat.getInstance().format(hidden.createdAt),
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                             }
-                            Text(
-                                text = hidden.key,
-                                color = MaterialTheme.colorScheme.let {
-                                    if (hasApp) it.secondary else it.primary
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Text(
-                                text = DateFormat.getInstance().format(hidden.createdAt),
-                                color = MaterialTheme.colorScheme.secondary,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
+                            Spacer(Modifier.weight(1f))
+                            IconButton(onClick = {
+                                mainViewModel.deleteHidden(context, hidden)
+                                hiddenList.remove(hidden)
+                            }) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Delete",
+                                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 }
