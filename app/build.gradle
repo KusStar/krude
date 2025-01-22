@@ -111,6 +111,7 @@ composeCompiler {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     // Fix Android 14 debug lag
+    debugImplementation libs.shadowhook
     debugImplementation(libs.wytrace)
     prereleaseImplementation(libs.wytrace.no.impl)
     releaseImplementation(libs.wytrace.no.impl)

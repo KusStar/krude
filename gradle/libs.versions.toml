@@ -28,6 +28,7 @@ lazycolumnscrollbar = "2.1.0"
 lifecycleRuntimeCompose = "2.8.3"
 roomCompiler = "2.6.1"
 roomRuntime = "2.6.1"
+shadowhook = "1.0.10"
 shizukuApi = "13.1.5"
 timber = "5.0.1"
 tinypinyin = "2.0.3.RELEASE"
@@ -74,6 +75,7 @@ lazycolumnscrollbar = { module = "com.github.nanihadesuka:LazyColumnScrollbar", 
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 material3 = { module = "androidx.compose.material3:material3" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+shadowhook = { module = "com.bytedance.android:shadowhook", version.ref = "shadowhook" }
 shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizukuApi" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizukuApi" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
