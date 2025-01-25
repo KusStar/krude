@@ -1,17 +1,25 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -29,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -36,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,9 +61,13 @@ import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.utils.SearchHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import my.nanihadesuka.compose.LazyColumnScrollbar
+import my.nanihadesuka.compose.ScrollbarSettings
 
 @Composable
 fun AppsList(
@@ -173,7 +187,11 @@ fun AppEntry(
             Column(modifier = Modifier.weight(1f, false)) {
                 val scope = rememberCoroutineScope()
                 val titles =
-                    listOf(stringResource(R.string.apps), stringResource(R.string.extensions))
+                    listOf(
+                        stringResource(R.string.search),
+                        stringResource(R.string.apps),
+                        stringResource(R.string.extensions)
+                    )
                 var tabIndex by remember { mutableIntStateOf(0) }
                 SecondaryTabRow(selectedTabIndex = tabIndex) {
                     titles.forEachIndexed { index, title ->
@@ -194,6 +212,61 @@ fun AppEntry(
                 Crossfade(tabIndex) { index ->
                     when (index) {
                         0 -> {
+                            Column(modifier = Modifier.fillMaxHeight()) {
+                                val listState = rememberLazyListState()
+                                val scope = rememberCoroutineScope()
+                                var searchResult by remember {
+                                    mutableStateOf<List<String>>(listOf())
+                                }
+                                val urlHandler = LocalUriHandler.current
+                                LaunchedEffect(uiState.currentSearch) {
+                                    scope.launch(IO) {
+                                        if (uiState.currentSearch.isNotEmpty()) {
+                                            SearchHelper.queryBing(uiState.currentSearch) { result ->
+                                                searchResult = result
+                                            }
+                                        } else {
+                                            searchResult = listOf()
+                                        }
+                                    }
+                                }
+                                LazyColumnScrollbar(
+                                    state = listState,
+                                    settings = ScrollbarSettings.Default.copy(
+                                        thumbThickness = 6.dp,
+                                        scrollbarPadding = 0.dp,
+                                        thumbSelectedColor = MaterialTheme.colorScheme.primary,
+                                        thumbUnselectedColor = MaterialTheme.colorScheme.secondary
+                                    )
+                                ) {
+                                    LazyColumn(state = listState) {
+                                        items(searchResult) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        scope.launch(IO) {
+                                                            val intent = CustomTabsIntent.Builder().build()
+
+                                                            intent.launchUrl(
+                                                                context,
+                                                                Uri.parse("https://cn.bing.com/search?q=${it}")
+                                                            )
+                                                        }
+                                                    }
+                                            ) {
+                                                Box(Modifier.padding(12.dp)) {
+                                                    Text(it)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
+                        1 -> {
                             AppsList(
                                 modifier = Modifier.weight(1f, false),
                                 mainViewModel, openApp = {
@@ -203,7 +276,7 @@ fun AppEntry(
                                 })
                         }
 
-                        1 -> {
+                        2 -> {
                             // Extensions
                             val extensions = uiState.extensionMap.values.toList()
                             val appMap = uiState.originalApps.associateBy { it.packageName }

@@ -51,7 +51,8 @@ data class MainState(
     val showMoreSheet: Boolean = false,
     val keywordStarSet: Set<String> = setOf(),
     val hidden: Set<String> = setOf(),
-    val extensionMap: Map<String, Extension> = mapOf()
+    val extensionMap: Map<String, Extension> = mapOf(),
+    val currentSearch: String = ""
 )
 
 data class AppStatsModalState(
@@ -671,7 +672,7 @@ class MainViewModel : ViewModel() {
 
     fun clearSearch() {
         _state.update { mainState ->
-            mainState.copy(searchResult = listOf())
+            mainState.copy(searchResult = listOf(), currentSearch = "")
         }
     }
 
@@ -704,7 +705,7 @@ class MainViewModel : ViewModel() {
             )
 
             _state.update { mainState ->
-                mainState.copy(keywordStarSet = starSet, searchResult = finalResult)
+                mainState.copy(keywordStarSet = starSet, searchResult = finalResult, currentSearch = text)
             }
         }
     }
