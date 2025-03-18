@@ -94,7 +94,9 @@ fun BottomSearchBar(
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
     openApp: (AppInfo) -> Unit,
-    onAppDropdown: (AppInfo, AppDropdownType) -> Unit
+    onAppDropdown: (AppInfo, AppDropdownType) -> Unit,
+    showNoMatchTip: Boolean = true,
+    disableEmbeddedKeyboard: Boolean = false
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -420,7 +422,7 @@ fun BottomSearchBar(
                                     )
                                 }
                             }
-                        } else {
+                        } else if (showNoMatchTip) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -451,7 +453,7 @@ fun BottomSearchBar(
                     CloseBtn(visible = searchState.text.isNotEmpty()) {
                         clear()
                     }
-                    CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard) null else LocalTextInputService.current) {
+                    CompositionLocalProvider(LocalTextInputService provides if (settingsState.useEmbedKeyboard && !disableEmbeddedKeyboard) null else LocalTextInputService.current) {
                         TextField(
                             enabled = apps.isNotEmpty(),
                             modifier = Modifier
@@ -509,7 +511,7 @@ fun BottomSearchBar(
                     )
                 }
                 AnimatedVisibility(
-                    visible = settingsState.useEmbedKeyboard && isFocused.value,
+                    visible = settingsState.useEmbedKeyboard && isFocused.value && !disableEmbeddedKeyboard,
                     enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
                     exit = slideOutVertically() + shrinkVertically() + fadeOut()
                 ) {

@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -47,17 +48,25 @@ object ExtensionHelper {
             .build()
     }
 
+    private fun removedQueryParamsUrl(url: String?): String {
+        val uri = Uri.parse(url)
+        return uri.buildUpon().apply {
+            query(null)
+        }.toString()
+    }
+
     fun launchExtension(context: Context, extension: Extension, isFreeformWindow: Boolean) {
+
         when (extension.type) {
             ExtensionType.SCHEME -> {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(extension.uri)).apply {
+                val intent = Intent(Intent.ACTION_VIEW, removedQueryParamsUrl(extension.uri).toUri()).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
                 ActivityHelper.startIntentWithTransition(context, intent, isFreeformWindow)
             }
             ExtensionType.ACTION -> {
-                val intent = Intent(extension.uri)
+                val intent = Intent(removedQueryParamsUrl(extension.uri))
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 extension.data?.let { data ->
                     intentPutExtra(intent, data.extra)

@@ -1,13 +1,11 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
-import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,6 +23,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -49,6 +48,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
@@ -57,17 +57,21 @@ import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.AppDropdownType
 import com.kuss.krude.ui.components.Spacing
+import com.kuss.krude.ui.components.StackedAppIcons
 import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.utils.ActivityHelper
+import com.kuss.krude.utils.GptData
 import com.kuss.krude.utils.SearchHelper
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
+import me.saket.cascade.CascadeDropdownMenu
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
+import timber.log.Timber
 
 @Composable
 fun AppsList(
@@ -92,7 +96,8 @@ fun AppsList(
 
             mainViewModel.setSelectedHeaderIndex(next)
         }
-        LazyVerticalStaggeredGrid(state = listState,
+        LazyVerticalStaggeredGrid(
+            state = listState,
             columns = StaggeredGridCells.Adaptive(128.dp),
             // content padding
             modifier = Modifier.weight(1f),
@@ -182,7 +187,10 @@ fun AppEntry(
         }
     }
 
+
     if (!missingPermission) {
+        var tabIndex by remember { mutableIntStateOf(0) }
+
         Column {
             Column(modifier = Modifier.weight(1f, false)) {
                 val scope = rememberCoroutineScope()
@@ -192,7 +200,6 @@ fun AppEntry(
                         stringResource(R.string.apps),
                         stringResource(R.string.extensions)
                     )
-                var tabIndex by remember { mutableIntStateOf(0) }
                 SecondaryTabRow(selectedTabIndex = tabIndex) {
                     titles.forEachIndexed { index, title ->
                         Tab(
@@ -216,14 +223,21 @@ fun AppEntry(
                                 val listState = rememberLazyListState()
                                 val scope = rememberCoroutineScope()
                                 var searchResult by remember {
-                                    mutableStateOf<List<String>>(listOf())
+                                    mutableStateOf<List<GptData>>(listOf())
                                 }
                                 val urlHandler = LocalUriHandler.current
                                 LaunchedEffect(uiState.currentSearch) {
                                     scope.launch(IO) {
                                         if (uiState.currentSearch.isNotEmpty()) {
-                                            SearchHelper.queryBing(uiState.currentSearch) { result ->
-                                                searchResult = result
+                                            SearchHelper.queryGpt(uiState.currentSearch) { result ->
+                                                Timber.i("queryGpt result=$result")
+                                                searchResult = result.filter {
+                                                    it.apps.any { gptApp ->
+                                                        uiState.apps.any { app ->
+                                                            gptApp.`package` == app.packageName
+                                                        }
+                                                    }
+                                                }
                                             }
                                         } else {
                                             searchResult = listOf()
@@ -241,24 +255,66 @@ fun AppEntry(
                                 ) {
                                     LazyColumn(state = listState) {
                                         items(searchResult) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        scope.launch(IO) {
-                                                            val intent = CustomTabsIntent.Builder().build()
-
-                                                            intent.launchUrl(
-                                                                context,
-                                                                Uri.parse("https://cn.bing.com/search?q=${it}")
-                                                            )
-                                                        }
+                                            Box {
+                                                var dropDownVisible by remember {
+                                                    mutableStateOf(
+                                                        false
+                                                    )
+                                                }
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable {
+                                                            dropDownVisible = true
+                                                        },
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Box(
+                                                        Modifier.padding(
+                                                            start = 12.dp,
+                                                            end = 0.dp,
+                                                            top = 12.dp,
+                                                            bottom = 12.dp
+                                                        )
+                                                    ) {
+                                                        Text(it.search)
                                                     }
-                                            ) {
-                                                Box(Modifier.padding(12.dp)) {
-                                                    Text(it)
+                                                    StackedAppIcons(it.apps.map { it.`package` })
+                                                }
+                                                CascadeDropdownMenu(
+                                                    expanded = dropDownVisible,
+                                                    onDismissRequest = {
+                                                        dropDownVisible = false
+                                                    }) {
+                                                    it.apps.forEach { gptApp ->
+                                                        androidx.compose.material3.DropdownMenuItem(
+                                                            leadingIcon = {
+                                                                AsyncAppIcon(
+                                                                    packageName = gptApp.`package`,
+                                                                    modifier = Modifier.size(
+                                                                        ButtonDefaults.IconSize
+                                                                    )
+                                                                )
+                                                            },
+                                                            text = { Text(text = "在${gptApp.name}中搜索") },
+                                                            onClick = {
+                                                                scope.launch(IO) {
+                                                                    val intent =
+                                                                        CustomTabsIntent.Builder()
+                                                                            .build()
+                                                                    intent.launchUrl(
+                                                                        context,
+                                                                        gptApp.scheme.replace(
+                                                                            "queryplaceholder",
+                                                                            it.search
+                                                                        ).toUri()
+                                                                    )
+                                                                }
+                                                            })
+                                                    }
                                                 }
                                             }
+
                                         }
                                     }
                                 }
@@ -341,7 +397,7 @@ fun AppEntry(
                 openApp(it)
             }, onAppDropdown = { app, type ->
                 onAppDropdown(app, type)
-            })
+            }, showNoMatchTip = tabIndex != 0, disableEmbeddedKeyboard = tabIndex == 0)
         }
         AppStatsModal(mainViewModel)
         StarItemDialog(mainViewModel)
