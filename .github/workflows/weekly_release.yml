@@ -39,4 +39,3 @@ jobs:
           title: 'Weekly Build(${{ steps.date.outputs.CURRENT_DATE }})'
           files: |
             ./app/build/outputs/apk/release/*.apk
-            ./scanner/build/outputs/apk/release/*.apk
