@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.StackedAppIcons
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.utils.GptData
@@ -36,6 +38,11 @@ fun GptItem(item: GptData) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val isBrowser = item.apps.any { it.`package` == "krude.browser.search" }
+    if (isBrowser) {
+        Spacing(1)
+        HorizontalDivider()
+        Spacing(1)
+    }
     Box {
         var dropDownVisible by remember {
             mutableStateOf(

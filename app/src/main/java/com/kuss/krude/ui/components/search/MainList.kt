@@ -60,9 +60,10 @@ fun MainList(
     onExtensionClick: (extension: Extension, isStar: Boolean) -> Unit,
     onExtensionDropdown: (extension: Extension, type: ExtensionDropdownType) -> Unit,
     onAppDropdown: (app: AppInfo, type: AppDropdownType) -> Unit,
+    extensionForceInline: Boolean = false
     ) {
     val isInline = remember(settingsState.extensionDisplayMode) {
-        settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE
+        settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.IN_LINE || extensionForceInline
     }
     val mainData = remember(isInline, searchResult) {
         if (isInline) {

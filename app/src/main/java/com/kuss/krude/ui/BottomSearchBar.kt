@@ -96,7 +96,8 @@ fun BottomSearchBar(
     openApp: (AppInfo) -> Unit,
     onAppDropdown: (AppInfo, AppDropdownType) -> Unit,
     showNoMatchTip: Boolean = true,
-    disableEmbeddedKeyboard: Boolean = false
+    disableEmbeddedKeyboard: Boolean = false,
+    extensionForceInline: Boolean = false
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
@@ -358,7 +359,7 @@ fun BottomSearchBar(
                                     }
                                 }
 
-                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP) {
+                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_TOP && !extensionForceInline) {
                                     val hasApp = searchResult.any { it.isApp() }
                                     ExtensionList(
                                         scrollWheelState = scrollWheelState,
@@ -398,9 +399,10 @@ fun BottomSearchBar(
                                     onAppDropdown = { app, type ->
                                         onAppDropdown(app, type)
                                     },
+                                    extensionForceInline = extensionForceInline
                                 )
 
-                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM) {
+                                if (settingsState.enableExtension && settingsState.extensionDisplayMode == ExtensionDisplayModeDefaults.ON_BOTTOM && !extensionForceInline) {
                                     val hasApp = searchResult.any { it.isApp() }
                                     AnimatedVisibility(visible = hasApp) {
                                         HorizontalDivider()

@@ -373,7 +373,9 @@ fun AppEntry(
                 openApp(it)
             }, onAppDropdown = { app, type ->
                 onAppDropdown(app, type)
-            }, showNoMatchTip = tabIndex != 0, disableEmbeddedKeyboard = tabIndex == 0)
+            }, showNoMatchTip = tabIndex != 0, disableEmbeddedKeyboard = tabIndex == 0,
+                extensionForceInline = tabIndex == 0
+                )
         }
         AppStatsModal(mainViewModel)
         StarItemDialog(mainViewModel)
