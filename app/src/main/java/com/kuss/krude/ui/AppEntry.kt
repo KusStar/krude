@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
 import com.kuss.krude.interfaces.Extension
+import com.kuss.krude.interfaces.GptData
 import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.AppDropdownType
@@ -57,7 +58,6 @@ import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.utils.ActivityHelper
-import com.kuss.krude.utils.GptData
 import com.kuss.krude.utils.SearchHelper
 import com.kuss.krude.utils.SearchHelper.Companion.getDefaultGptData
 import com.kuss.krude.viewmodel.MainViewModel
@@ -235,7 +235,7 @@ fun AppEntry(
                                         if (uiState.currentSearch.isNotEmpty()) {
                                             loading = true
                                             SearchHelper.queryGpt(query) { result ->
-                                                Timber.i("queryGpt result=$result")
+                                                Timber.i("queryGpt: query=$query, result=$result")
                                                 loading = false
                                                 if (uiState.currentSearch.isEmpty() || query != uiState.currentSearch) {
                                                     return@queryGpt

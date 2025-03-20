@@ -3,45 +3,15 @@ package com.kuss.krude.utils
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.kuss.krude.interfaces.BingResponse
+import com.kuss.krude.interfaces.GptApp
+import com.kuss.krude.interfaces.GptData
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
-
-data class BingResponse(
-    val AS: BingASData
-)
-
-data class BingASData(
-    val Query: String,
-    val FullResults: Int,
-    val Results: List<BingResult>
-)
-
-data class BingResult(
-    val Type: String,
-    val Suggests: List<BingSuggestion>
-)
-
-data class BingSuggestion(
-    val Txt: String,
-    val Type: String,
-    val Sk: String,
-    val HCS: Int
-)
-
-data class GptApp(
-    val name: String,
-    val `package`: String,
-    val scheme: String
-)
-
-data class GptData(
-    val search: String,
-    val apps: List<GptApp>
-)
 
 const val MOCK_DATA =
     """[{"search":"今天吃什么","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"美食推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"},{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"餐厅推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"外卖推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"健康饮食","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"减肥食谱","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"素食推荐","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"快餐推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"夜宵推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"甜品推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]}]"""

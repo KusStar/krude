@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.kuss.krude.interfaces.GptData
 import com.kuss.krude.ui.components.Spacing
 import com.kuss.krude.ui.components.StackedAppIcons
 import com.kuss.krude.ui.components.search.AsyncAppIcon
-import com.kuss.krude.utils.GptData
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import me.saket.cascade.CascadeDropdownMenu

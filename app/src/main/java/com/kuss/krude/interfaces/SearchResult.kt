@@ -2,8 +2,6 @@ package com.kuss.krude.interfaces
 
 import com.kuss.krude.db.AppInfo
 
-
-
 enum class SearchResultType(val value: String) {
     APP("app"),
     EXTENSION("extension");
