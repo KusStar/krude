@@ -47,10 +47,12 @@ const val MOCK_DATA =
     """[{"search":"今天吃什么","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"美食推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"},{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"餐厅推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"外卖推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"健康饮食","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"减肥食谱","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"素食推荐","apps":[{"name":"小红书","package":"com.xingin.xhs","scheme":"xhsdiscover://search/result?keyword=queryplaceholder"},{"name":"抖音","package":"com.ss.android.ugc.aweme","scheme":"snssdk1128://search/result?keyword=queryplaceholder"}]},{"search":"快餐推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"夜宵推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]},{"search":"甜品推荐","apps":[{"name":"美团","package":"com.sankuai.meituan","scheme":"imeituan://www.meituan.com/search?q=queryplaceholder"},{"name":"饿了么","package":"me.ele","scheme":"eleme://search?keyword=queryplaceholder"}]}]"""
 
 class SearchHelper {
+
     companion object {
+        val client = OkHttpClient()
+
         fun queryBing(query: String, onResult: (result: List<String>) -> Unit) {
             // 创建 OkHttpClient 实例
-            val client = OkHttpClient()
 
             // 构建请求 URL
             val url = "http://sg1.api.bing.com/qsonhs.aspx?type=json&q=$query"
@@ -97,15 +99,77 @@ class SearchHelper {
             })
         }
 
-        fun queryGpt(query: String, onResult: (result: List<GptData>) -> Unit) {
-            // 创建 OkHttpClient 实例
-            val client = OkHttpClient()
+        const val QUERY_GPT_TAG = "queryGpt"
 
+        fun getDefaultGptData(query: String): GptData {
+            return GptData(
+                query,
+                listOf(
+                    GptApp(
+                        "Bing",
+                        "krude.browser.search",
+                        "https://cn.bing.com/search?q=queryplaceholder"
+                    ),
+                    GptApp(
+                        "Google",
+                        "krude.browser.search",
+                        "https://www.google.com/search?q=queryplaceholder"
+                    ),
+                    GptApp(
+                        "百度",
+                        "krude.browser.search",
+                        "https://www.baidu.com/s?wd=queryplaceholder"
+                    ),
+                    GptApp(
+                        "抖音",
+                        "krude.browser.search",
+                        "https://www.douyin.com/search/queryplaceholder"
+                    ),
+                    GptApp(
+                        "头条",
+                        "krude.browser.search",
+                        "https://m.toutiao.com/search?q=queryplaceholder"
+                    ),
+                    GptApp(
+                        "GitHub",
+                        "krude.browser.search",
+                        "https://github.com/search?q=queryplaceholder"
+                    ),
+                    GptApp(
+                        "Bilibili",
+                        "krude.browser.search",
+                        "https://search.bilibili.com/all?keyword=queryplaceholder"
+                    ),
+                    GptApp(
+                        "知乎",
+                        "krude.browser.search",
+                        "https://www.zhihu.com/search?q=queryplaceholder"
+                    ),
+                )
+            )
+        }
+
+        fun cancelCallWithTag(tag: String) {
+            client.dispatcher.queuedCalls().forEach {
+                if (it.request().tag() == tag) {
+                    it.cancel()
+                }
+            }
+            client.dispatcher.runningCalls().forEach {
+                if (it.request().tag() == tag) {
+                    it.cancel()
+                }
+            }
+        }
+
+        fun queryGpt(query: String, onResult: (result: List<GptData>) -> Unit) {
+            cancelCallWithTag(QUERY_GPT_TAG)
             // 构建请求 URL
             val url = "https://krude-search.deno.dev/api/search?q=$query"
 
             // 创建请求对象
             val request = Request.Builder()
+                .tag(QUERY_GPT_TAG)
                 .url(url)
                 .build()
 

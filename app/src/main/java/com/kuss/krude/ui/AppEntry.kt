@@ -1,17 +1,14 @@
 package com.kuss.krude.ui
 
 import android.app.Activity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +20,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
@@ -44,11 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuss.krude.R
 import com.kuss.krude.db.AppInfo
@@ -57,18 +52,19 @@ import com.kuss.krude.interfaces.SearchResultItem
 import com.kuss.krude.interfaces.SearchResultType
 import com.kuss.krude.ui.components.AppDropdownType
 import com.kuss.krude.ui.components.Spacing
-import com.kuss.krude.ui.components.StackedAppIcons
+import com.kuss.krude.ui.components.ai.GptItem
 import com.kuss.krude.ui.components.search.AppItem
 import com.kuss.krude.ui.components.search.AsyncAppIcon
 import com.kuss.krude.ui.components.search.ExtensionIcon
 import com.kuss.krude.utils.ActivityHelper
 import com.kuss.krude.utils.GptData
 import com.kuss.krude.utils.SearchHelper
+import com.kuss.krude.utils.SearchHelper.Companion.getDefaultGptData
 import com.kuss.krude.viewmodel.MainViewModel
 import com.kuss.krude.viewmodel.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import me.saket.cascade.CascadeDropdownMenu
 import my.nanihadesuka.compose.LazyColumnScrollbar
 import my.nanihadesuka.compose.ScrollbarSettings
 import timber.log.Timber
@@ -225,19 +221,33 @@ fun AppEntry(
                                 var searchResult by remember {
                                     mutableStateOf<List<GptData>>(listOf())
                                 }
-                                val urlHandler = LocalUriHandler.current
+                                var loading by remember {
+                                    mutableStateOf(false)
+                                }
+                                var job by remember {
+                                    mutableStateOf<Job?>(null)
+                                }
+
                                 LaunchedEffect(uiState.currentSearch) {
-                                    scope.launch(IO) {
+                                    val query = uiState.currentSearch
+                                    job?.cancel()
+                                    job = scope.launch(IO) {
                                         if (uiState.currentSearch.isNotEmpty()) {
-                                            SearchHelper.queryGpt(uiState.currentSearch) { result ->
+                                            loading = true
+                                            SearchHelper.queryGpt(query) { result ->
                                                 Timber.i("queryGpt result=$result")
-                                                searchResult = result.filter {
-                                                    it.apps.any { gptApp ->
-                                                        uiState.apps.any { app ->
-                                                            gptApp.`package` == app.packageName
-                                                        }
-                                                    }
+                                                loading = false
+                                                if (uiState.currentSearch.isEmpty() || query != uiState.currentSearch) {
+                                                    return@queryGpt
                                                 }
+                                                searchResult =
+                                                    result.filter {
+                                                        it.apps.any { gptApp ->
+                                                            uiState.apps.any { app ->
+                                                                gptApp.`package` == app.packageName
+                                                            }
+                                                        }
+                                                    }.plus(getDefaultGptData(query))
                                             }
                                         } else {
                                             searchResult = listOf()
@@ -253,72 +263,38 @@ fun AppEntry(
                                         thumbUnselectedColor = MaterialTheme.colorScheme.secondary
                                     )
                                 ) {
-                                    LazyColumn(state = listState) {
-                                        items(searchResult) {
-                                            Box {
-                                                var dropDownVisible by remember {
-                                                    mutableStateOf(
-                                                        false
+                                    Crossfade(loading) {
+                                        if (it) {
+                                            Column(
+                                                modifier = Modifier.fillMaxSize(),
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(
+                                                        start = 12.dp,
+                                                        end = 0.dp,
+                                                        top = 12.dp,
+                                                        bottom = 12.dp
+                                                    )
+                                                ) {
+                                                    Text(stringResource(id = R.string.searching) + "...")
+                                                    Spacing(1)
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(24.dp),
+                                                        strokeWidth = 3.dp
                                                     )
                                                 }
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            dropDownVisible = true
-                                                        },
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Box(
-                                                        Modifier.padding(
-                                                            start = 12.dp,
-                                                            end = 0.dp,
-                                                            top = 12.dp,
-                                                            bottom = 12.dp
-                                                        )
-                                                    ) {
-                                                        Text(it.search)
-                                                    }
-                                                    StackedAppIcons(it.apps.map { it.`package` })
-                                                }
-                                                CascadeDropdownMenu(
-                                                    expanded = dropDownVisible,
-                                                    onDismissRequest = {
-                                                        dropDownVisible = false
-                                                    }) {
-                                                    it.apps.forEach { gptApp ->
-                                                        androidx.compose.material3.DropdownMenuItem(
-                                                            leadingIcon = {
-                                                                AsyncAppIcon(
-                                                                    packageName = gptApp.`package`,
-                                                                    modifier = Modifier.size(
-                                                                        ButtonDefaults.IconSize
-                                                                    )
-                                                                )
-                                                            },
-                                                            text = { Text(text = "在${gptApp.name}中搜索") },
-                                                            onClick = {
-                                                                scope.launch(IO) {
-                                                                    val intent =
-                                                                        CustomTabsIntent.Builder()
-                                                                            .build()
-                                                                    intent.launchUrl(
-                                                                        context,
-                                                                        gptApp.scheme.replace(
-                                                                            "queryplaceholder",
-                                                                            it.search
-                                                                        ).toUri()
-                                                                    )
-                                                                }
-                                                            })
-                                                    }
+                                                GptItem(item = getDefaultGptData(uiState.currentSearch))
+                                            }
+                                        } else {
+                                            LazyColumn(state = listState) {
+                                                items(searchResult) {
+                                                    GptItem(item = it)
                                                 }
                                             }
-
                                         }
                                     }
                                 }
-
                             }
                         }
 

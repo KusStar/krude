@@ -60,4 +60,5 @@
     <string name="extensions">Extensions</string>
     <string name="embedded_keyboard_type">Embedded keyboard type</string>
     <string name="search">Search</string>
+    <string name="searching">搜索中</string>
 </resources>

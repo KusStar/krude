@@ -59,4 +59,5 @@
     <string name="extensions">扩展</string>
     <string name="embedded_keyboard_type">内置键盘类型</string>
     <string name="search">搜索</string>
+    <string name="searching">Searching</string>
 </resources>
