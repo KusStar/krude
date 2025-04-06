@@ -185,7 +185,8 @@ fun AppEntry(
 
 
     if (!missingPermission) {
-        var tabIndex by remember { mutableIntStateOf(0) }
+        // default to apps
+        var tabIndex by remember { mutableIntStateOf(1) }
 
         Column {
             Column(modifier = Modifier.weight(1f, false)) {
