@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/KusStar/krude/releases">
+  <a href="https://github.com/KusStar/krude/releases" >
     <img width="256" src="./app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png">
   </a>
 </p>
@@ -7,6 +7,13 @@
 # Krude
 
 > All in one app and workflow launcher / 小而美的应用启动器。Built with Jetpack Compose.
+
+<a href="https://github.com/KusStar/krude/releases">
+    <img src="https://img.shields.io/github/v/release/kusstar/krude">
+</a>
+
+[下载](https://github.com/KusStar/krude/releases)
+[Download](https://github.com/KusStar/krude/releases)
 
 ## Captures
 
