@@ -51,22 +51,28 @@ object ExtensionHelper {
     private fun removedQueryParamsUrl(url: String?): String {
         val uri = Uri.parse(url)
         return uri.buildUpon().apply {
-            query(null)
+            if (uri.query.toString().contains("queryplaceholder")) {
+                query(null)
+            }
         }.toString()
     }
 
     fun launchExtension(context: Context, extension: Extension, isFreeformWindow: Boolean) {
-
+        Timber.i("launchExtension: extension = $extension, type = ${extension.type}, isFreeformWindow = $isFreeformWindow")
         when (extension.type) {
             ExtensionType.SCHEME -> {
-                val intent = Intent(Intent.ACTION_VIEW, removedQueryParamsUrl(extension.uri).toUri()).apply {
+                val uri = removedQueryParamsUrl(extension.uri).toUri();
+                Timber.i("launchExtension: scheme uri = $uri")
+                val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
                 ActivityHelper.startIntentWithTransition(context, intent, isFreeformWindow)
             }
             ExtensionType.ACTION -> {
-                val intent = Intent(removedQueryParamsUrl(extension.uri))
+                val uri = removedQueryParamsUrl(extension.uri)
+                val intent = Intent(uri)
+                Timber.i("launchExtension: action uri = $uri")
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 extension.data?.let { data ->
                     intentPutExtra(intent, data.extra)
@@ -90,9 +96,9 @@ object ExtensionHelper {
         isFreeformWindow: Boolean
     ) {
         try {
-            Timber.d("launchExtensionIntent: extension = $extension")
             val intent = Intent()
             val data = extension.data!!
+            Timber.i("launchExtensionIntent: extension = $extension, data = $data")
             if (data.packageField != null && data.classField != null) {
                 intent.setComponent(ComponentName(data.packageField, data.classField))
             }
