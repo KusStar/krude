@@ -1,5 +1,7 @@
 package com.kuss.krude.ui.components.search
 
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +29,12 @@ fun AsyncAppIcon(packageName: String, modifier: Modifier) {
             val packageManager = context.packageManager
 
             try {
-                val info = packageManager.getApplicationInfo(packageName, 0)
+                val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.MATCH_ARCHIVED_PACKAGES.toInt()
+                } else {
+                    0
+                }
+                val info = packageManager.getApplicationInfo(packageName, flags)
 
                 val iconSize = context.resources.getDimensionPixelSize(R.dimen.app_icon_size)
                 val icon = AppIconLoader(iconSize, true, context).loadIcon(info)

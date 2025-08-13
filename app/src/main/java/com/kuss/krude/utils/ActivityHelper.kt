@@ -38,7 +38,9 @@ object ActivityHelper {
     ) {
         val intent = context
             .packageManager.getLaunchIntentForPackage(packageName)
-            ?: return
+            ?: return run {
+                toDetail(context, packageName)
+            }
         startIntentWithTransition(context, intent, isFreeformWindow, view)
     }
 

@@ -34,7 +34,7 @@ android {
         applicationId "com.kuss.krude"
         minSdkVersion 28
         targetSdkVersion 34
-        compileSdk 34
+        compileSdk 35
         versionCode 4
         versionName "2025.1"
         vectorDrawables {

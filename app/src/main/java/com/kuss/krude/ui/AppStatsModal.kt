@@ -98,7 +98,7 @@ fun AppStatsModal(mainViewModel: MainViewModel) {
 
                     if (shortcuts != null) {
                         Timber.d(
-                            "$packageName shortcuts: " + shortcuts.joinToString { it.shortLabel.toString() })
+                            "null%s", shortcuts.joinToString { it.shortLabel.toString() })
                     }
 
                     AsyncAppIcon(packageName = info.packageName, modifier = Modifier.size(64.dp))
@@ -121,7 +121,7 @@ fun AppStatsModal(mainViewModel: MainViewModel) {
                     // extra info
                     Row {
                         Text(
-                            text = info.versionName,
+                            text = info.versionName.toString(),
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.secondary,
                             fontSize = 14.sp,
@@ -137,7 +137,7 @@ fun AppStatsModal(mainViewModel: MainViewModel) {
                     }
                     Spacing(3)
                     val activitiesListState = rememberLazyListState()
-                    if (info.activities.isNotEmpty()) {
+                    if (info.activities?.isNotEmpty() == true) {
                         LazyColumn(
                             state = activitiesListState,
                             modifier = Modifier.fillMaxWidth()
@@ -164,7 +164,7 @@ fun AppStatsModal(mainViewModel: MainViewModel) {
                                     }
                                 }
                             }
-                            items(info.activities.filter { it.exported && it.enabled }) {
+                            items(info.activities?.filter { it.exported && it.enabled } ?: listOf()) {
                                 TextButton(onClick = {
                                     val intent =
                                         context.packageManager.getLaunchIntentForPackage(it.packageName)
